@@ -23,3 +23,7 @@ PyJWT>=2.8.0,<3.0.0
 pyotp==2.9.0
 qrcode==7.4.2
 Pillow==10.1.0
+
+# Google OAuth
+Authlib==1.2.1
+starlette==0.27.0
