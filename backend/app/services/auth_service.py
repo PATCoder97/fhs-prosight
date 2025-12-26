@@ -1,4 +1,4 @@
-from integrations import GoogleAuthClient
+from app.integrations import GoogleAuthClient
 
 google_auth = GoogleAuthClient()
 
