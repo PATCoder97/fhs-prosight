@@ -1,1 +1,2 @@
 from .google_auth_client import GoogleAuthClient
+from .github_auth_client import GitHubAuthClient

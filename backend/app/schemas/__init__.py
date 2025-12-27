@@ -1,1 +1,1 @@
-from .auth import GoogleLoginResponse, SocialLoginUser
+from .auth import LoginResponse, SocialLoginUser

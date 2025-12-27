@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
+    # GitHub OAuth2
+    GITHUB_CLIENT_ID: str
+    GITHUB_CLIENT_SECRET: str
+
     # FHS Integration
     FHS_HRS_BASE_URL: str = "https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr"
     FHS_AUTH_API_URL: str = "https://www.fhs.com.tw/fhs_covid_api/token"
