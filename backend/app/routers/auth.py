@@ -19,9 +19,8 @@ async def google_callback(request: Request) -> LoginResponse:
 
 @router.get("/login/github")
 async def github_login(request: Request):
-    redirect_uri = request.url_for("github_callback")
     return await get_github_auth_url(request)
 
-@router.get("/github/callback")
-async def github_callback(request: Request):
+@router.get("/github/callback", response_model=LoginResponse)
+async def github_callback(request: Request) -> LoginResponse:
     return await handle_github_callback(request)
