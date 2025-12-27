@@ -21,4 +21,8 @@ class GoogleAuthClient:
 
     async def get_user_info(self, request):
         token = await self.client.authorize_access_token(request)
-        return token.get("userinfo")
+        userinfo = token.get("userinfo")
+        return {
+            "token": token,
+            "userinfo": userinfo
+        }
