@@ -4,10 +4,12 @@ from app.schemas.auth import GoogleLoginResponse, SocialLoginUser
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 @router.get("/login/google")
 async def login_google(request: Request) -> dict:
     """Get Google OAuth login URL"""
     return await get_google_auth_url(request)
+
 
 @router.get("/google/callback", response_model=GoogleLoginResponse)
 async def google_callback(request: Request) -> GoogleLoginResponse:

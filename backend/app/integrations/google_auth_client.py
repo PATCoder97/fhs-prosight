@@ -4,12 +4,13 @@ from app.core.config import settings
 oauth = OAuth()
 
 oauth.register(
-    name='google',
+    name="google",
     client_id=settings.GOOGLE_CLIENT_ID,
     client_secret=settings.GOOGLE_CLIENT_SECRET,
-    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
-    client_kwargs={'scope': 'openid email profile'},
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"},
 )
+
 
 class GoogleAuthClient:
     def __init__(self):
@@ -21,8 +22,4 @@ class GoogleAuthClient:
 
     async def get_user_info(self, request):
         token = await self.client.authorize_access_token(request)
-        userinfo = token.get("userinfo")
-        return {
-            "token": token,
-            "userinfo": userinfo
-        }
+        return token.get("userinfo")

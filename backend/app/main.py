@@ -13,6 +13,9 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+# Add middleware - order matters! SessionMiddleware must be added first (but will be the last in the chain)
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -21,8 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Register routers
 app.include_router(auth.router, prefix="/api")
