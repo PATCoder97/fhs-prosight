@@ -16,6 +16,8 @@ def create_access_token(
     user_id: str,
     role: str,
     full_name: str = None,
+    localId: Optional[str] = None,
+    provider: Optional[str] = None,
     expires_delta: Optional[timedelta] = None,
     scope: str = "access",
 ) -> str:
@@ -26,6 +28,8 @@ def create_access_token(
         user_id: User ID
         role: User role (admin, user, etc)
         full_name: Full name (optional)
+        localId: Employee local ID (optional, e.g., VNW0014732)
+        provider: OAuth provider used (optional, e.g., 'github', 'google')
         expires_delta: Token lifetime
         scope: Token scope ("access" hoặc "pre_auth")
 
@@ -54,6 +58,13 @@ def create_access_token(
     if full_name:
         payload["full_name"] = full_name
 
+    # Add optional fields if provided
+    if localId is not None:
+        payload["localId"] = localId
+
+    if provider is not None:
+        payload["oauth_provider"] = provider
+
     encoded_jwt = jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
     logger.info(f"Created {scope} token for user {user_id}")
@@ -65,6 +76,8 @@ def verify_token(
 ) -> Optional[Dict[str, Any]]:
     """
     Xác thực JWT token
+
+    Backward compatible - old tokens without localId/oauth_provider still valid
 
     Args:
         token: JWT token string
@@ -84,6 +97,13 @@ def verify_token(
                 f"Token scope mismatch. Expected {required_scope}, got {payload.get('scope')}"
             )
             return None
+
+        # Set defaults for optional fields (backward compatibility)
+        if "localId" not in payload:
+            payload["localId"] = None
+
+        if "oauth_provider" not in payload:
+            payload["oauth_provider"] = None
 
         return payload
     except jwt.ExpiredSignatureError:
