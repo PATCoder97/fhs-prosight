@@ -35,6 +35,7 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                     "full_name": user.full_name,
                     "avatar": user.avatar,
                     "role": user.role,
+                    "localId": user.localId,
                     "is_active": user.is_active,
                     "is_verified": user.is_verified,
                 }
@@ -46,7 +47,8 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                 email=email,
                 full_name=full_name,
                 avatar=avatar,
-                role="user",
+                role="guest",
+                localId=None,
                 is_active=True,
                 is_verified=False,
             )
@@ -61,6 +63,7 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                 "full_name": new_user.full_name,
                 "avatar": new_user.avatar,
                 "role": new_user.role,
+                "localId": new_user.localId,
                 "is_active": new_user.is_active,
                 "is_verified": new_user.is_verified,
             }
@@ -74,7 +77,8 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
             "email": email,
             "full_name": full_name,
             "avatar": avatar,
-            "role": "user",
+            "role": "guest",
+            "localId": None,
             "is_active": True,
             "is_verified": False,
         }
