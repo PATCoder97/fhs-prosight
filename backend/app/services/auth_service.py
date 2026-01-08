@@ -115,6 +115,8 @@ async def handle_google_callback(request) -> LoginResponse:
         user_id=str(user_data["id"]),
         full_name=user_data["full_name"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
+        provider="google",
         scope="access",
     )
 
@@ -127,6 +129,7 @@ async def handle_google_callback(request) -> LoginResponse:
         full_name=user_data["full_name"],
         avatar=user_data["avatar"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
         is_active=user_data["is_active"],
         is_verified=user_data["is_verified"],
         is_new_user=user_data["id"] == 0,  # New if ID is 0
@@ -161,6 +164,8 @@ async def handle_github_callback(request) -> LoginResponse:
         user_id=str(user_data["id"]),
         full_name=user_data["full_name"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
+        provider="github",
         scope="access",
     )
 
@@ -172,6 +177,7 @@ async def handle_github_callback(request) -> LoginResponse:
         full_name=user_data["full_name"],
         avatar=user_data["avatar"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
         is_active=user_data["is_active"],
         is_verified=user_data["is_verified"],
         is_new_user=user_data["id"] == 0,  # New if ID is 0
