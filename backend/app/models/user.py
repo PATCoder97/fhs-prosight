@@ -20,8 +20,11 @@ class User(Base):
     full_name = Column(String(255), nullable=True)
     avatar = Column(String(500), nullable=True)
 
+    # LocalId for employee identification
+    localId = Column(String(50), nullable=True, index=True)
+
     # User Settings
-    role = Column(String(50), default="user", nullable=False)  # "user", "admin", "manager", etc.
+    role = Column(String(50), default="guest", nullable=False)  # "guest", "user", "admin", "manager", etc.
     is_active = Column(Boolean, default=True, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
 
