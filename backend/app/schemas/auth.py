@@ -10,6 +10,7 @@ class SocialLoginUser(BaseModel):
     full_name: Optional[str]
     avatar: Optional[str]
     role: str = "user"
+    localId: Optional[str] = None
     is_active: bool = True
     is_verified: bool = False
     is_new_user: bool = False

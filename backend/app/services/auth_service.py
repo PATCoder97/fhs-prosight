@@ -35,6 +35,7 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                     "full_name": user.full_name,
                     "avatar": user.avatar,
                     "role": user.role,
+                    "localId": user.localId,
                     "is_active": user.is_active,
                     "is_verified": user.is_verified,
                 }
@@ -46,7 +47,8 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                 email=email,
                 full_name=full_name,
                 avatar=avatar,
-                role="user",
+                role="guest",
+                localId=None,
                 is_active=True,
                 is_verified=False,
             )
@@ -61,6 +63,7 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
                 "full_name": new_user.full_name,
                 "avatar": new_user.avatar,
                 "role": new_user.role,
+                "localId": new_user.localId,
                 "is_active": new_user.is_active,
                 "is_verified": new_user.is_verified,
             }
@@ -74,7 +77,8 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
             "email": email,
             "full_name": full_name,
             "avatar": avatar,
-            "role": "user",
+            "role": "guest",
+            "localId": None,
             "is_active": True,
             "is_verified": False,
         }
@@ -111,6 +115,8 @@ async def handle_google_callback(request) -> LoginResponse:
         user_id=str(user_data["id"]),
         full_name=user_data["full_name"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
+        provider="google",
         scope="access",
     )
 
@@ -123,6 +129,7 @@ async def handle_google_callback(request) -> LoginResponse:
         full_name=user_data["full_name"],
         avatar=user_data["avatar"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
         is_active=user_data["is_active"],
         is_verified=user_data["is_verified"],
         is_new_user=user_data["id"] == 0,  # New if ID is 0
@@ -157,6 +164,8 @@ async def handle_github_callback(request) -> LoginResponse:
         user_id=str(user_data["id"]),
         full_name=user_data["full_name"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
+        provider="github",
         scope="access",
     )
 
@@ -168,6 +177,7 @@ async def handle_github_callback(request) -> LoginResponse:
         full_name=user_data["full_name"],
         avatar=user_data["avatar"],
         role=user_data["role"],
+        localId=user_data.get("localId"),
         is_active=user_data["is_active"],
         is_verified=user_data["is_verified"],
         is_new_user=user_data["id"] == 0,  # New if ID is 0
