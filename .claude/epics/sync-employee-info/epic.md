@@ -1,10 +1,13 @@
 ---
 name: sync-employee-info
-status: backlog
+status: completed
 created: 2026-01-09T02:11:35Z
-progress: 0%
+completed: 2026-01-09T09:19:08Z
+progress: 100%
 prd: .claude/prds/sync-employee-info.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/11
+merged: true
+merged_commit: 5c2fcfd
 ---
 
 # Epic: Sync Employee Info
