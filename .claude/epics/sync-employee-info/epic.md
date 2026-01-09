@@ -561,19 +561,32 @@ High-level task categories (aim for ≤10 tasks):
 
 ---
 
-## Next Steps
+## Tasks Created
 
-After epic creation, run: `/pm:epic-decompose sync-employee-info`
+Epic has been decomposed into 7 implementation tasks:
 
-This will:
-1. Break down into 7-10 specific tasks
-2. Assign task IDs and dependencies
-3. Create GitHub issues
-4. Setup git worktree for development
+- [ ] **001.md** - Database setup - Employee model, migration, and schemas (M, 4-6h, parallel: false, depends: [])
+- [ ] **002.md** - Integration clients - FHS HRS and COVID API clients with utilities (M, 6-8h, parallel: true, depends: [])
+- [ ] **003.md** - Service layer - Employee sync, CRUD, and search operations (L, 8-10h, parallel: false, depends: [001, 002])
+- [ ] **004.md** - API endpoints - REST API router with 6 admin endpoints (M, 4-6h, parallel: false, depends: [003])
+- [ ] **005.md** - Unit tests - Clients, services, and utilities with mocks (L, 8-10h, parallel: true, depends: [001, 002, 003])
+- [ ] **006.md** - Integration tests - API endpoints end-to-end testing (M, 6-8h, parallel: true, depends: [004])
+- [ ] **007.md** - Documentation - API docs, deployment guide, and E2E test plan (M, 6-8h, parallel: false, depends: [004, 005, 006])
+
+**Total tasks:** 7
+**Parallel tasks:** 3 (002, 005, 006)
+**Sequential tasks:** 4 (001, 003, 004, 007)
+**Estimated total effort:** 44-58 hours (10-12 working days)
 
 ---
 
-**Epic Status:** Ready for decomposition
+## Next Steps
+
+Ready to sync to GitHub? Run: `/pm:epic-sync sync-employee-info`
+
+---
+
+**Epic Status:** Decomposed - Ready for implementation
 **Dependencies:** All internal dependencies met (OAuth, DB, patterns)
 **External Dependencies:** FHS APIs available
 **Risk Level:** Medium (external APIs + encoding)
