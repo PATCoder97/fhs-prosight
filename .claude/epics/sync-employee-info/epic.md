@@ -4,7 +4,7 @@ status: backlog
 created: 2026-01-09T02:11:35Z
 progress: 0%
 prd: .claude/prds/sync-employee-info.md
-github: [Will be updated when synced to GitHub]
+github: https://github.com/PATCoder97/fhs-prosight/issues/11
 ---
 
 # Epic: Sync Employee Info
@@ -563,23 +563,20 @@ High-level task categories (aim for ≤10 tasks):
 
 ## Tasks Created
 
-Epic has been decomposed into 7 implementation tasks:
+Epic has been decomposed and synced to GitHub:
 
-- [ ] **001.md** - Database setup - Employee model, migration, and schemas (M, 4-6h, parallel: false, depends: [])
-- [ ] **002.md** - Integration clients - FHS HRS and COVID API clients with utilities (M, 6-8h, parallel: true, depends: [])
-- [ ] **003.md** - Service layer - Employee sync, CRUD, and search operations (L, 8-10h, parallel: false, depends: [001, 002])
-- [ ] **004.md** - API endpoints - REST API router with 6 admin endpoints (M, 4-6h, parallel: false, depends: [003])
-- [ ] **005.md** - Unit tests - Clients, services, and utilities with mocks (L, 8-10h, parallel: true, depends: [001, 002, 003])
-- [ ] **006.md** - Integration tests - API endpoints end-to-end testing (M, 6-8h, parallel: true, depends: [004])
-- [ ] **007.md** - Documentation - API docs, deployment guide, and E2E test plan (M, 6-8h, parallel: false, depends: [004, 005, 006])
+- [ ] [#12](https://github.com/PATCoder97/fhs-prosight/issues/12) - Database setup - Employee model, migration, and schemas (parallel: false)
+- [ ] [#13](https://github.com/PATCoder97/fhs-prosight/issues/13) - Integration clients - FHS HRS and COVID API clients with utilities (parallel: true)
+- [ ] [#14](https://github.com/PATCoder97/fhs-prosight/issues/14) - Service layer - Employee sync, CRUD, and search operations (parallel: false)
+- [ ] [#15](https://github.com/PATCoder97/fhs-prosight/issues/15) - API endpoints - REST API router with 6 admin endpoints (parallel: false)
+- [ ] [#16](https://github.com/PATCoder97/fhs-prosight/issues/16) - Unit tests - Clients, services, and utilities with mocks (parallel: true)
+- [ ] [#17](https://github.com/PATCoder97/fhs-prosight/issues/17) - Integration tests - API endpoints end-to-end testing (parallel: true)
+- [ ] [#18](https://github.com/PATCoder97/fhs-prosight/issues/18) - Documentation - API docs, deployment guide, and E2E test plan (parallel: false)
 
-**Total tasks:** 7
-**Parallel tasks:** 3 (002, 005, 006)
-**Sequential tasks:** 4 (001, 003, 004, 007)
+**Total tasks:** 7  
+**Parallel tasks:** 3  
+**Sequential tasks:** 4  
 **Estimated total effort:** 44-58 hours (10-12 working days)
-
----
-
 ## Next Steps
 
 Ready to sync to GitHub? Run: `/pm:epic-sync sync-employee-info`
