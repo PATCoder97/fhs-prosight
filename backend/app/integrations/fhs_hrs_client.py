@@ -10,7 +10,7 @@ def _parse_number(value: str) -> float:
     """Parse a string to float, return 0.0 if empty or invalid
 
     Args:
-        value: String representation of number
+        value: String representation of number (may contain commas)
 
     Returns:
         Parsed float value, or 0.0 if parsing fails
@@ -18,7 +18,9 @@ def _parse_number(value: str) -> float:
     if not value or not value.strip():
         return 0.0
     try:
-        return float(value.strip())
+        # Remove commas from numbers (e.g., "1,712,344" → "1712344")
+        cleaned = value.strip().replace(',', '')
+        return float(cleaned)
     except (ValueError, AttributeError):
         return 0.0
 
