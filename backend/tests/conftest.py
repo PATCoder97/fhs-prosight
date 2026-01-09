@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.jwt_handler import create_access_token
 from app.models.user import User, Base
+from app.models.employee import Employee
 
 
 # Test Database Configuration
@@ -186,6 +187,28 @@ def guest_token(guest_user):
         provider=guest_user.provider,
         scope="access"
     )
+
+
+# Employee Fixtures
+
+@pytest_asyncio.fixture
+async def sample_employee(test_db_session):
+    """Create a sample employee in test database"""
+    employee = Employee(
+        id="VNW0006204",
+        name_tw="陳玉俊",
+        name_en="Phan Anh Tuấn",
+        department_code="7410",
+        dept="冶金技術部",
+        job_title="工程師",
+        identity_number="044090004970"
+    )
+
+    test_db_session.add(employee)
+    await test_db_session.commit()
+    await test_db_session.refresh(employee)
+
+    return employee
 
 
 # Mock Fixtures
