@@ -4,8 +4,8 @@ HRS Data API Router.
 Provides 4 endpoints for salary queries:
 1. GET /salary - View own salary (authenticated users)
 2. GET /salary/history - View salary history with trend (authenticated users)
-3. GET /salary/history/{employee_id} - Admin view any employee's salary history (admin only)
-4. GET /salary/{employee_id} - Admin view any employee's salary (admin only)
+3. GET /salary/history/{employee_id} - View any employee's salary history (authenticated users)
+4. GET /salary/{employee_id} - View any employee's salary (authenticated users)
 """
 
 import logging
@@ -141,21 +141,21 @@ async def get_salary_history(
 @router.get(
     "/salary/history/{employee_id}",
     response_model=SalaryHistoryResponse,
-    summary="Get employee salary history (admin)",
-    description="Admin: Get any employee's salary history with trend analysis"
+    summary="Get employee salary history",
+    description="Get any employee's salary history with trend analysis"
 )
-async def get_employee_salary_history_admin(
+async def get_employee_salary_history(
     employee_id: str,
     year: int = Query(..., ge=2000, le=2100, description="Year"),
     from_month: int = Query(1, ge=1, le=12, description="Start month (default: 1)"),
     to_month: int = Query(12, ge=1, le=12, description="End month (default: 12)"),
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Get any employee's salary history with trend analysis.
+    Get any employee's salary history with trend analysis.
 
-    **Access:** Admin only
+    **Access:** Authenticated users (any role)
 
     **Path Parameters:**
     - employee_id: Employee ID (e.g., VNW0006204)
@@ -168,7 +168,6 @@ async def get_employee_salary_history_admin(
     **Response:**
     - 200: Salary history with trend analysis
     - 400: Invalid employee ID format
-    - 403: Forbidden (not admin)
     - 404: No salary data found for any month in range
     - 422: Invalid month range (from_month > to_month)
     - 503: HRS API unavailable
@@ -179,7 +178,7 @@ async def get_employee_salary_history_admin(
     ```
     """
     logger.info(
-        f"Admin {current_user['localId']} querying salary history for {employee_id}: "
+        f"User {current_user['localId']} querying salary history for {employee_id}: "
         f"{year}-{from_month:02d} to {year}-{to_month:02d}"
     )
 
@@ -204,20 +203,20 @@ async def get_employee_salary_history_admin(
 @router.get(
     "/salary/{employee_id}",
     response_model=SalaryResponse,
-    summary="Get employee salary (admin)",
-    description="Admin: Get any employee's salary for specific month"
+    summary="Get employee salary",
+    description="Get any employee's salary for specific month"
 )
-async def get_employee_salary_admin(
+async def get_employee_salary(
     employee_id: str,
     year: int = Query(..., ge=2000, le=2100, description="Year"),
     month: int = Query(..., ge=1, le=12, description="Month"),
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Admin: Get any employee's salary for specific month.
+    Get any employee's salary for specific month.
 
-    **Access:** Admin only
+    **Access:** Authenticated users (any role)
 
     **Path Parameters:**
     - employee_id: Employee ID (e.g., VNW0006204)
@@ -229,7 +228,6 @@ async def get_employee_salary_admin(
     **Response:**
     - 200: Salary data returned
     - 400: Invalid employee ID format
-    - 403: Forbidden (not admin)
     - 404: Salary not found or employee doesn't exist
     - 503: HRS API unavailable
 
@@ -239,7 +237,7 @@ async def get_employee_salary_admin(
     ```
     """
     logger.info(
-        f"Admin {current_user['localId']} querying salary for {employee_id}: "
+        f"User {current_user['localId']} querying salary for {employee_id}: "
         f"{year}-{month:02d}"
     )
 
