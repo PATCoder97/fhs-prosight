@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pip list:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(if not exist docs mkdir docs)",
+      "Bash(git push:*)"
+    ]
+  }
+}

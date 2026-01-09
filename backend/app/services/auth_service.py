@@ -15,6 +15,10 @@ async def get_or_create_user(social_id: str, provider: str, email: str, full_nam
     """Get existing user or create new one"""
     try:
         async with AsyncSessionLocal() as db:
+            # Đảm bảo email không null (đặc biệt cho github)
+            if not email:
+                email = f"{provider}_{social_id}@no-email.local"
+            
             # Check if user exists by social_id
             stmt = select(User).where(
                 (User.social_id == social_id) & (User.provider == provider)
