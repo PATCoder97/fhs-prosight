@@ -1,10 +1,11 @@
 """
 HRS Data API Router.
 
-Provides 3 endpoints for salary queries:
+Provides 4 endpoints for salary queries:
 1. GET /salary - View own salary (authenticated users)
 2. GET /salary/history - View salary history with trend (authenticated users)
-3. GET /salary/{employee_id} - Admin view any employee's salary (admin only)
+3. GET /salary/history/{employee_id} - Admin view any employee's salary history (admin only)
+4. GET /salary/{employee_id} - Admin view any employee's salary (admin only)
 """
 
 import logging
@@ -131,6 +132,69 @@ async def get_salary_history(
         raise
     except Exception as e:
         logger.error(f"Unexpected error getting salary history: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to retrieve salary history. Please try again later."
+        )
+
+
+@router.get(
+    "/salary/history/{employee_id}",
+    response_model=SalaryHistoryResponse,
+    summary="Get employee salary history (admin)",
+    description="Admin: Get any employee's salary history with trend analysis"
+)
+async def get_employee_salary_history_admin(
+    employee_id: str,
+    year: int = Query(..., ge=2000, le=2100, description="Year"),
+    from_month: int = Query(1, ge=1, le=12, description="Start month (default: 1)"),
+    to_month: int = Query(12, ge=1, le=12, description="End month (default: 12)"),
+    current_user: dict = Depends(require_role("admin")),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Admin: Get any employee's salary history with trend analysis.
+
+    **Access:** Admin only
+
+    **Path Parameters:**
+    - employee_id: Employee ID (e.g., VNW0006204)
+
+    **Query Parameters:**
+    - year: Year (required)
+    - from_month: Start month (1-12), default 1
+    - to_month: End month (1-12), default 12
+
+    **Response:**
+    - 200: Salary history with trend analysis
+    - 400: Invalid employee ID format
+    - 403: Forbidden (not admin)
+    - 404: No salary data found for any month in range
+    - 422: Invalid month range (from_month > to_month)
+    - 503: HRS API unavailable
+
+    **Example:**
+    ```
+    GET /api/hrs-data/salary/history/VNW0006204?year=2024&from_month=1&to_month=12
+    ```
+    """
+    logger.info(
+        f"Admin {current_user['localId']} querying salary history for {employee_id}: "
+        f"{year}-{from_month:02d} to {year}-{to_month:02d}"
+    )
+
+    try:
+        history = await hrs_data_service.get_salary_history(
+            db, employee_id, year, from_month, to_month
+        )
+        return history
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Unexpected error getting employee {employee_id} salary history: {e}",
+            exc_info=True
+        )
         raise HTTPException(
             status_code=503,
             detail="Failed to retrieve salary history. Please try again later."
