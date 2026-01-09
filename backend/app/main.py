@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import settings
-from app.routers import auth, users
+from app.routers import auth, users, employees
 
 app = FastAPI(
     title="FHS Pro Sight Backend",
@@ -28,3 +28,4 @@ app.add_middleware(
 # Register routers
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
+app.include_router(employees.router, prefix="/api")
