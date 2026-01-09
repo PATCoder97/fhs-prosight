@@ -14,7 +14,9 @@
       "Bash(git push:*)",
       "Bash(cat:*)",
       "Bash(python -m pip install:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Skill(pm:prd-parse)",
+      "Skill(pm:prd-parse:*)"
     ]
   }
 }
