@@ -6,6 +6,127 @@ from datetime import date
 logger = logging.getLogger(__name__)
 
 
+def _parse_number(value: str) -> float:
+    """Parse a string to float, return 0.0 if empty or invalid
+
+    Args:
+        value: String representation of number
+
+    Returns:
+        Parsed float value, or 0.0 if parsing fails
+    """
+    if not value or not value.strip():
+        return 0.0
+    try:
+        return float(value.strip())
+    except (ValueError, AttributeError):
+        return 0.0
+
+
+def _first_block(raw_text: str) -> str:
+    """Extract first data block from HRS response (avoid duplicate entries)
+
+    Args:
+        raw_text: Raw response text from HRS API
+
+    Returns:
+        First data block before any duplicates
+    """
+    if not raw_text or not raw_text.strip():
+        return ""
+    # HRS API sometimes returns duplicate data separated by "o|o"
+    return raw_text.split("o|o", 1)[0].strip()
+
+
+def _parse_salary_response(fields: List[str]) -> dict:
+    """Parse HRS salary response into structured format.
+
+    Args:
+        fields: List of pipe-delimited fields from HRS API (45+ fields)
+
+    Returns:
+        dict with structure:
+        {
+            "summary": {tong_tien_cong, tong_tien_tru, thuc_linh},
+            "income": {32 income fields},
+            "deductions": {10 deduction fields}
+        }
+    """
+    # Parse income fields (32 fields)
+    income = {
+        "luong_co_ban": _parse_number(fields[44]),
+        "thuong_nang_suat": _parse_number(fields[2]),
+        "phu_cap_chuc_vu": _parse_number(fields[3]),
+        "phu_cap_trach_nhiem": _parse_number(fields[4]),
+        "phu_cap_sinh_hoat": _parse_number(fields[5]),
+        "phu_cap_di_lai": _parse_number(fields[6]),
+        "phu_cap_nha_o": _parse_number(fields[7]),
+        "phu_cap_dien_thoai": _parse_number(fields[8]),
+        "phu_cap_an_trua": _parse_number(fields[9]),
+        "phu_cap_xang_xe": _parse_number(fields[10]),
+        "phu_cap_doc_hai": _parse_number(fields[11]),
+        "phu_cap_lam_dem": _parse_number(fields[12]),
+        "phu_cap_tieng_anh": _parse_number(fields[13]),
+        "phu_cap_khac": _parse_number(fields[14]),
+        "luong_lam_them_150": _parse_number(fields[15]),
+        "luong_lam_them_200": _parse_number(fields[16]),
+        "luong_lam_them_300": _parse_number(fields[17]),
+        "luong_ngay_le": _parse_number(fields[18]),
+        "luong_ngay_thuong": _parse_number(fields[19]),
+        "thuong_hieu_qua": _parse_number(fields[20]),
+        "thuong_khac": _parse_number(fields[21]),
+        "tro_cap_khac": _parse_number(fields[22]),
+        "bu_luong_thang_truoc": _parse_number(fields[23]),
+        "luong_nghi_phep": _parse_number(fields[24]),
+        "luong_nghi_om": _parse_number(fields[25]),
+        "luong_con_nho": _parse_number(fields[26]),
+        "thu_nhap_khac_1": _parse_number(fields[27]),
+        "thu_nhap_khac_2": _parse_number(fields[28]),
+        "thu_nhap_khac_3": _parse_number(fields[29]),
+        "thu_nhap_khac_4": _parse_number(fields[30]),
+        "thu_nhap_khac_5": _parse_number(fields[31]),
+    }
+
+    # Parse deduction fields (10 fields)
+    deductions = {
+        "bhxh": _parse_number(fields[33]),
+        "bhtn": _parse_number(fields[34]),
+        "bhyt": _parse_number(fields[35]),
+        "thue_tncn": _parse_number(fields[36]),
+        "tam_ung": _parse_number(fields[37]),
+        "phi_cong_doan": _parse_number(fields[38]),
+        "phat": _parse_number(fields[39]),
+        "khau_tru_khac_1": _parse_number(fields[40]),
+        "khau_tru_khac_2": _parse_number(fields[41]),
+        "khau_tru_khac_3": _parse_number(fields[42]),
+    }
+
+    # Calculate totals
+    tong_tien_cong = _parse_number(fields[32])
+    tong_tien_tru = sum(deductions.values())
+    thuc_linh = _parse_number(fields[43])
+
+    # Verify calculation (allow 100 VND tolerance for rounding)
+    expected_net = tong_tien_cong - tong_tien_tru
+    if abs(expected_net - thuc_linh) > 100:
+        logger.warning(
+            f"Salary calculation mismatch: "
+            f"expected {expected_net:.2f} (income - deductions), "
+            f"got {thuc_linh:.2f} from API. "
+            f"Difference: {abs(expected_net - thuc_linh):.2f} VND"
+        )
+
+    return {
+        "summary": {
+            "tong_tien_cong": tong_tien_cong,
+            "tong_tien_tru": tong_tien_tru,
+            "thuc_linh": thuc_linh
+        },
+        "income": income,
+        "deductions": deductions
+    }
+
+
 class FHSHRSClient:
     """Client for FHS HRS API - fetches employee information without authentication"""
 
@@ -127,3 +248,53 @@ class FHSHRSClient:
             results.append(employee_data)
 
         return results
+
+    async def get_salary_data(self, emp_id: int, year: int, month: int) -> Optional[dict]:
+        """Fetch salary data (S16) from HRS API
+
+        Args:
+            emp_id: Employee ID number (e.g., 6204)
+            year: Year (e.g., 2024)
+            month: Month (1-12)
+
+        Returns:
+            dict with structure:
+            {
+                "summary": {tong_tien_cong, tong_tien_tru, thuc_linh},
+                "income": {32 income fields},
+                "deductions": {10 deduction fields}
+            }
+            Returns None if error or no data found.
+        """
+        path = f"s16/VNW00{emp_id:05d}vkokv{year}-{month:02d}"
+
+        try:
+            raw_text = await self._fetch_text(path)
+            if not raw_text:
+                logger.error(f"No salary data returned for emp_id={emp_id}, {year}-{month:02d}")
+                return None
+
+            fields = _first_block(raw_text).split("|")
+
+            # Validate field count
+            if len(fields) < 45:
+                logger.error(
+                    f"Dữ liệu lương không đủ trường: "
+                    f"nhận {len(fields)} trường, cần ít nhất 45 trường. "
+                    f"emp_id={emp_id}, {year}-{month:02d}"
+                )
+                return None
+
+            # Parse and structure the response
+            structured_data = _parse_salary_response(fields)
+
+            logger.info(
+                f"Successfully fetched salary for emp_id={emp_id}, {year}-{month:02d}. "
+                f"Net salary: {structured_data['summary']['thuc_linh']:,.0f} VND"
+            )
+
+            return structured_data
+
+        except Exception as e:
+            logger.error(f"Error fetching salary data: {e}", exc_info=True)
+            return None
