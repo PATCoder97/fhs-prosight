@@ -22,7 +22,10 @@
       "Skill(pm:issue-start:*)",
       "Bash(gh issue comment:*)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(test -f:*)",
+      "Skill(pm:epic-decompose)",
+      "Skill(pm:epic-decompose:*)"
     ]
   }
 }
