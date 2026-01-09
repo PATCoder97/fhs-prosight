@@ -11,7 +11,10 @@
       "Bash(ls:*)",
       "Bash(dir:*)",
       "Bash(if not exist docs mkdir docs)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(cat:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(pytest:*)"
     ]
   }
 }
