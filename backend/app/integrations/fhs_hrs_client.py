@@ -50,6 +50,9 @@ class FHSHRSClient:
             if not raw_text or not raw_text.strip():
                 return None
 
+            # Tránh trường hợp HRS trả về lặp dữ liệu
+            raw_text = raw_text.split("o|o", 1)[0]
+
             # Split by pipe
             fields = raw_text.split('|')
 
