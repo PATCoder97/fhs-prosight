@@ -1,13 +1,14 @@
 """
 HRS Data API Router.
 
-Provides 6 endpoints:
+Provides 7 endpoints:
 1. GET /salary - View own salary (authenticated users)
 2. GET /salary/history - View salary history with trend (authenticated users)
 3. GET /salary/history/{employee_id} - View any employee's salary history (authenticated users)
 4. GET /salary/{employee_id} - View any employee's salary (authenticated users)
 5. GET /achievements - View own achievements (authenticated users)
 6. GET /achievements/{employee_id} - View any employee's achievements (authenticated users)
+7. GET /year-bonus/{employee_id}/{year} - View any employee's year bonus (authenticated users)
 """
 
 import logging
@@ -15,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
-from app.schemas.hrs_data import SalaryResponse, SalaryHistoryResponse, AchievementResponse
+from app.schemas.hrs_data import SalaryResponse, SalaryHistoryResponse, AchievementResponse, YearBonusResponse
 from app.services import hrs_data_service
 from app.database.session import get_db
 from app.core.security import get_current_user, require_role, require_authenticated_user
@@ -352,4 +353,57 @@ async def get_employee_achievements(
         raise HTTPException(
             status_code=503,
             detail="Failed to retrieve achievement data. Please try again later."
+        )
+
+
+@router.get(
+    "/year-bonus/{employee_id}/{year}",
+    response_model=YearBonusResponse,
+    summary="Get employee year bonus",
+    description="Get employee's year-end bonus data (pre-Tet + post-Tet bonuses)"
+)
+async def get_employee_year_bonus_endpoint(
+    employee_id: str,
+    year: int,
+    current_user: dict = Depends(require_authenticated_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get employee's year-end bonus data.
+
+    **Access:** Authenticated users (excludes guest)
+
+    **Path Parameters:**
+    - employee_id: Employee ID (e.g., VNW0006204)
+    - year: Bonus year (e.g., 2024)
+
+    **Response:**
+    - 200: Year bonus data returned
+    - 400: Invalid employee ID or year format
+    - 403: Forbidden (guest user)
+    - 404: No bonus data found for specified year
+    - 503: HRS API unavailable
+
+    **Example:**
+    ```
+    GET /api/hrs-data/year-bonus/VNW0006204/2024
+    ```
+    """
+    logger.info(
+        f"User {current_user['localId']} querying year bonus for {employee_id}, year {year}"
+    )
+
+    try:
+        bonus_data = await hrs_data_service.get_employee_year_bonus(db, employee_id, year)
+        return bonus_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Unexpected error getting year bonus for {employee_id}, year {year}: {e}",
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to retrieve year bonus data. Please try again later."
         )
