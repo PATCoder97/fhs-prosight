@@ -6,6 +6,7 @@ This module provides business logic for:
 2. Multi-month salary history with parallel API calls
 3. Trend analysis (averages, highest/lowest, significant changes)
 4. Employee achievement/evaluation data queries
+5. Year bonus queries (pre-Tet + post-Tet bonuses)
 """
 
 import asyncio
@@ -358,4 +359,85 @@ async def get_employee_achievements(
         "employee_id": emp_id,
         "employee_name": emp_name,
         "achievements": achievement_data
+    }
+
+
+async def get_employee_year_bonus(
+    db: AsyncSession,
+    emp_id: str,
+    year: int
+) -> dict:
+    """
+    Get employee year bonus data.
+
+    Args:
+        db: Database session
+        emp_id: Employee ID (e.g., "VNW0006204")
+        year: Bonus year (e.g., 2024)
+
+    Returns:
+        dict matching YearBonusResponse schema:
+        {
+            "employee_id": str,
+            "employee_name": str,
+            "year": int,
+            "bonus_data": {
+                "mnv": str, "tlcb": str, "stdltbtn": str, "capbac": str,
+                "tile": str, "stienthuong": str, "tpnttt": str, "tpntst": str
+            }
+        }
+
+    Raises:
+        HTTPException(400): Invalid employee ID or year format
+        HTTPException(404): No bonus data found
+        HTTPException(503): HRS API unavailable
+    """
+    # Convert emp_id format: VNW0006204 → 6204
+    try:
+        emp_num = int(emp_id.replace("VNW00", ""))
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid employee ID format: {emp_id}"
+        )
+
+    # Validate year range
+    if not (2000 <= year <= 2030):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid year: {year}. Must be between 2000 and 2030."
+        )
+
+    # Query HRS API
+    logger.info(f"Fetching year bonus for {emp_id}, year {year}")
+    hrs_client = FHSHRSClient()
+
+    try:
+        bonus_data = await hrs_client.get_year_bonus(emp_num, year)
+    except Exception as e:
+        logger.error(f"HRS API error for {emp_id}, year {year}: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="HRS API unavailable"
+        )
+
+    if not bonus_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No year bonus data found for employee {emp_id} in {year}"
+        )
+
+    # Lookup employee name from database
+    employee = await db.get(Employee, emp_id)
+    emp_name = employee.name_en if employee else "Unknown"
+
+    if not employee:
+        logger.warning(f"Employee {emp_id} not found in database, using 'Unknown'")
+
+    # Return structured response
+    return {
+        "employee_id": emp_id,
+        "employee_name": emp_name,
+        "year": year,
+        "bonus_data": bonus_data
     }
