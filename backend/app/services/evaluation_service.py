@@ -8,9 +8,9 @@ This module provides business logic for:
 """
 
 import logging
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 import openpyxl
@@ -200,4 +200,151 @@ async def upload_evaluations_from_excel(
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process Excel file: {str(e)}"
+        )
+
+
+async def search_evaluations(
+    db: AsyncSession,
+    employee_id: Optional[str] = None,
+    term_code: Optional[str] = None,
+    dept_code: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 50
+) -> dict:
+    """
+    Search evaluation records with filters and pagination.
+
+    Args:
+        db: Database session
+        employee_id: Exact match filter (e.g., 'VNW0018983')
+        term_code: Exact match filter (e.g., '25B')
+        dept_code: Prefix match filter (e.g., '78' matches '7800', '7810')
+        page: Page number (1-indexed, default: 1)
+        page_size: Items per page (default: 50, max: 100)
+
+    Returns:
+        dict matching SearchResponse schema:
+        {
+            "total": 250,
+            "page": 1,
+            "page_size": 50,
+            "results": [...]
+        }
+
+    Raises:
+        HTTPException(422): Invalid query parameters
+    """
+    logger.info(f"Searching evaluations: employee_id={employee_id}, term_code={term_code}, dept_code={dept_code}, page={page}, page_size={page_size}")
+
+    # Validate pagination parameters
+    if page < 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Page number must be >= 1"
+        )
+
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=422,
+            detail="Page size must be between 1 and 100"
+        )
+
+    try:
+        # Build base query
+        query = select(Evaluation)
+
+        # Apply filters
+        if employee_id:
+            query = query.where(Evaluation.employee_id == employee_id)
+
+        if term_code:
+            query = query.where(Evaluation.term_code == term_code)
+
+        if dept_code:
+            # Prefix match (LIKE 'dept_code%')
+            query = query.where(Evaluation.dept_code.like(f"{dept_code}%"))
+
+        # Count total records (before pagination)
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await db.execute(count_query)
+        total = count_result.scalar()
+
+        # Apply pagination
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
+
+        # Execute query
+        result = await db.execute(query)
+        rows = result.scalars().all()
+
+        # Transform results to nested structure
+        results = []
+        for row in rows:
+            evaluation_dict = {
+                "id": row.id,
+                "term_code": row.term_code,
+                "employee_id": row.employee_id,
+                "employee_name": row.employee_name,
+                "job_level": row.job_level,
+                "nation": row.nation,
+                "dept_code": row.dept_code,
+                "dept_name": row.dept_name,
+                "grade_code": row.grade_code,
+                "grade_name": row.grade_name,
+                "dept_evaluation": {
+                    "init": {
+                        "score": row.init_score,
+                        "comment": row.init_comment,
+                        "reviewer": row.init_reviewer
+                    },
+                    "review": {
+                        "score": row.review_score,
+                        "comment": row.review_comment,
+                        "reviewer": row.review_reviewer
+                    },
+                    "final": {
+                        "score": row.final_score,
+                        "comment": row.final_comment,
+                        "reviewer": row.final_reviewer
+                    }
+                },
+                "mgr_evaluation": {
+                    "init": {
+                        "score": row.mgr_init_score,
+                        "comment": row.mgr_init_comment,
+                        "reviewer": row.mgr_init_reviewer
+                    },
+                    "review": {
+                        "score": row.mgr_review_score,
+                        "comment": row.mgr_review_comment,
+                        "reviewer": row.mgr_review_reviewer
+                    },
+                    "final": {
+                        "score": row.mgr_final_score,
+                        "comment": row.mgr_final_comment,
+                        "reviewer": row.mgr_final_reviewer
+                    }
+                },
+                "leave_days": row.leave_days,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at
+            }
+            results.append(evaluation_dict)
+
+        logger.info(f"Found {total} total records, returning page {page} with {len(results)} results")
+
+        return {
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "results": results
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Search failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search evaluations: {str(e)}"
         )
