@@ -28,7 +28,8 @@
       "Skill(pm:epic-decompose:*)",
       "Bash(python:*)",
       "Bash(git reset:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
