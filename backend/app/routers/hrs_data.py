@@ -1,11 +1,13 @@
 """
 HRS Data API Router.
 
-Provides 4 endpoints for salary queries:
+Provides 6 endpoints:
 1. GET /salary - View own salary (authenticated users)
 2. GET /salary/history - View salary history with trend (authenticated users)
 3. GET /salary/history/{employee_id} - View any employee's salary history (authenticated users)
 4. GET /salary/{employee_id} - View any employee's salary (authenticated users)
+5. GET /achievements - View own achievements (authenticated users)
+6. GET /achievements/{employee_id} - View any employee's achievements (authenticated users)
 """
 
 import logging
@@ -13,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 
-from app.schemas.hrs_data import SalaryResponse, SalaryHistoryResponse
+from app.schemas.hrs_data import SalaryResponse, SalaryHistoryResponse, AchievementResponse
 from app.services import hrs_data_service
 from app.database.session import get_db
 from app.core.security import get_current_user, require_role, require_authenticated_user
@@ -258,4 +260,96 @@ async def get_employee_salary(
         raise HTTPException(
             status_code=503,
             detail="Failed to retrieve salary data. Please try again later."
+        )
+
+
+@router.get(
+    "/achievements",
+    response_model=AchievementResponse,
+    summary="Get own achievements",
+    description="Get current user's achievement/evaluation history across all years"
+)
+async def get_own_achievements(
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get current user's achievement/evaluation history.
+
+    **Access:** Authenticated users (any role)
+
+    **Response:**
+    - 200: Achievement data returned
+    - 404: No achievement data found
+    - 503: HRS API unavailable
+
+    **Example:**
+    ```
+    GET /api/hrs-data/achievements
+    ```
+    """
+    emp_id = current_user["localId"]
+    logger.info(f"User {emp_id} querying own achievements")
+
+    try:
+        achievements = await hrs_data_service.get_employee_achievements(db, emp_id)
+        return achievements
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error getting achievements: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to retrieve achievement data. Please try again later."
+        )
+
+
+@router.get(
+    "/achievements/{employee_id}",
+    response_model=AchievementResponse,
+    summary="Get employee achievements",
+    description="Get any employee's achievement/evaluation history"
+)
+async def get_employee_achievements(
+    employee_id: str,
+    current_user: dict = Depends(require_authenticated_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get any employee's achievement/evaluation history.
+
+    **Access:** Authenticated users (excludes guest)
+
+    **Path Parameters:**
+    - employee_id: Employee ID (e.g., VNW0006204)
+
+    **Response:**
+    - 200: Achievement data returned
+    - 400: Invalid employee ID format
+    - 403: Forbidden (guest user)
+    - 404: No achievement data found
+    - 503: HRS API unavailable
+
+    **Example:**
+    ```
+    GET /api/hrs-data/achievements/VNW0006204
+    ```
+    """
+    logger.info(
+        f"User {current_user['localId']} querying achievements for {employee_id}"
+    )
+
+    try:
+        achievements = await hrs_data_service.get_employee_achievements(db, employee_id)
+        return achievements
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Unexpected error getting employee {employee_id} achievements: {e}",
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to retrieve achievement data. Please try again later."
         )
