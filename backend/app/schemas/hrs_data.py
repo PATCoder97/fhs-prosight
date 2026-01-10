@@ -363,3 +363,39 @@ class SalaryHistoryResponse(BaseModel):
                 }
             }
         }
+
+
+# Achievement/Evaluation Schemas
+
+class Achievement(BaseModel):
+    """Single achievement/evaluation record."""
+    year: str = Field(..., description="Evaluation year (Năm đánh giá)")
+    score: str = Field(..., description="Achievement score (Điểm đánh giá): 甲, 優, etc.")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "year": "2024",
+                "score": "甲"
+            }
+        }
+
+
+class AchievementResponse(BaseModel):
+    """Response model for achievement queries."""
+    employee_id: str = Field(..., description="Employee ID (Mã nhân viên)")
+    employee_name: str = Field(..., description="Employee name (Tên nhân viên)")
+    achievements: List[Achievement] = Field(..., description="List of achievements across years")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "employee_id": "VNW0006204",
+                "employee_name": "PHAN ANH TUẤN",
+                "achievements": [
+                    {"year": "2024", "score": "甲"},
+                    {"year": "2023", "score": "甲"},
+                    {"year": "2022", "score": "優"}
+                ]
+            }
+        }
