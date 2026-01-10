@@ -6,3 +6,10 @@ from .users import (
     UserListResponse,
     UserActionResponse
 )
+from .evaluation import (
+    EvaluationLevel,
+    EvaluationGroup,
+    EvaluationResponse,
+    SearchResponse,
+    UploadSummary
+)
