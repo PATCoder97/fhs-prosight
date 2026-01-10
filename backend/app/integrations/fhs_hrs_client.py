@@ -40,6 +40,18 @@ def _first_block(raw_text: str) -> str:
     return raw_text.split("o|o", 1)[0].strip()
 
 
+def _split_blocks(text: str) -> List[str]:
+    """Split pipe-delimited achievement text into blocks.
+
+    Args:
+        text: Raw text from HRS API (e.g., "2024|甲o|o2023|甲o|o")
+
+    Returns:
+        List of blocks (e.g., ["2024|甲", "2023|甲"])
+    """
+    return [b for b in text.split("o|o") if b.strip()]
+
+
 def _parse_salary_response(fields: List[str]) -> dict:
     """Parse HRS salary response into structured format.
 
@@ -300,3 +312,44 @@ class FHSHRSClient:
         except Exception as e:
             logger.error(f"Error fetching salary data: {e}", exc_info=True)
             return None
+
+    async def get_achievement_data(self, emp_id: int) -> List[dict]:
+        """Fetch employee achievement/evaluation data from HRS API.
+
+        Args:
+            emp_id: Employee numeric ID (e.g., 6204 for VNW0006204)
+
+        Returns:
+            List of achievement records, sorted by year (descending):
+            [{"year": "2024", "score": "甲"}, {"year": "2023", "score": "甲"}]
+            Returns empty list if no data or on error.
+
+        Raises:
+            Exception: If HRS API is unavailable (caller handles)
+        """
+        path = f"s11/VNW00{emp_id:05d}"
+
+        try:
+            raw_text = await self._fetch_text(path)
+            if not raw_text:
+                return []
+
+            results = []
+            for block in _split_blocks(raw_text):
+                try:
+                    parts = block.split("|")
+                    if len(parts) >= 2:
+                        year = int(parts[0])
+                        score = parts[1].strip()
+                        if year > 1990 and score:
+                            results.append({"year": str(year), "score": score})
+                except (ValueError, IndexError):
+                    # Skip malformed blocks
+                    continue
+
+            # Sort by year, descending (most recent first)
+            return sorted(results, key=lambda x: x["year"], reverse=True)
+
+        except Exception as e:
+            logger.error(f"Error fetching achievement data for emp_id {emp_id}: {e}")
+            raise
