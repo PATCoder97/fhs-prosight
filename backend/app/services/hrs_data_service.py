@@ -1,10 +1,11 @@
 """
-Service layer for HRS salary data queries and trend analysis.
+Service layer for HRS data queries and trend analysis.
 
 This module provides business logic for:
 1. Single month salary queries with employee info lookup
 2. Multi-month salary history with parallel API calls
 3. Trend analysis (averages, highest/lowest, significant changes)
+4. Employee achievement/evaluation data queries
 """
 
 import asyncio
@@ -290,4 +291,71 @@ def calculate_trend(monthly_data: List[dict]) -> dict:
         "highest_month": highest_month,
         "lowest_month": lowest_month,
         "significant_changes": significant_changes
+    }
+
+
+async def get_employee_achievements(
+    db: AsyncSession,
+    emp_id: str
+) -> dict:
+    """
+    Get employee achievement/evaluation data.
+
+    Args:
+        db: Database session
+        emp_id: Employee ID (e.g., "VNW0006204")
+
+    Returns:
+        dict matching AchievementResponse schema:
+        {
+            "employee_id": str,
+            "employee_name": str,
+            "achievements": [{"year": str, "score": str}]
+        }
+
+    Raises:
+        HTTPException(400): Invalid employee ID format
+        HTTPException(404): No achievement data found
+        HTTPException(503): HRS API unavailable
+    """
+    # Convert emp_id format: VNW0006204 → 6204
+    try:
+        emp_num = int(emp_id.replace("VNW00", ""))
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid employee ID format: {emp_id}"
+        )
+
+    # Query HRS API
+    logger.info(f"Fetching achievements for {emp_id}")
+    hrs_client = FHSHRSClient()
+
+    try:
+        achievement_data = await hrs_client.get_achievement_data(emp_num)
+    except Exception as e:
+        logger.error(f"HRS API error for {emp_id}: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail="HRS API unavailable"
+        )
+
+    if not achievement_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No achievement data found for employee {emp_id}"
+        )
+
+    # Lookup employee name from database
+    employee = await db.get(Employee, emp_id)
+    emp_name = employee.name_en if employee else "Unknown"
+
+    if not employee:
+        logger.warning(f"Employee {emp_id} not found in database, using 'Unknown'")
+
+    # Return structured response
+    return {
+        "employee_id": emp_id,
+        "employee_name": emp_name,
+        "achievements": achievement_data
     }
