@@ -16,7 +16,7 @@ from datetime import datetime
 from app.schemas.hrs_data import SalaryResponse, SalaryHistoryResponse
 from app.services import hrs_data_service
 from app.database.session import get_db
-from app.core.security import get_current_user, require_role
+from app.core.security import get_current_user, require_role, require_authenticated_user
 
 logger = logging.getLogger(__name__)
 
@@ -149,13 +149,13 @@ async def get_employee_salary_history(
     year: int = Query(..., ge=2000, le=2100, description="Year"),
     from_month: int = Query(1, ge=1, le=12, description="Start month (default: 1)"),
     to_month: int = Query(12, ge=1, le=12, description="End month (default: 12)"),
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Get any employee's salary history with trend analysis.
 
-    **Access:** Authenticated users (any role)
+    **Access:** Authenticated users (excludes guest)
 
     **Path Parameters:**
     - employee_id: Employee ID (e.g., VNW0006204)
@@ -168,6 +168,7 @@ async def get_employee_salary_history(
     **Response:**
     - 200: Salary history with trend analysis
     - 400: Invalid employee ID format
+    - 403: Forbidden (guest user)
     - 404: No salary data found for any month in range
     - 422: Invalid month range (from_month > to_month)
     - 503: HRS API unavailable
@@ -210,13 +211,13 @@ async def get_employee_salary(
     employee_id: str,
     year: int = Query(..., ge=2000, le=2100, description="Year"),
     month: int = Query(..., ge=1, le=12, description="Month"),
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Get any employee's salary for specific month.
 
-    **Access:** Authenticated users (any role)
+    **Access:** Authenticated users (excludes guest)
 
     **Path Parameters:**
     - employee_id: Employee ID (e.g., VNW0006204)
@@ -228,6 +229,7 @@ async def get_employee_salary(
     **Response:**
     - 200: Salary data returned
     - 400: Invalid employee ID format
+    - 403: Forbidden (guest user)
     - 404: Salary not found or employee doesn't exist
     - 503: HRS API unavailable
 
