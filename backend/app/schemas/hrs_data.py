@@ -399,3 +399,58 @@ class AchievementResponse(BaseModel):
                 ]
             }
         }
+
+
+# Year Bonus Schemas
+
+class YearBonusData(BaseModel):
+    """Year bonus data fields."""
+    mnv: Optional[str] = Field(None, description="Mã nhân viên")
+    tlcb: Optional[str] = Field(None, description="Tổng lương cơ bản")
+    stdltbtn: Optional[str] = Field(None, description="Số tháng đóng BHTN")
+    capbac: Optional[str] = Field(None, description="Cấp bậc")
+    tile: Optional[str] = Field(None, description="Tỷ lệ")
+    stienthuong: Optional[str] = Field(None, description="Số tiền thưởng")
+    tpnttt: Optional[str] = Field(None, description="Thưởng phần NT trước Tết")
+    tpntst: Optional[str] = Field(None, description="Thưởng phần NT sau Tết")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "mnv": "VNW0006204",
+                "tlcb": "15000000",
+                "stdltbtn": "12",
+                "capbac": "Senior",
+                "tile": "100",
+                "stienthuong": "5000000",
+                "tpnttt": "2500000",
+                "tpntst": "2500000"
+            }
+        }
+
+
+class YearBonusResponse(BaseModel):
+    """Response model for year bonus queries."""
+    employee_id: str = Field(..., description="Employee ID (Mã nhân viên)")
+    employee_name: str = Field(..., description="Employee name (Tên nhân viên)")
+    year: int = Field(..., description="Bonus year (Năm thưởng)")
+    bonus_data: YearBonusData = Field(..., description="Year bonus details")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "employee_id": "VNW0006204",
+                "employee_name": "PHAN ANH TUẤN",
+                "year": 2024,
+                "bonus_data": {
+                    "mnv": "VNW0006204",
+                    "tlcb": "15000000",
+                    "stdltbtn": "12",
+                    "capbac": "Senior",
+                    "tile": "100",
+                    "stienthuong": "5000000",
+                    "tpnttt": "2500000",
+                    "tpntst": "2500000"
+                }
+            }
+        }
