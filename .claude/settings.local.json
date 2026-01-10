@@ -25,7 +25,10 @@
       "Bash(git merge:*)",
       "Bash(test -f:*)",
       "Skill(pm:epic-decompose)",
-      "Skill(pm:epic-decompose:*)"
+      "Skill(pm:epic-decompose:*)",
+      "Bash(python:*)",
+      "Bash(git reset:*)",
+      "Bash(git worktree:*)"
     ]
   }
 }
