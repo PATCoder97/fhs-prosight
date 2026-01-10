@@ -1,8 +1,8 @@
 ---
 name: year-bonus-info-api
-status: backlog
+status: completed
 created: 2026-01-10T07:07:32Z
-progress: 0%
+progress: 100%
 prd: .claude/prds/year-bonus-info-api.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/32
 ---
