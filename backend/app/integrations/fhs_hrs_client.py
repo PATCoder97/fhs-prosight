@@ -353,3 +353,74 @@ class FHSHRSClient:
         except Exception as e:
             logger.error(f"Error fetching achievement data for emp_id {emp_id}: {e}")
             raise
+
+    async def get_year_bonus(self, emp_id: int, year: int) -> dict:
+        """Fetch employee year bonus data from HRS API (pre-Tet + post-Tet).
+
+        Args:
+            emp_id: Employee numeric ID (e.g., 6204 for VNW0006204)
+            year: Bonus year (e.g., 2024)
+
+        Returns:
+            Dict with bonus data fields:
+            {
+                "mnv": str, "tlcb": str, "stdltbtn": str, "capbac": str,
+                "tile": str, "stienthuong": str, "tpnttt": str, "tpntst": str
+            }
+            Returns empty dict if both API calls fail or data is invalid.
+
+        Raises:
+            Exception: If HRS API is completely unavailable (caller handles)
+        """
+        emp_str = f"VNW00{emp_id:05d}"
+        path_bef = f"s19/{emp_str}vkokvbefvkokv{year}"
+        path_aft = f"s19/{emp_str}vkokvaftvkokv{year}"
+
+        # Call both endpoints in parallel
+        try:
+            results = await asyncio.gather(
+                self._fetch_text(path_bef),
+                self._fetch_text(path_aft),
+                return_exceptions=True,
+            )
+        except Exception as e:
+            logger.error(f"Error fetching year bonus for emp_id {emp_id}, year {year}: {e}")
+            raise
+
+        text_bef = results[0] if isinstance(results[0], str) else ""
+        text_aft = results[1] if isinstance(results[1], str) else ""
+
+        # Parse responses
+        data = {}
+        try:
+            # Parse BEF (pre-Tet bonus)
+            if text_bef:
+                bef_parts = _first_block(text_bef).split("|")
+                if len(bef_parts) >= 11:
+                    data.update({
+                        "mnv": bef_parts[0],
+                        "tlcb": bef_parts[1],
+                        "stdltbtn": bef_parts[2],
+                        "capbac": bef_parts[3],
+                        "tile": bef_parts[4],
+                        "stienthuong": bef_parts[9],
+                        "tpnttt": bef_parts[10],
+                    })
+                else:
+                    logger.warning(
+                        f"Year bonus BEF data insufficient for emp_id {emp_id}, year {year}: "
+                        f"expected ≥11 fields, got {len(bef_parts)}"
+                    )
+
+            # Parse AFT (post-Tet bonus) - extract last field
+            if text_aft:
+                aft_parts = _first_block(text_aft).split("|")
+                if aft_parts:
+                    data["tpntst"] = aft_parts[-1]
+                else:
+                    logger.warning(f"Year bonus AFT data empty for emp_id {emp_id}, year {year}")
+
+        except (IndexError, ValueError) as e:
+            logger.error(f"Error parsing year bonus data for emp_id {emp_id}, year {year}: {e}")
+
+        return data
