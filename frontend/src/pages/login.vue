@@ -1,4 +1,6 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
@@ -16,6 +18,37 @@ definePage({
     public: true,
   },
 })
+
+const route = useRoute()
+const router = useRouter()
+
+const errorMessage = ref('')
+
+const errorMessages = {
+  access_denied: 'Bạn đã hủy đăng nhập. Vui lòng thử lại.',
+  invalid_token: 'Token không hợp lệ. Vui lòng thử đăng nhập lại.',
+  no_token: 'Không nhận được token. Vui lòng thử đăng nhập lại.',
+  default: 'Đã xảy ra lỗi. Vui lòng thử lại.',
+}
+
+onMounted(() => {
+  const error = route.query.error
+  if (error) {
+    errorMessage.value = errorMessages[error] || errorMessages.default
+
+    // Clear error from URL (clean URL)
+    router.replace({ query: {} })
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
+  }
+})
+
+const dismissError = () => {
+  errorMessage.value = ''
+}
 
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
@@ -71,6 +104,17 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
         :max-width="500"
         class="mt-12 mt-sm-0 pa-6"
       >
+        <!-- Error Alert -->
+        <VAlert
+          v-if="errorMessage"
+          type="error"
+          closable
+          class="mb-4"
+          @click:close="dismissError"
+        >
+          {{ errorMessage }}
+        </VAlert>
+
         <VCardText>
           <h4 class="text-h4 mb-1">
             Welcome to <span class="text-capitalize">{{ themeConfig.app.title }}</span>! 👋🏻
