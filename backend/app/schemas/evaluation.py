@@ -55,7 +55,7 @@ class EvaluationResponse(BaseModel):
     mgr_evaluation: EvaluationGroup = Field(..., description="經理室評核 (初核/複核/核定)")
     leave_days: Optional[float] = Field(None, description="請假總日數")
     created_at: datetime = Field(..., description="建立時間")
-    updated_at: datetime = Field(..., description="更新時間")
+    updated_at: Optional[datetime] = Field(None, description="更新時間")
 
     class Config:
         json_schema_extra = {
