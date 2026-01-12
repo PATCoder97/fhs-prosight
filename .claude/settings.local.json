@@ -29,7 +29,10 @@
       "Bash(python:*)",
       "Bash(git reset:*)",
       "Bash(git worktree:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Read(//e/01. Softwares Programming/01. PhanAnhTuan/11.fhs-prosight/epic-evaluations-info-api/backend/app/models/**)",
+      "Bash(alembic current:*)",
+      "Bash(alembic heads:*)"
     ]
   }
 }
