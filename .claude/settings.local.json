@@ -32,7 +32,14 @@
       "Bash(git pull:*)",
       "Read(//e/01. Softwares Programming/01. PhanAnhTuan/11.fhs-prosight/epic-evaluations-info-api/backend/app/models/**)",
       "Bash(alembic current:*)",
-      "Bash(alembic heads:*)"
+      "Bash(alembic heads:*)",
+      "Bash(bash:*)",
+      "Bash(for epic in achievement-info-api evaluations-info-api salary-info-api sync-employee-info year-bonus-info-api)",
+      "Bash(do echo \"=== $epic ===\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(for epic in achievement-info-api dormitory-info-api login-and-check-user salary-info-api)",
+      "Bash(do)"
     ]
   }
 }
