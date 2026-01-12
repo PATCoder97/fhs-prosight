@@ -11,8 +11,8 @@ from typing import Optional
 
 from app.schemas.dormitory_bill import (
     DormitoryBillImport,
-    DormitorySearchResponse as SearchResponse,
-    DormitoryImportSummary as ImportSummary
+    SearchResponse,
+    ImportSummary
 )
 from app.services import dormitory_bill_service
 from app.database.session import get_db
