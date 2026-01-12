@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Callback Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        h2 { color: #666; }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        .success { color: #0f9d58; }
+        .error { color: #db4437; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>OAuth Callback Test Page</h1>
+
+    <div class="info">
+        <strong>Note:</strong> This page helps you test the OAuth callback handler without needing a real OAuth flow.
+        Frontend is running at: <a href="http://localhost:5174" target="_blank">http://localhost:5174</a>
+    </div>
+
+    <div class="test-section">
+        <h2>Test OAuth Callback URL</h2>
+        <p>Click the buttons below to test different OAuth callback scenarios:</p>
+
+        <button onclick="testSuccessfulLogin()">Test Successful Login (Admin Role)</button>
+        <button onclick="testGuestLogin()">Test Guest User Login</button>
+        <button onclick="testInvalidToken()">Test Invalid Token</button>
+        <button onclick="testNoToken()">Test No Token Error</button>
+        <button onclick="testAccessDenied()">Test Access Denied Error</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>localStorage Contents</h2>
+        <button onclick="checkLocalStorage()">Check localStorage</button>
+        <button onclick="clearLocalStorage()">Clear localStorage</button>
+        <div id="localStorage-content"></div>
+    </div>
+
+    <script>
+        const FRONTEND_URL = 'http://localhost:5174';
+
+        function testSuccessfulLogin() {
+            const params = new URLSearchParams({
+                access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+                user_id: '12345',
+                user_role: 'admin',
+                user_email: 'admin@example.com',
+                user_full_name: 'Admin User',
+                user_avatar: 'https://avatars.githubusercontent.com/u/12345',
+                user_provider: 'google'
+            });
+
+            logTest('Testing successful login with admin role...');
+            window.open(`${FRONTEND_URL}/auth-callback?${params.toString()}`, '_blank');
+        }
+
+        function testGuestLogin() {
+            const params = new URLSearchParams({
+                access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikd1ZXN0IFVzZXIiLCJpYXQiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+                user_id: '99999',
+                user_role: 'guest',
+                user_email: 'guest@example.com',
+                user_full_name: 'Guest User',
+                user_avatar: 'https://avatars.githubusercontent.com/u/99999',
+                user_provider: 'github'
+            });
+
+            logTest('Testing guest user login (should redirect to /login)...');
+            window.open(`${FRONTEND_URL}/auth-callback?${params.toString()}`, '_blank');
+        }
+
+        function testInvalidToken() {
+            const params = new URLSearchParams({
+                access_token: 'invalid-token-format',
+                user_id: '12345',
+                user_role: 'admin',
+                user_email: 'admin@example.com'
+            });
+
+            logTest('Testing invalid token format...');
+            window.open(`${FRONTEND_URL}/auth-callback?${params.toString()}`, '_blank');
+        }
+
+        function testNoToken() {
+            logTest('Testing no token scenario...');
+            window.open(`${FRONTEND_URL}/auth-callback`, '_blank');
+        }
+
+        function testAccessDenied() {
+            const params = new URLSearchParams({
+                error: 'access_denied'
+            });
+
+            logTest('Testing access denied error...');
+            window.open(`${FRONTEND_URL}/auth-callback?${params.toString()}`, '_blank');
+        }
+
+        function logTest(message) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+        }
+
+        function checkLocalStorage() {
+            const content = document.getElementById('localStorage-content');
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                const userStr = localStorage.getItem('user');
+
+                let html = '<h3>Current localStorage Data:</h3>';
+
+                if (accessToken) {
+                    html += '<p class="success"><strong>access_token:</strong></p>';
+                    html += `<pre>${accessToken}</pre>`;
+                } else {
+                    html += '<p class="error">No access_token found in localStorage</p>';
+                }
+
+                if (userStr) {
+                    html += '<p class="success"><strong>user:</strong></p>';
+                    const user = JSON.parse(userStr);
+                    html += `<pre>${JSON.stringify(user, null, 2)}</pre>`;
+                } else {
+                    html += '<p class="error">No user data found in localStorage</p>';
+                }
+
+                content.innerHTML = html;
+            } catch (error) {
+                content.innerHTML = `<p class="error">Error reading localStorage: ${error.message}</p>`;
+            }
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            logTest('localStorage cleared');
+            checkLocalStorage();
+        }
+    </script>
+</body>
+</html>
