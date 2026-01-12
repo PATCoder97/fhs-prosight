@@ -116,10 +116,8 @@ async def upload_evaluations_from_excel(
 
         logger.info(f"Mapped {len(column_indices)} columns from Excel")
 
-        # Process data rows (starting from row 2)
-        # Use batch commits to avoid transaction issues
-        BATCH_SIZE = 100
-        batch_count = 0
+        # Collect all rows first, then separate into inserts and updates
+        all_rows_data = []
 
         for row_num, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             total_rows += 1
@@ -151,57 +149,80 @@ async def upload_evaluations_from_excel(
                     })
                     continue
 
-                # Check if record exists
-                stmt = select(Evaluation).where(
-                    Evaluation.term_code == row_data["term_code"],
-                    Evaluation.employee_id == row_data["employee_id"]
-                )
-                result = await db.execute(stmt)
-                existing_record = result.scalar_one_or_none()
-
-                if existing_record:
-                    # UPDATE existing record
-                    for key, value in row_data.items():
-                        setattr(existing_record, key, value)
-                    updated_count += 1
-                    logger.debug(f"Row {row_num}: Updated {row_data['term_code']}/{row_data['employee_id']}")
-                else:
-                    # INSERT new record
-                    new_record = Evaluation(**row_data)
-                    db.add(new_record)
-                    created_count += 1
-                    logger.debug(f"Row {row_num}: Created {row_data['term_code']}/{row_data['employee_id']}")
-
-                batch_count += 1
-
-                # Commit every BATCH_SIZE rows
-                if batch_count >= BATCH_SIZE:
-                    await db.commit()
-                    batch_count = 0
-                    logger.debug(f"Committed batch at row {row_num}")
+                all_rows_data.append((row_num, row_data))
 
             except Exception as e:
-                # Rollback the current batch on error
-                await db.rollback()
-                batch_count = 0
                 error_count += 1
                 error_details.append({
                     "row": row_num,
                     "error": str(e)
                 })
-                logger.warning(f"Row {row_num} error: {e}")
+                logger.warning(f"Row {row_num} parsing error: {e}")
                 continue
 
-        # Commit remaining rows
-        if batch_count > 0:
-            try:
-                await db.commit()
-                logger.debug(f"Committed final batch ({batch_count} rows)")
-            except Exception as commit_error:
-                await db.rollback()
-                logger.error(f"Final commit failed: {commit_error}", exc_info=True)
-                raise
-        logger.info(f"Upload complete: {created_count} created, {updated_count} updated, {error_count} errors")
+        logger.info(f"Parsed {len(all_rows_data)} valid rows from Excel")
+
+        # Fetch all existing records in one query
+        existing_keys = [(r[1]["term_code"], r[1]["employee_id"]) for r in all_rows_data]
+
+        if existing_keys:
+            # Build query to fetch all existing records
+            conditions = []
+            for term_code, employee_id in existing_keys:
+                conditions.append(
+                    (Evaluation.term_code == term_code) &
+                    (Evaluation.employee_id == employee_id)
+                )
+
+            # Use OR to combine all conditions
+            from sqlalchemy import or_
+            stmt = select(Evaluation).where(or_(*conditions))
+            result = await db.execute(stmt)
+            existing_records = result.scalars().all()
+
+            # Create a map of existing records
+            existing_map = {
+                (rec.term_code, rec.employee_id): rec
+                for rec in existing_records
+            }
+
+            logger.info(f"Found {len(existing_map)} existing records to update")
+        else:
+            existing_map = {}
+
+        # Separate into inserts and updates
+        records_to_insert = []
+        records_to_update = []
+
+        for row_num, row_data in all_rows_data:
+            key = (row_data["term_code"], row_data["employee_id"])
+
+            if key in existing_map:
+                # UPDATE existing record
+                existing_record = existing_map[key]
+                for field, value in row_data.items():
+                    setattr(existing_record, field, value)
+                records_to_update.append(existing_record)
+                updated_count += 1
+            else:
+                # INSERT new record
+                new_record = Evaluation(**row_data)
+                records_to_insert.append(new_record)
+                created_count += 1
+
+        # Bulk insert new records
+        if records_to_insert:
+            db.add_all(records_to_insert)
+            logger.info(f"Bulk inserting {len(records_to_insert)} new records")
+
+        # Commit all changes (updates are already tracked in session)
+        try:
+            await db.commit()
+            logger.info(f"Upload complete: {created_count} created, {updated_count} updated, {error_count} errors")
+        except Exception as commit_error:
+            await db.rollback()
+            logger.error(f"Commit failed: {commit_error}", exc_info=True)
+            raise
 
         return {
             "success": True,
