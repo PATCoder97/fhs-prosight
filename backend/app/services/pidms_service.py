@@ -101,7 +101,16 @@ async def check_and_upsert_keys(
                 "keyname_with_dash": key_data.get("keyname_with_dash"),
                 "status": status,
                 "prd": key_data.get("prd"),
-                "remaining": key_data.get("remaining")
+                "remaining": key_data.get("remaining", 0),
+                "blocked": key_data.get("blocked", -1),
+                "eid": key_data.get("eid"),
+                "is_key_type": key_data.get("is_key_type"),
+                "is_retail": key_data.get("is_retail"),
+                "sub": key_data.get("sub"),
+                "errorcode": key_data.get("errorcode"),
+                "had_occurred": key_data.get("had_occurred"),
+                "invalid": key_data.get("invalid"),
+                "datetime_checked_done": key_data.get("datetime_checked_done")
             })
 
         # Bulk insert new keys
