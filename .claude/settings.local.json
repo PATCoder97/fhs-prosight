@@ -60,7 +60,9 @@
       "Bash(findstr:*)",
       "Bash(source:*)",
       "Bash(alembic history:*)",
-      "Bash(alembic revision:*)"
+      "Bash(alembic revision:*)",
+      "Skill(pm:epic-close)",
+      "Skill(pm:epic-close:*)"
     ]
   }
 }
