@@ -7,7 +7,7 @@ blocked status, and product information.
 
 from sqlalchemy import Column, Integer, String, DateTime, Index
 from sqlalchemy.sql import func
-from app.models.user import Base
+from app.core.database import Base
 
 
 class PIDMSKey(Base):

@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Date, DateTime
 from sqlalchemy.sql import func
-from app.models.user import Base
+from app.core.database import Base
 
 
 class Employee(Base):

@@ -7,7 +7,7 @@ and management fees with composite unique key on (employee_id, term_code, dorm_c
 
 from sqlalchemy import Column, BigInteger, String, Numeric, DateTime, ForeignKey, UniqueConstraint, CheckConstraint, Index
 from sqlalchemy.sql import func
-from app.models.user import Base
+from app.core.database import Base
 
 
 class DormitoryBill(Base):

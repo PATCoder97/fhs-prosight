@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Float, Text, DateTime, Index, UniqueConstraint
 from sqlalchemy.sql import func
-from app.models.user import Base
+from app.core.database import Base
 
 
 class Evaluation(Base):
