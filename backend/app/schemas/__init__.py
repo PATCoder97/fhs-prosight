@@ -13,3 +13,10 @@ from .evaluation import (
     SearchResponse,
     UploadSummary
 )
+from .dormitory_bill import (
+    DormitoryBillBase,
+    DormitoryBillImport,
+    DormitoryBillResponse,
+    SearchResponse as DormitorySearchResponse,
+    ImportSummary as DormitoryImportSummary
+)
