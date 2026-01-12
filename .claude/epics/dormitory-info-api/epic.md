@@ -1,8 +1,8 @@
 ---
 name: dormitory-info-api
-status: backlog
+status: completed
 created: 2026-01-12T03:14:25Z
-progress: 0%
+progress: 100%
 prd: .claude/prds/dormitory-info-api.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/45
 ---
@@ -332,13 +332,13 @@ High-level task categories (will be detailed during decomposition):
 - Testing can start once endpoints are complete
 
 ## Tasks Created
-- [ ] #46 - Create database model and migration for dormitory_bills table (parallel: false)
-- [ ] #47 - Create Pydantic schemas for dormitory bills API (parallel: false)
-- [ ] #48 - Implement bulk import service with upsert logic (parallel: false)
-- [ ] #49 - Implement search service with filters and pagination (parallel: true)
-- [ ] #50 - Create import endpoint with admin authorization (parallel: false)
-- [ ] #51 - Create search endpoint with authenticated user authorization (parallel: false)
-- [ ] #52 - Register router and run database migration (parallel: false)
+- [x] #46 - Create database model and migration for dormitory_bills table (parallel: false)
+- [x] #47 - Create Pydantic schemas for dormitory bills API (parallel: false)
+- [x] #48 - Implement bulk import service with upsert logic (parallel: false)
+- [x] #49 - Implement search service with filters and pagination (parallel: true)
+- [x] #50 - Create import endpoint with admin authorization (parallel: false)
+- [x] #51 - Create search endpoint with authenticated user authorization (parallel: false)
+- [x] #52 - Register router and run database migration (parallel: false)
 
 Total tasks: 7
 Parallel tasks: 1

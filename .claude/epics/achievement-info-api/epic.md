@@ -1,8 +1,8 @@
 ---
 name: achievement-info-api
-status: backlog
+status: completed
 created: 2026-01-10T01:10:04Z
-progress: 0%
+progress: 100%
 prd: .claude/prds/achievement-info-api.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/25
 ---

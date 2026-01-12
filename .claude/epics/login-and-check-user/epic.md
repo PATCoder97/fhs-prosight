@@ -1,8 +1,8 @@
 ---
 name: login-and-check-user
-status: backlog
+status: completed
 created: 2026-01-08T02:18:39Z
-progress: 0%
+progress: 100%
 prd: .claude/prds/login-and-check-user.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/1
 ---
