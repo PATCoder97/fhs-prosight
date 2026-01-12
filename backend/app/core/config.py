@@ -36,6 +36,10 @@ class Settings(BaseSettings):
         "https://www.fhs.com.tw/fhs_covid_api/api/reportVaccines/detail"
     )
 
+    # PIDKey.com Integration
+    PIDKEY_API_KEY: str = ""
+    PIDKEY_BASE_URL: str = "https://pidkey.com/ajax/pidms_api"
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
