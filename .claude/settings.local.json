@@ -47,7 +47,20 @@
       "Skill(pm:epic-sync)",
       "Skill(pm:epic-sync:*)",
       "Skill(pm:epic-start)",
-      "Skill(pm:epic-start:*)"
+      "Skill(pm:epic-start:*)",
+      "Bash(curl:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh api:*)",
+      "Bash(git fetch:*)",
+      "Bash(git remote prune:*)",
+      "Bash(pip install:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(source:*)",
+      "Bash(alembic history:*)",
+      "Bash(alembic revision:*)"
     ]
   }
 }
