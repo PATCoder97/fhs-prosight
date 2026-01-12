@@ -141,3 +141,94 @@ async def upload_evaluations(
                 logger.debug(f"Cleaned up temp file: {temp_path}")
             except Exception as e:
                 logger.warning(f"Failed to delete temp file {temp_path}: {e}")
+
+
+@router.get(
+    "/search",
+    response_model=SearchResponse,
+    summary="Search evaluation records",
+    description="Search employee evaluations with filters and pagination (authenticated users)"
+)
+async def search_evaluations_endpoint(
+    employee_id: Optional[str] = Query(None, description="Filter by employee ID (exact match, e.g., 'VNW0018983')"),
+    term_code: Optional[str] = Query(None, description="Filter by term code (exact match, e.g., '25B')"),
+    dept_code: Optional[str] = Query(None, description="Filter by department code (prefix match, e.g., '78' matches '7800', '7810')"),
+    page: int = Query(1, ge=1, description="Page number (1-indexed, default: 1)"),
+    page_size: int = Query(50, ge=1, le=100, description="Items per page (default: 50, max: 100)"),
+    current_user: dict = Depends(require_authenticated_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Search evaluation records with flexible filters.
+
+    **Access:** Authenticated users only (blocks guest users)
+
+    **Query Parameters:**
+    - employee_id: Exact match on employee ID (e.g., 'VNW0018983')
+    - term_code: Exact match on evaluation term (e.g., '25B')
+    - dept_code: Prefix match on department code (e.g., '78' matches '7800', '7810', '7899')
+    - page: Page number starting from 1
+    - page_size: Number of records per page (1-100)
+
+    **Response:**
+    - 200: Paginated search results with nested evaluation groups
+    - 403: Forbidden (guest user not allowed)
+    - 422: Invalid query parameters (page < 1 or page_size > 100)
+    - 500: Server error
+
+    **Example Response:**
+    ```json
+    {
+      "total": 250,
+      "page": 1,
+      "page_size": 50,
+      "results": [
+        {
+          "id": 1,
+          "term_code": "25B",
+          "employee_id": "VNW0018983",
+          "employee_name": "Nguyen Van A",
+          "dept_code": "7800",
+          "dept_name": "IT Department",
+          "dept_evaluation": {
+            "init": {"score": "甲", "comment": "Good performance", "reviewer": "MGR001"},
+            "review": {"score": "優", "comment": "Excellent", "reviewer": "MGR002"},
+            "final": {"score": "優", "comment": "Approved", "reviewer": "MGR003"}
+          },
+          "mgr_evaluation": {
+            "init": {"score": "甲", "comment": "...", "reviewer": "..."},
+            "review": {"score": "...", "comment": "...", "reviewer": "..."},
+            "final": {"score": "...", "comment": "...", "reviewer": "..."}
+          },
+          "leave_days": 2.5
+        }
+      ]
+    }
+    ```
+    """
+    logger.info(f"User {current_user.get('localId')} searching evaluations: employee_id={employee_id}, term_code={term_code}, dept_code={dept_code}, page={page}, page_size={page_size}")
+
+    try:
+        # Call service layer
+        result = await evaluation_service.search_evaluations(
+            db=db,
+            employee_id=employee_id,
+            term_code=term_code,
+            dept_code=dept_code,
+            page=page,
+            page_size=page_size
+        )
+
+        logger.info(f"Search complete: returned {len(result['results'])} results (total: {result['total']})")
+        return result
+
+    except HTTPException:
+        # Re-raise HTTP exceptions from service layer
+        raise
+
+    except Exception as e:
+        logger.error(f"Unexpected error during search: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search evaluations: {str(e)}"
+        )
