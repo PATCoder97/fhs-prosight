@@ -62,7 +62,9 @@
       "Bash(alembic history:*)",
       "Bash(alembic revision:*)",
       "Skill(pm:epic-close)",
-      "Skill(pm:epic-close:*)"
+      "Skill(pm:epic-close:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)"
     ]
   }
 }
