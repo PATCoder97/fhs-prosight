@@ -22,6 +22,7 @@ onMounted(() => {
   if (error) {
     // Handle error: redirect to login with error message
     router.push({ path: '/login', query: { error } })
+    
     return
   }
 
@@ -39,6 +40,7 @@ onMounted(() => {
   if (!accessToken || !userId) {
     // No token or user data found
     router.push({ path: '/login', query: { error: 'no_token' } })
+    
     return
   }
 
@@ -47,6 +49,7 @@ onMounted(() => {
   if (parts.length !== 3) {
     // Invalid token format
     router.push({ path: '/login', query: { error: 'invalid_token' } })
+    
     return
   }
 
@@ -62,6 +65,7 @@ onMounted(() => {
     avatar: userAvatar,
     provider: userProvider,
   }
+
   localStorage.setItem('user', JSON.stringify(user))
 
   // Role-based routing: if role is not "guest", redirect to home
