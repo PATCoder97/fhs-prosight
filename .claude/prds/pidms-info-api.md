@@ -1,7 +1,7 @@
 ---
 name: pidms-info-api
 description: API for managing product license keys via PIDKey.com integration with search, sync, and validation capabilities
-status: backlog
+status: complete
 created: 2026-01-12T06:59:20Z
 ---
 

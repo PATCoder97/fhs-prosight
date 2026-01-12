@@ -1,9 +1,10 @@
 ---
 name: pidms-info-api
-status: backlog
+status: completed
 created: 2026-01-12T07:12:00Z
-updated: 2026-01-12T07:25:35Z
-progress: 0%
+updated: 2026-01-12T09:12:34Z
+completed: 2026-01-12T09:12:34Z
+progress: 100%
 prd: .claude/prds/pidms-info-api.md
 github: https://github.com/PATCoder97/fhs-prosight/issues/53
 ---
