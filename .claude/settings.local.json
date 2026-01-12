@@ -39,7 +39,9 @@
       "Bash(echo:*)",
       "Bash(done)",
       "Bash(for epic in achievement-info-api dormitory-info-api login-and-check-user salary-info-api)",
-      "Bash(do)"
+      "Bash(do)",
+      "Bash(git branch:*)",
+      "Bash(find:*)"
     ]
   }
 }
