@@ -5,42 +5,38 @@ const { global } = useTheme()
 
 const authProviders = [
   {
-    icon: 'tabler-brand-facebook-filled',
-    color: '#4267b2',
-    colorInDark: '#497CE2',
+    name: 'Google',
+    icon: 'tabler-brand-google-filled',
+    color: '#db4437',
+    colorInDark: '#db4437',
   },
   {
-    icon: 'tabler-brand-twitter-filled',
-    color: '#1da1f2',
-    colorInDark: '#1da1f2',
-  },
-  {
+    name: 'GitHub',
     icon: 'tabler-brand-github-filled',
     color: '#272727',
     colorInDark: '#fff',
   },
-  {
-    icon: 'tabler-brand-google-filled',
-    color: '#dd4b39',
-    colorInDark: '#db4437',
-  },
 ]
+
+const loginWithOAuth = (provider) => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
+  window.location.href = `${baseUrl}/api/auth/login/${provider.toLowerCase()}`
+}
 </script>
 
 <template>
-  <div class="d-flex justify-center flex-wrap gap-1">
+  <div class="d-flex flex-column gap-4">
     <VBtn
-      v-for="link in authProviders"
-      :key="link.icon"
-      icon
-      variant="text"
-      size="small"
-      :color="global.name.value === 'dark' ? link.colorInDark : link.color"
+      v-for="provider in authProviders"
+      :key="provider.name"
+      block
+      size="large"
+      variant="outlined"
+      :color="global.name.value === 'dark' ? provider.colorInDark : provider.color"
+      @click="loginWithOAuth(provider.name)"
     >
-      <VIcon
-        size="20"
-        :icon="link.icon"
-      />
+      <VIcon :icon="provider.icon" start />
+      Đăng nhập với {{ provider.name }}
     </VBtn>
   </div>
 </template>
