@@ -62,6 +62,13 @@ async def check_and_upsert_keys(
 
         logger.info(f"Found {len(existing_keys_map)} existing keys in database")
 
+        # Valid fields for PIDMSKey model
+        valid_fields = {
+            'keyname', 'keyname_with_dash', 'prd', 'eid', 'is_key_type',
+            'is_retail', 'sub', 'remaining', 'blocked', 'errorcode',
+            'had_occurred', 'invalid', 'datetime_checked_done'
+        }
+
         # Step 3: Upsert each key
         new_key_objects = []
         for key_data in api_response:
@@ -71,17 +78,20 @@ async def check_and_upsert_keys(
                 errors += 1
                 continue
 
+            # Filter out invalid fields
+            filtered_data = {k: v for k, v in key_data.items() if k in valid_fields}
+
             if keyname in existing_keys_map:
                 # UPDATE existing key
                 existing_key = existing_keys_map[keyname]
-                for field, value in key_data.items():
+                for field, value in filtered_data.items():
                     if hasattr(existing_key, field):
                         setattr(existing_key, field, value)
                 updated_keys += 1
                 status = "updated"
             else:
                 # INSERT new key
-                new_key = PIDMSKey(**key_data)
+                new_key = PIDMSKey(**filtered_data)
                 new_key_objects.append(new_key)
                 new_keys += 1
                 status = "new"
