@@ -162,3 +162,81 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
         await db.rollback()
         logger.error(f"Import failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+async def search_bills(
+    db: AsyncSession,
+    employee_id: Optional[str] = None,
+    term_code: Optional[str] = None,
+    dorm_code: Optional[str] = None,
+    min_amount: Optional[float] = None,
+    max_amount: Optional[float] = None,
+    page: int = 1,
+    page_size: int = 50
+) -> dict:
+    """
+    Search dormitory bills with filters and pagination.
+
+    Args:
+        db: Database session
+        employee_id: Exact match filter (e.g., 'VNW0012345')
+        term_code: Exact match filter (e.g., '25A')
+        dorm_code: Exact match filter (e.g., 'A01')
+        min_amount: Minimum total_amount filter
+        max_amount: Maximum total_amount filter
+        page: Page number (1-indexed)
+        page_size: Items per page (1-100)
+
+    Returns:
+        {
+            "total": int,
+            "page": int,
+            "page_size": int,
+            "results": List[DormitoryBillResponse]
+        }
+    """
+    # Validate pagination
+    if page < 1:
+        raise HTTPException(status_code=422, detail="Page number must be >= 1")
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(status_code=422, detail="Page size must be between 1 and 100")
+
+    logger.info(f"Searching bills: employee_id={employee_id}, term_code={term_code}, dorm_code={dorm_code}, min_amount={min_amount}, max_amount={max_amount}, page={page}, page_size={page_size}")
+
+    # Build query with filters
+    query = select(DormitoryBill)
+
+    if employee_id:
+        query = query.where(DormitoryBill.employee_id == employee_id)
+    if term_code:
+        query = query.where(DormitoryBill.term_code == term_code)
+    if dorm_code:
+        query = query.where(DormitoryBill.dorm_code == dorm_code)
+    if min_amount is not None:
+        query = query.where(DormitoryBill.total_amount >= min_amount)
+    if max_amount is not None:
+        query = query.where(DormitoryBill.total_amount <= max_amount)
+
+    # Count total (before pagination)
+    count_query = select(func.count()).select_from(query.subquery())
+    total = (await db.execute(count_query)).scalar()
+
+    # Apply sort (term_code DESC, created_at DESC)
+    query = query.order_by(DormitoryBill.term_code.desc(), DormitoryBill.created_at.desc())
+
+    # Apply pagination
+    offset = (page - 1) * page_size
+    query = query.offset(offset).limit(page_size)
+
+    # Execute query
+    result = await db.execute(query)
+    bills = result.scalars().all()
+
+    logger.info(f"Search complete: found {total} total, returning {len(bills)} results")
+
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "results": bills
+    }
