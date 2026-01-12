@@ -224,7 +224,7 @@ async def get_products(
     "/sync",
     response_model=PIDMSSyncResponse,
     summary="Sync all keys with PIDKey.com",
-    description="Sync all keys in database with PIDKey.com (admin only, stub for Task #60)"
+    description="Sync all keys in database with PIDKey.com (admin only)"
 )
 async def sync_keys(
     request: PIDMSSyncRequest,
@@ -237,29 +237,40 @@ async def sync_keys(
 
     **Access:** Admin only
 
-    **Note:** This is a basic stub. Full batching implementation will be added in Task #60.
-
     **Request Body:**
     - product_filter: Optional filter to sync only specific product type
 
     **Response:**
-    - 200: Sync summary (currently returns not implemented message)
+    - 200: Sync summary with total_synced, updated, and error counts
     - 403: Forbidden (not admin)
-    """
-    logger.info(f"Admin {current_user.get('email')} requested sync (not yet implemented)")
+    - 500: Server error (API failure, database error)
 
-    # Stub for now - will be implemented in Task #60
-    return {
-        "success": False,
-        "summary": {
-            "total_synced": 0,
-            "updated": 0,
-            "errors": 0
-        },
-        "error_details": [
-            {
-                "keyname": "",
-                "error": "Sync not yet implemented - will be added in Task #60"
-            }
-        ]
+    **Example Request:**
+    ```json
+    {
+      "product_filter": "Office"
     }
+    ```
+
+    **Example Response:**
+    ```json
+    {
+      "success": true,
+      "summary": {
+        "total_synced": 150,
+        "updated": 145,
+        "errors": 5
+      },
+      "error_details": [
+        {
+          "keyname": "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+          "error": "Batch 3 sync failed: Timeout"
+        }
+      ]
+    }
+    ```
+    """
+    logger.info(f"Admin {current_user.get('email')} requested sync (filter: {request.product_filter or 'all'})")
+
+    result = await pidms_service.sync_all_keys(db, client, request.product_filter)
+    return result

@@ -251,3 +251,109 @@ async def get_product_summary(db: AsyncSession) -> dict:
     logger.info(f"Product summary complete: {len(products)} product types")
 
     return {"products": products}
+
+
+async def sync_all_keys(
+    db: AsyncSession,
+    pidkey_client: PIDKeyClient,
+    product_filter: Optional[str] = None
+) -> dict:
+    """
+    Sync all keys in database with PIDKey.com.
+
+    Fetches all keys from database, batches them into groups of 50,
+    calls PIDKey.com API for each batch, and updates activation counts.
+    Error isolation ensures one batch failure doesn't stop the entire sync.
+
+    Args:
+        db: Database session
+        pidkey_client: PIDKey.com API client instance
+        product_filter: Optional filter to sync only specific product type
+
+    Returns:
+        {
+            "success": bool,
+            "summary": {"total_synced": int, "updated": int, "errors": int},
+            "error_details": [{"keyname": str, "error": str}]
+        }
+
+    Raises:
+        HTTPException: If database fetch or critical operation fails
+    """
+    try:
+        # Step 1: Fetch all keys from database
+        query = select(PIDMSKey)
+        if product_filter:
+            query = query.where(PIDMSKey.prd.ilike(f"%{product_filter}%"))
+
+        result = await db.execute(query)
+        all_keys = result.scalars().all()
+
+        if not all_keys:
+            logger.info("No keys found to sync")
+            return {
+                "success": True,
+                "summary": {"total_synced": 0, "updated": 0, "errors": 0},
+                "error_details": []
+            }
+
+        logger.info(f"Starting sync for {len(all_keys)} keys (filter: {product_filter or 'all'})")
+
+        total_synced = 0
+        updated_count = 0
+        error_count = 0
+        error_details = []
+
+        # Step 2: Batch keys into groups of 50
+        batch_size = 50
+        total_batches = (len(all_keys) + batch_size - 1) // batch_size
+
+        for i in range(0, len(all_keys), batch_size):
+            batch = all_keys[i:i + batch_size]
+            batch_keys = [key.keyname_with_dash for key in batch]
+            batch_num = i // batch_size + 1
+
+            try:
+                # Step 3: Call PIDKey API for this batch
+                logger.info(f"Syncing batch {batch_num}/{total_batches}: {len(batch_keys)} keys")
+                batch_result = await check_and_upsert_keys(db, batch_keys, pidkey_client)
+
+                total_synced += batch_result["summary"]["total_keys"]
+                updated_count += batch_result["summary"]["updated_keys"]
+                error_count += batch_result["summary"]["errors"]
+
+                logger.info(
+                    f"Batch {batch_num} complete: "
+                    f"{batch_result['summary']['updated_keys']} updated, "
+                    f"{batch_result['summary']['errors']} errors"
+                )
+
+            except Exception as e:
+                logger.error(f"Batch sync failed for batch {batch_num}: {e}", exc_info=True)
+                error_count += len(batch_keys)
+                for key in batch_keys:
+                    error_details.append({
+                        "keyname": key,
+                        "error": f"Batch {batch_num} sync failed: {str(e)}"
+                    })
+
+        success = error_count < total_synced if total_synced > 0 else error_count == 0
+
+        logger.info(
+            f"Sync complete: {total_synced} total, {updated_count} updated, "
+            f"{error_count} errors, success={success}"
+        )
+
+        return {
+            "success": success,
+            "summary": {
+                "total_synced": total_synced,
+                "updated": updated_count,
+                "errors": error_count
+            },
+            "error_details": error_details
+        }
+
+    except Exception as e:
+        logger.error(f"sync_all_keys failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
