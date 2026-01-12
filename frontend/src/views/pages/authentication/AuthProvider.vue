@@ -18,8 +18,9 @@ const authProviders = [
   },
 ]
 
-const loginWithOAuth = (provider) => {
+const loginWithOAuth = provider => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
+
   window.location.href = `${baseUrl}/api/auth/login/${provider.toLowerCase()}`
 }
 </script>
@@ -35,7 +36,10 @@ const loginWithOAuth = (provider) => {
       :color="global.name.value === 'dark' ? provider.colorInDark : provider.color"
       @click="loginWithOAuth(provider.name)"
     >
-      <VIcon :icon="provider.icon" start />
+      <VIcon
+        :icon="provider.icon"
+        start
+      />
       Đăng nhập với {{ provider.name }}
     </VBtn>
   </div>
