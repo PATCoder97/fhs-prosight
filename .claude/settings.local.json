@@ -41,7 +41,13 @@
       "Bash(for epic in achievement-info-api dormitory-info-api login-and-check-user salary-info-api)",
       "Bash(do)",
       "Bash(git branch:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(for epic in achievement-info-api dormitory-info-api evaluations-info-api login-and-check-user salary-info-api sync-employee-info year-bonus-info-api)",
+      "Bash(do echo \"  ✓ $epic\")",
+      "Skill(pm:epic-sync)",
+      "Skill(pm:epic-sync:*)",
+      "Skill(pm:epic-start)",
+      "Skill(pm:epic-start:*)"
     ]
   }
 }
