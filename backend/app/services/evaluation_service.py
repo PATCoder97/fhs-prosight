@@ -117,6 +117,10 @@ async def upload_evaluations_from_excel(
         logger.info(f"Mapped {len(column_indices)} columns from Excel")
 
         # Process data rows (starting from row 2)
+        # Use batch commits to avoid transaction issues
+        BATCH_SIZE = 100
+        batch_count = 0
+
         for row_num, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
             total_rows += 1
 
@@ -168,7 +172,18 @@ async def upload_evaluations_from_excel(
                     created_count += 1
                     logger.debug(f"Row {row_num}: Created {row_data['term_code']}/{row_data['employee_id']}")
 
+                batch_count += 1
+
+                # Commit every BATCH_SIZE rows
+                if batch_count >= BATCH_SIZE:
+                    await db.commit()
+                    batch_count = 0
+                    logger.debug(f"Committed batch at row {row_num}")
+
             except Exception as e:
+                # Rollback the current batch on error
+                await db.rollback()
+                batch_count = 0
                 error_count += 1
                 error_details.append({
                     "row": row_num,
@@ -177,8 +192,15 @@ async def upload_evaluations_from_excel(
                 logger.warning(f"Row {row_num} error: {e}")
                 continue
 
-        # Commit all changes
-        await db.commit()
+        # Commit remaining rows
+        if batch_count > 0:
+            try:
+                await db.commit()
+                logger.debug(f"Committed final batch ({batch_count} rows)")
+            except Exception as commit_error:
+                await db.rollback()
+                logger.error(f"Final commit failed: {commit_error}", exc_info=True)
+                raise
         logger.info(f"Upload complete: {created_count} created, {updated_count} updated, {error_count} errors")
 
         return {
