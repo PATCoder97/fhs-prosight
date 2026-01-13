@@ -178,11 +178,11 @@ const yearOptions = computed(() => {
               <VCol
                 cols="12"
                 md="2"
+                class="d-flex align-end"
               >
                 <VBtn
                   color="primary"
                   block
-                  height="56"
                   @click="loadSalary"
                 >
                   <VIcon
