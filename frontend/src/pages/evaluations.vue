@@ -469,10 +469,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="info"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá ban đầu</span>
@@ -504,10 +501,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="warning"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá xét duyệt</span>
@@ -539,10 +533,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="success"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá cuối cùng</span>
@@ -588,10 +579,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="info"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá ban đầu</span>
@@ -623,10 +611,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="warning"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá xét duyệt</span>
@@ -658,10 +643,7 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard
-                  variant="tonal"
-                  color="success"
-                >
+                <VCard variant="outlined">
                   <VCardText>
                     <div class="d-flex align-center justify-space-between mb-3">
                       <span class="text-body-2 font-weight-medium">Đánh giá cuối cùng</span>
