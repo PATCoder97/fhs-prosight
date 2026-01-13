@@ -16,6 +16,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Salary History',
+    to: { name: 'salary-history' },
+    icon: { icon: 'tabler-chart-line' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Achievements',
     to: { name: 'achievements' },
     icon: { icon: 'tabler-trophy' },
