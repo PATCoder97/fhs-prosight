@@ -135,7 +135,6 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                 />
               </VCol>
               <VCol
-                v-if="isCovidSource"
                 cols="12"
                 md="3"
               >
@@ -151,7 +150,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
               </VCol>
               <VCol
                 cols="12"
-                :md="isCovidSource ? 2 : 5"
+                md="2"
                 class="d-flex align-end justify-end"
               >
                 <VBtn
