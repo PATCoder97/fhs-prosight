@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
-from app.core.security import require_role
+from app.core.security import require_authenticated_user, require_role
 from app.database.session import get_db
 from app.services import employee_service
 from app.schemas.employees import (
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 @router.post("/sync", response_model=EmployeeResponse, status_code=status.HTTP_200_OK)
 async def sync_single_employee(
     request: SyncEmployeeRequest,
-    current_user: dict = Depends(require_role(["user", "admin"])),
+    current_user: dict = Depends(require_authenticated_user),
     db: AsyncSession = Depends(get_db)
 ):
     """

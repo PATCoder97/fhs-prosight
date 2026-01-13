@@ -109,6 +109,15 @@ const resetForm = () => {
 
 // Check if COVID source is selected
 const isCovidSource = computed(() => selectedSource.value === 'covid')
+
+// Format currency
+const formatCurrency = (amount) => {
+  if (!amount && amount !== 0) return '0 ₫'
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(amount)
+}
 </script>
 
 <template>
@@ -260,20 +269,20 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
         </VAlert>
 
         <!-- Employee Info Card -->
-        <VCard>
+        <VCard class="mb-4">
           <VCardTitle class="bg-primary-subtle">
             <VIcon
               icon="tabler-user"
               class="me-2"
             />
-            Thông Tin Nhân Viên
+            Thông Tin Cá Nhân
           </VCardTitle>
           <VDivider />
           <VCardText>
             <VRow>
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <div class="mb-4">
                   <p class="text-caption text-medium-emphasis mb-1">
@@ -283,7 +292,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                     color="primary"
                     variant="flat"
                   >
-                    {{ syncedEmployee.emp_id }}
+                    {{ syncedEmployee.id }}
                   </VChip>
                 </div>
 
@@ -307,33 +316,74 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
 
                 <div class="mb-4">
                   <p class="text-caption text-medium-emphasis mb-1">
-                    Mã phòng ban
+                    Ngày sinh
                   </p>
                   <p class="text-body-1 mb-0">
-                    {{ syncedEmployee.department_code || 'N/A' }}
+                    {{ syncedEmployee.dob || 'N/A' }}
                   </p>
                 </div>
               </VCol>
 
               <VCol
                 cols="12"
-                md="6"
+                md="4"
               >
                 <div class="mb-4">
                   <p class="text-caption text-medium-emphasis mb-1">
-                    Ngày vào công ty
+                    Giới tính
                   </p>
                   <p class="text-body-1 mb-0">
-                    {{ syncedEmployee.entry_date || 'N/A' }}
+                    {{ syncedEmployee.sex || 'N/A' }}
                   </p>
                 </div>
 
                 <div class="mb-4">
                   <p class="text-caption text-medium-emphasis mb-1">
-                    Ngày nghỉ việc
+                    Quốc tịch
                   </p>
                   <p class="text-body-1 mb-0">
-                    {{ syncedEmployee.leaving_date || 'N/A' }}
+                    {{ syncedEmployee.nationality || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Số CMND/CCCD
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.identity_number || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Tên vợ/chồng
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.spouse_name || 'N/A' }}
+                  </p>
+                </div>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    SĐT 1
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.phone1 || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    SĐT 2
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.phone2 || 'N/A' }}
                   </p>
                 </div>
 
@@ -345,17 +395,127 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                     {{ syncedEmployee.dorm_id || 'N/A' }}
                   </p>
                 </div>
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+
+        <!-- Work Info Card -->
+        <VCard class="mb-4">
+          <VCardTitle class="bg-success-subtle">
+            <VIcon
+              icon="tabler-briefcase"
+              class="me-2"
+            />
+            Thông Tin Công Việc
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <VRow>
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Phòng ban
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.dept || 'N/A' }}
+                  </p>
+                </div>
 
                 <div class="mb-4">
                   <p class="text-caption text-medium-emphasis mb-1">
-                    Nguồn dữ liệu
+                    Mã phòng ban
                   </p>
-                  <VChip
-                    :color="syncedEmployee.source === 'hrs' ? 'success' : 'info'"
-                    variant="tonal"
-                  >
-                    {{ syncedEmployee.source?.toUpperCase() || 'N/A' }}
-                  </VChip>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.department_code || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Chức danh
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.job_title || 'N/A' }}
+                  </p>
+                </div>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Loại công việc
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.job_type || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Ngày vào công ty
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.start_date || 'N/A' }}
+                  </p>
+                </div>
+
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Lương
+                  </p>
+                  <p class="text-h6 text-success mb-0">
+                    {{ syncedEmployee.salary ? formatCurrency(syncedEmployee.salary) : 'N/A' }}
+                  </p>
+                </div>
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+
+        <!-- Address Info Card -->
+        <VCard>
+          <VCardTitle class="bg-info-subtle">
+            <VIcon
+              icon="tabler-map-pin"
+              class="me-2"
+            />
+            Thông Tin Địa Chỉ
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <VRow>
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Địa chỉ 1
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.address1 || 'N/A' }}
+                  </p>
+                </div>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <div class="mb-4">
+                  <p class="text-caption text-medium-emphasis mb-1">
+                    Địa chỉ 2
+                  </p>
+                  <p class="text-body-1 mb-0">
+                    {{ syncedEmployee.address2 || 'N/A' }}
+                  </p>
                 </div>
               </VCol>
             </VRow>
@@ -394,5 +554,13 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
 <style scoped>
 .bg-primary-subtle {
   background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.bg-success-subtle {
+  background-color: rgba(var(--v-theme-success), 0.08);
+}
+
+.bg-info-subtle {
+  background-color: rgba(var(--v-theme-info), 0.08);
 }
 </style>
