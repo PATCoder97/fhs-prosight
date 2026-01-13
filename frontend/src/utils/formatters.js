@@ -68,13 +68,13 @@ export const getScoreColor = (score) => {
  */
 export const getScoreLabel = (score) => {
   const labels = {
-    '優': 'Tốt',
-    '良': 'Khá',
-    '甲': 'Trung Bình',
-    '甲上': 'Trung Bình Trên',
-    '甲下': 'Trung Bình Dưới',
-    '乙': 'Yếu',
-    '丙': 'Kém',
+    '優': 'Xuất Sắc',
+    '良': 'Tốt',
+    '甲': 'Khá',
+    '甲上': 'Trung Bình Khá',
+    '甲下': 'Trung Bình Yếu',
+    '乙': 'Trung Bình',
+    '丙': 'Yếu',
   }
   return labels[score] || score
 }

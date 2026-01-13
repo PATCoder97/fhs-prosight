@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
-import { formatCurrency, getScoreColor } from '@/utils/formatters'
+import { formatCurrency, getScoreColor, getScoreLabel } from '@/utils/formatters'
 
 // Protect from guest users
 useGuestProtection()
@@ -180,20 +180,6 @@ const latestEvaluation = computed(() => {
   if (!dashboardData.value.evaluations?.results?.length) return null
   return dashboardData.value.evaluations.results[0]
 })
-
-// Get score label
-const getScoreLabel = (score) => {
-  const labels = {
-    '優': 'Xuất Sắc',
-    '良': 'Tốt',
-    '甲': 'Khá',
-    '甲上': 'Khá Giỏi',
-    '甲下': 'Khá Yếu',
-    '乙': 'Trung Bình',
-    '丙': 'Yếu',
-  }
-  return labels[score] || score
-}
 
 // Load data on mount
 onMounted(() => {
