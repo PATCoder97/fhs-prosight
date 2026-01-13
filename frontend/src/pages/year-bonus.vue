@@ -68,12 +68,14 @@ const parseNumber = (value) => {
   if (typeof value === 'number') return value
   // Remove commas and parse: "7,205,600" → 7205600
   const cleaned = value.toString().replace(/,/g, '')
+  
   return parseFloat(cleaned) || 0
 }
 
 // Format currency
 const formatCurrency = (amount) => {
   const numAmount = parseNumber(amount)
+
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -85,12 +87,14 @@ const totalBonus = computed(() => {
   if (!bonusData.value) return 0
   const preTet = parseNumber(bonusData.value.bonus_data.tpnttt)
   const postTet = parseNumber(bonusData.value.bonus_data.tpntst)
+
   return preTet + postTet
 })
 
 // Year options (last 10 years)
 const yearOptions = computed(() => {
   const currentYear = new Date().getFullYear()
+
   return Array.from({ length: 10 }, (_, i) => ({
     value: currentYear - i,
     label: `Năm ${currentYear - i}`,
@@ -112,6 +116,7 @@ const formatEmployeeId = (input) => {
   // If just numbers, format as VNW + padded numbers
   if (/^\d+$/.test(cleaned)) {
     const paddedNumber = cleaned.padStart(7, '0')
+
     return `VNW${paddedNumber}`
   }
 

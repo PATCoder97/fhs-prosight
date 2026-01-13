@@ -12,16 +12,26 @@ const searchEmployeeId = ref('')
 const searchTermCode = ref('')
 const searchDeptCode = ref('')
 
-// Format employee ID with VNW00 prefix
-const formatEmployeeId = (value) => {
-  if (!value) return ''
-  // Remove any existing VNW prefix and zeros
-  const cleanValue = value.replace(/^VNW0*/i, '')
-  // Only format if we have numbers
-  if (cleanValue && /^\d+$/.test(cleanValue)) {
-    return `VNW${cleanValue.padStart(7, '0')}`
+// Auto-format Employee ID: "14732" → "VNW0014732"
+const formatEmployeeId = (input) => {
+  if (!input) return ''
+
+  // Remove whitespace
+  const cleaned = input.toString().trim()
+
+  // If already starts with VNW, return as-is
+  if (cleaned.toUpperCase().startsWith('VNW')) {
+    return cleaned.toUpperCase()
   }
-  return value
+
+  // If just numbers, format as VNW + padded numbers
+  if (/^\d+$/.test(cleaned)) {
+    const paddedNumber = cleaned.padStart(7, '0')
+    return `VNW${paddedNumber}`
+  }
+
+  // Otherwise return as-is
+  return cleaned
 }
 
 // Pagination
@@ -62,6 +72,8 @@ const searchEvaluations = async (resetPage = false) => {
     if (searchEmployeeId.value.trim()) {
       // Format employee ID before sending to API
       const formattedId = formatEmployeeId(searchEmployeeId.value.trim())
+      // Update input with formatted value
+      searchEmployeeId.value = formattedId
       params.append('employee_id', formattedId)
     }
     if (searchTermCode.value.trim()) {
