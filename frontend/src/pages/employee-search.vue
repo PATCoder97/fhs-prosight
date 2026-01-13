@@ -23,7 +23,12 @@ const itemsPerPageOptions = [
 ]
 
 // Search employees
-const searchEmployees = async () => {
+const searchEmployees = async (resetPage = false) => {
+  // Reset to page 1 when starting a new search
+  if (resetPage) {
+    page.value = 1
+  }
+
   loading.value = true
   error.value = null
 
@@ -133,7 +138,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
                   variant="outlined"
                   prepend-inner-icon="tabler-user"
                   clearable
-                  @keyup.enter="searchEmployees"
+                  @keyup.enter="searchEmployees(true)"
                 />
               </VCol>
               <VCol
@@ -147,7 +152,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
                   variant="outlined"
                   prepend-inner-icon="tabler-building"
                   clearable
-                  @keyup.enter="searchEmployees"
+                  @keyup.enter="searchEmployees(true)"
                 />
               </VCol>
               <VCol
@@ -161,7 +166,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
                   variant="outlined"
                   prepend-inner-icon="tabler-home"
                   clearable
-                  @keyup.enter="searchEmployees"
+                  @keyup.enter="searchEmployees(true)"
                 />
               </VCol>
               <VCol
@@ -173,7 +178,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
                   color="primary"
                   block
                   :loading="loading"
-                  @click="searchEmployees"
+                  @click="searchEmployees(true)"
                 >
                   <VIcon
                     start
