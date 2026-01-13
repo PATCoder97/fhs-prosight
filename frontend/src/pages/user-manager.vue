@@ -15,6 +15,21 @@ const selectedUser = ref(null)
 const newLocalId = ref('')
 const localIdLoading = ref(false)
 
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'success',
+})
+
+const showToast = (message, color = 'success') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
+
 // Load users from API
 onMounted(async () => {
   await loadUsers()
@@ -29,7 +44,7 @@ const loadUsers = async () => {
   }
   catch (error) {
     console.error('Failed to load users:', error)
-    alert('❌ Không thể tải danh sách người dùng!')
+    showToast('Không thể tải danh sách người dùng!', 'error')
   }
   finally {
     loading.value = false
@@ -51,12 +66,12 @@ const updateUserRole = async (userId, newRole) => {
         user.role = response.user.role
       }
 
-      alert(`✅ ${response.message || 'Đã cập nhật role thành công!'}`)
+      showToast(response.message || 'Đã cập nhật role thành công!')
     }
   }
   catch (error) {
     console.error('Failed to update user role:', error)
-    alert('❌ Cập nhật role thất bại!')
+    showToast('Cập nhật role thất bại!', 'error')
   }
 }
 
@@ -70,7 +85,7 @@ const openLocalIdDialog = (user) => {
 // Update user localId
 const updateUserLocalId = async () => {
   if (!selectedUser.value || !newLocalId.value.trim()) {
-    alert('❌ Vui lòng nhập Local ID!')
+    showToast('Vui lòng nhập Local ID!', 'warning')
     return
   }
 
@@ -88,7 +103,7 @@ const updateUserLocalId = async () => {
         user.localId = response.user.localId
       }
 
-      alert(`✅ ${response.message || 'Đã cập nhật Local ID thành công!'}`)
+      showToast(response.message || 'Đã cập nhật Local ID thành công!')
       localIdDialog.value = false
       newLocalId.value = ''
       selectedUser.value = null
@@ -96,7 +111,7 @@ const updateUserLocalId = async () => {
   }
   catch (error) {
     console.error('Failed to update user localId:', error)
-    alert('❌ Cập nhật Local ID thất bại!')
+    showToast('Cập nhật Local ID thất bại!', 'error')
   }
   finally {
     localIdLoading.value = false
@@ -385,7 +400,7 @@ const getRoleIcon = role => {
           />
         </VCardText>
         <VDivider />
-        <VCardActions>
+        <VCardActions class="px-6 py-4">
           <VSpacer />
           <VBtn
             color="grey"
@@ -410,5 +425,23 @@ const getRoleIcon = role => {
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
   </div>
 </template>
