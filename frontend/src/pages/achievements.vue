@@ -167,8 +167,6 @@ const getScoreIcon = (score) => {
                   placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
-                  hint="Nhập 7 số hoặc mã đầy đủ VNW + 7 số"
-                  persistent-hint
                   @keyup.enter="loadAchievements"
                 />
               </VCol>

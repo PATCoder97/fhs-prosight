@@ -31,9 +31,10 @@ const currentUser = computed(() => {
   return null
 })
 
-// Get current date
-const currentYear = new Date().getFullYear()
-const currentMonth = new Date().getMonth() + 1
+// Get current date and calculate previous month
+const now = new Date()
+const currentYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+const currentMonth = now.getMonth() === 0 ? 12 : now.getMonth() // Previous month
 
 // Format currency
 const formatCurrency = (amount) => {
