@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
+import { $api } from '@/utils/api'
 
 // Protect from guest users
 useGuestProtection()
@@ -12,20 +13,6 @@ const error = ref(null)
 
 // Form input
 const employeeId = ref('')
-
-// Get current user
-const currentUser = computed(() => {
-  try {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      return JSON.parse(storedUser)
-    }
-  }
-  catch (error) {
-    console.error('Failed to parse user data:', error)
-  }
-  return null
-})
 
 // Auto-format Employee ID: "14732" → "VNW0014732"
 const formatEmployeeId = (input) => {
