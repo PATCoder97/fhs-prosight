@@ -462,16 +462,23 @@ const closeDetail = () => {
     <!-- Detail Dialog -->
     <VDialog
       v-model="detailDialog"
-      max-width="800"
+      max-width="900"
     >
       <VCard v-if="selectedEvaluation">
         <VCardTitle class="d-flex align-center justify-space-between">
-          <div>
+          <div class="d-flex align-center gap-3">
             <VIcon
               icon="tabler-file-text"
-              class="me-2"
+              size="24"
             />
-            Chi Tiết Đánh Giá
+            <div>
+              <div class="text-h6">
+                {{ selectedEvaluation.employee_name }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ selectedEvaluation.employee_id }} - Kỳ {{ selectedEvaluation.term_code }}
+              </div>
+            </div>
           </div>
           <VBtn
             icon
@@ -483,264 +490,76 @@ const closeDetail = () => {
         </VCardTitle>
         <VDivider />
         <VCardText>
-          <!-- Basic Info -->
-          <div class="mb-6">
-            <h6 class="text-h6 mb-4">
-              Thông tin chung
-            </h6>
-            <VRow>
-              <VCol
-                cols="6"
-                md="4"
-              >
-                <div class="text-caption text-medium-emphasis">
-                  Kỳ đánh giá
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.term_code }}
-                </div>
-              </VCol>
-              <VCol
-                cols="6"
-                md="4"
-              >
-                <div class="text-caption text-medium-emphasis">
-                  Mã nhân viên
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.employee_id }}
-                </div>
-              </VCol>
-              <VCol
-                cols="12"
-                md="4"
-              >
-                <div class="text-caption text-medium-emphasis">
-                  Tên nhân viên
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.employee_name }}
-                </div>
-              </VCol>
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <div class="text-caption text-medium-emphasis">
-                  Phòng ban
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.dept_name }}
-                </div>
-              </VCol>
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <div class="text-caption text-medium-emphasis">
-                  Chức vụ
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.grade_name || 'N/A' }}
-                </div>
-              </VCol>
-              <VCol cols="12">
-                <div class="text-caption text-medium-emphasis">
-                  Cấp bậc
-                </div>
-                <div class="font-weight-medium">
-                  {{ selectedEvaluation.job_level || 'N/A' }}
-                </div>
-              </VCol>
-            </VRow>
-          </div>
-
-          <VDivider class="my-6" />
-
           <!-- Department Evaluation -->
-          <div class="mb-6">
-            <h6 class="text-h6 mb-4">
+          <div class="mb-4">
+            <h6 class="text-subtitle-1 font-weight-bold mb-3">
               Đánh giá phòng ban
             </h6>
             <VRow>
               <VCol
                 cols="12"
-                md="4"
+                md="6"
               >
                 <VCard
                   variant="tonal"
-                  class="evaluation-card"
+                  class="evaluation-detail-card"
                 >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá ban đầu
+                  <VCardText class="pa-4">
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <span class="text-body-2 text-medium-emphasis">Điểm cuối cùng</span>
+                      <VChip
+                        :color="getScoreColor(selectedEvaluation.dept_evaluation?.final?.score)"
+                        size="small"
+                      >
+                        {{ selectedEvaluation.dept_evaluation?.final?.score || 'N/A' }}
+                      </VChip>
                     </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.dept_evaluation?.init?.score)"
-                      class="mb-2"
+                    <div class="text-caption text-medium-emphasis mb-1">
+                      {{ selectedEvaluation.dept_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.dept_evaluation.final.reviewer}` : 'Chưa có thông tin' }}
+                    </div>
+                    <div
+                      v-if="selectedEvaluation.dept_evaluation?.final?.comment"
+                      class="comment-text"
                     >
-                      {{ selectedEvaluation.dept_evaluation?.init?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.dept_evaluation?.init?.reviewer ? `Người đánh giá: ${selectedEvaluation.dept_evaluation.init.reviewer}` : '\u00A0' }}
+                      {{ selectedEvaluation.dept_evaluation.final.comment }}
                     </div>
                   </VCardText>
                 </VCard>
               </VCol>
+
+              <!-- Manager Evaluation -->
               <VCol
                 cols="12"
-                md="4"
+                md="6"
               >
                 <VCard
                   variant="tonal"
-                  class="evaluation-card"
+                  class="evaluation-detail-card"
                 >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá xét duyệt
+                  <VCardText class="pa-4">
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <span class="text-body-2 text-medium-emphasis">Đánh giá quản lý</span>
+                      <VChip
+                        :color="getScoreColor(selectedEvaluation.mgr_evaluation?.final?.score)"
+                        size="small"
+                      >
+                        {{ selectedEvaluation.mgr_evaluation?.final?.score || 'N/A' }}
+                      </VChip>
                     </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.dept_evaluation?.review?.score)"
-                      class="mb-2"
+                    <div class="text-caption text-medium-emphasis mb-1">
+                      {{ selectedEvaluation.mgr_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.mgr_evaluation.final.reviewer}` : 'Chưa có thông tin' }}
+                    </div>
+                    <div
+                      v-if="selectedEvaluation.mgr_evaluation?.final?.comment"
+                      class="comment-text"
                     >
-                      {{ selectedEvaluation.dept_evaluation?.review?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.dept_evaluation?.review?.reviewer ? `Người xét duyệt: ${selectedEvaluation.dept_evaluation.review.reviewer}` : '\u00A0' }}
-                    </div>
-                  </VCardText>
-                </VCard>
-              </VCol>
-              <VCol
-                cols="12"
-                md="4"
-              >
-                <VCard
-                  variant="tonal"
-                  class="evaluation-card"
-                >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá cuối cùng
-                    </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.dept_evaluation?.final?.score)"
-                      class="mb-2"
-                    >
-                      {{ selectedEvaluation.dept_evaluation?.final?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.dept_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.dept_evaluation.final.reviewer}` : '\u00A0' }}
+                      {{ selectedEvaluation.mgr_evaluation.final.comment }}
                     </div>
                   </VCardText>
                 </VCard>
               </VCol>
             </VRow>
           </div>
-
-          <VDivider class="my-6" />
-
-          <!-- Manager Evaluation -->
-          <div class="mb-6">
-            <h6 class="text-h6 mb-4">
-              Đánh giá quản lý
-            </h6>
-            <VRow>
-              <VCol
-                cols="12"
-                md="4"
-              >
-                <VCard
-                  variant="tonal"
-                  class="evaluation-card"
-                >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá ban đầu
-                    </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.mgr_evaluation?.init?.score)"
-                      class="mb-2"
-                    >
-                      {{ selectedEvaluation.mgr_evaluation?.init?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.mgr_evaluation?.init?.reviewer ? `Người đánh giá: ${selectedEvaluation.mgr_evaluation.init.reviewer}` : '\u00A0' }}
-                    </div>
-                  </VCardText>
-                </VCard>
-              </VCol>
-              <VCol
-                cols="12"
-                md="4"
-              >
-                <VCard
-                  variant="tonal"
-                  class="evaluation-card"
-                >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá xét duyệt
-                    </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.mgr_evaluation?.review?.score)"
-                      class="mb-2"
-                    >
-                      {{ selectedEvaluation.mgr_evaluation?.review?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.mgr_evaluation?.review?.reviewer ? `Người xét duyệt: ${selectedEvaluation.mgr_evaluation.review.reviewer}` : '\u00A0' }}
-                    </div>
-                  </VCardText>
-                </VCard>
-              </VCol>
-              <VCol
-                cols="12"
-                md="4"
-              >
-                <VCard
-                  variant="tonal"
-                  class="evaluation-card"
-                >
-                  <VCardText>
-                    <div class="text-caption text-medium-emphasis mb-2">
-                      Đánh giá cuối cùng
-                    </div>
-                    <VChip
-                      :color="getScoreColor(selectedEvaluation.mgr_evaluation?.final?.score)"
-                      class="mb-2"
-                    >
-                      {{ selectedEvaluation.mgr_evaluation?.final?.score || 'N/A' }}
-                    </VChip>
-                    <div class="text-caption reviewer-info">
-                      {{ selectedEvaluation.mgr_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.mgr_evaluation.final.reviewer}` : '\u00A0' }}
-                    </div>
-                  </VCardText>
-                </VCard>
-              </VCol>
-            </VRow>
-          </div>
-
-          <!-- Additional Info -->
-          <VDivider class="my-6" />
-          <VRow>
-            <VCol cols="6">
-              <div class="text-caption text-medium-emphasis">
-                Số ngày nghỉ
-              </div>
-              <div class="font-weight-medium">
-                {{ selectedEvaluation.leave_days || 0 }} ngày
-              </div>
-            </VCol>
-            <VCol cols="6">
-              <div class="text-caption text-medium-emphasis">
-                Quốc tịch
-              </div>
-              <div class="font-weight-medium">
-                {{ selectedEvaluation.nation || 'N/A' }}
-              </div>
-            </VCol>
-          </VRow>
         </VCardText>
       </VCard>
     </VDialog>
@@ -777,5 +596,25 @@ const closeDetail = () => {
 .score-badge {
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+.evaluation-detail-card {
+  height: 100%;
+}
+
+.comment-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  max-height: 2.625rem; /* 1.5 line-height * 0.875rem * 2 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: rgba(var(--v-theme-on-surface), 0.87);
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(var(--v-theme-on-surface), 0.05);
+  border-radius: 4px;
 }
 </style>
