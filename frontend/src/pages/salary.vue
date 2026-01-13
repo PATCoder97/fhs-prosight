@@ -29,13 +29,41 @@ const currentUser = computed(() => {
   return null
 })
 
+// Auto-format Employee ID: "14732" → "VNW0014732"
+const formatEmployeeId = (input) => {
+  if (!input) return ''
+
+  // Remove whitespace
+  const cleaned = input.toString().trim()
+
+  // If already starts with VNW, return as-is
+  if (cleaned.toUpperCase().startsWith('VNW')) {
+    return cleaned.toUpperCase()
+  }
+
+  // If just numbers, format as VNW + padded numbers
+  if (/^\d+$/.test(cleaned)) {
+    const paddedNumber = cleaned.padStart(7, '0')
+    return `VNW${paddedNumber}`
+  }
+
+  // Otherwise return as-is
+  return cleaned
+}
+
 // Load salary data
 const loadSalary = async () => {
+  // Auto-format employee ID before validation
+  const formattedId = formatEmployeeId(employeeId.value)
+
   // Validate employee ID
-  if (!employeeId.value || !employeeId.value.trim()) {
+  if (!formattedId || !formattedId.trim()) {
     error.value = 'Vui lòng nhập Employee ID'
     return
   }
+
+  // Update employeeId with formatted value
+  employeeId.value = formattedId
 
   loading.value = true
   error.value = null
@@ -43,7 +71,7 @@ const loadSalary = async () => {
 
   try {
     const response = await $api(
-      `/hrs-data/salary/${employeeId.value}?year=${selectedYear.value}&month=${selectedMonth.value}`
+      `/hrs-data/salary/${formattedId}?year=${selectedYear.value}&month=${selectedMonth.value}`
     )
     salaryData.value = response
   }
@@ -82,10 +110,10 @@ const monthOptions = [
   { value: 12, label: 'Tháng 12' },
 ]
 
-// Year options (last 5 years)
+// Year options (last 10 years)
 const yearOptions = computed(() => {
   const currentYear = new Date().getFullYear()
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 10 }, (_, i) => ({
     value: currentYear - i,
     label: `Năm ${currentYear - i}`,
   }))
@@ -143,9 +171,11 @@ const yearOptions = computed(() => {
                 <VTextField
                   v-model="employeeId"
                   label="Employee ID"
-                  placeholder="VD: VNW0014732"
+                  placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
+                  hint="Nhập 7 số hoặc mã đầy đủ VNW + 7 số"
+                  persistent-hint
                   @keyup.enter="loadSalary"
                 />
               </VCol>

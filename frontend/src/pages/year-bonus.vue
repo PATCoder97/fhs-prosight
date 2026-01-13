@@ -30,11 +30,17 @@ const currentUser = computed(() => {
 
 // Load year bonus data
 const loadYearBonus = async () => {
+  // Auto-format employee ID before validation
+  const formattedId = formatEmployeeId(employeeId.value)
+
   // Validate employee ID
-  if (!employeeId.value || !employeeId.value.trim()) {
+  if (!formattedId || !formattedId.trim()) {
     error.value = 'Vui lòng nhập Employee ID'
     return
   }
+
+  // Update employeeId with formatted value
+  employeeId.value = formattedId
 
   loading.value = true
   error.value = null
@@ -42,7 +48,7 @@ const loadYearBonus = async () => {
 
   try {
     const response = await $api(
-      `/hrs-data/year-bonus/${employeeId.value}/${selectedYear.value}`
+      `/hrs-data/year-bonus/${formattedId}/${selectedYear.value}`
     )
     bonusData.value = response
   }
@@ -82,14 +88,36 @@ const totalBonus = computed(() => {
   return preTet + postTet
 })
 
-// Year options (last 5 years)
+// Year options (last 10 years)
 const yearOptions = computed(() => {
   const currentYear = new Date().getFullYear()
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 10 }, (_, i) => ({
     value: currentYear - i,
     label: `Năm ${currentYear - i}`,
   }))
 })
+
+// Auto-format Employee ID: "14732" → "VNW0014732"
+const formatEmployeeId = (input) => {
+  if (!input) return ''
+
+  // Remove whitespace
+  const cleaned = input.toString().trim()
+
+  // If already starts with VNW, return as-is
+  if (cleaned.toUpperCase().startsWith('VNW')) {
+    return cleaned.toUpperCase()
+  }
+
+  // If just numbers, format as VNW + padded numbers
+  if (/^\d+$/.test(cleaned)) {
+    const paddedNumber = cleaned.padStart(7, '0')
+    return `VNW${paddedNumber}`
+  }
+
+  // Otherwise return as-is
+  return cleaned
+}
 </script>
 
 <template>
@@ -143,7 +171,7 @@ const yearOptions = computed(() => {
                 <VTextField
                   v-model="employeeId"
                   label="Employee ID"
-                  placeholder="VD: VNW0014732"
+                  placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
                   @keyup.enter="loadYearBonus"

@@ -30,10 +30,35 @@ const currentUser = computed(() => {
   return null
 })
 
+// Auto-format Employee ID: "14732" → "VNW0014732"
+const formatEmployeeId = (input) => {
+  if (!input) return ''
+
+  // Remove whitespace
+  const cleaned = input.toString().trim()
+
+  // If already starts with VNW, return as-is
+  if (cleaned.toUpperCase().startsWith('VNW')) {
+    return cleaned.toUpperCase()
+  }
+
+  // If just numbers, format as VNW + padded numbers
+  if (/^\d+$/.test(cleaned)) {
+    const paddedNumber = cleaned.padStart(7, '0')
+    return `VNW${paddedNumber}`
+  }
+
+  // Otherwise return as-is
+  return cleaned
+}
+
 // Load salary history data
 const loadSalaryHistory = async () => {
+  // Auto-format employee ID before validation
+  const formattedId = formatEmployeeId(employeeId.value)
+
   // Validate employee ID
-  if (!employeeId.value || !employeeId.value.trim()) {
+  if (!formattedId || !formattedId.trim()) {
     error.value = 'Vui lòng nhập Employee ID'
     return
   }
@@ -44,13 +69,16 @@ const loadSalaryHistory = async () => {
     return
   }
 
+  // Update employeeId with formatted value
+  employeeId.value = formattedId
+
   loading.value = true
   error.value = null
   historyData.value = null
 
   try {
     const response = await $api(
-      `/hrs-data/salary/history/${employeeId.value}?year=${selectedYear.value}&from_month=${fromMonth.value}&to_month=${toMonth.value}`
+      `/hrs-data/salary/history/${formattedId}?year=${selectedYear.value}&from_month=${fromMonth.value}&to_month=${toMonth.value}`
     )
     historyData.value = response
   }
@@ -94,10 +122,10 @@ const monthOptions = [
   { value: 12, label: 'Tháng 12' },
 ]
 
-// Year options (last 5 years)
+// Year options (last 10 years)
 const yearOptions = computed(() => {
   const currentYear = new Date().getFullYear()
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 10 }, (_, i) => ({
     value: currentYear - i,
     label: `Năm ${currentYear - i}`,
   }))
@@ -168,9 +196,11 @@ const getTrendIcon = (percentage) => {
                 <VTextField
                   v-model="employeeId"
                   label="Employee ID"
-                  placeholder="VD: VNW0014732"
+                  placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
+                  hint="Nhập 7 số hoặc mã đầy đủ VNW + 7 số"
+                  persistent-hint
                   @keyup.enter="loadSalaryHistory"
                 />
               </VCol>
