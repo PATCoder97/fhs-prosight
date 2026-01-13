@@ -65,6 +65,12 @@ const searchEmployees = async (resetPage = false) => {
   }
 }
 
+// Handle page change from pagination
+const onPageChange = (newPage) => {
+  page.value = newPage
+  searchEmployees()
+}
+
 // Reset filters
 const resetFilters = () => {
   searchName.value = ''
@@ -360,7 +366,7 @@ const totalPages = computed(() => {
               v-model="page"
               :length="totalPages"
               :total-visible="7"
-              @update:model-value="searchEmployees"
+              @update:model-value="onPageChange"
             />
           </VCardText>
         </VCard>
