@@ -1,10 +1,13 @@
 from app.integrations import GoogleAuthClient, GitHubAuthClient
 from app.schemas import LoginResponse, SocialLoginUser
-from app.core.jwt_handler import create_access_token
+from app.core.jwt_handler import create_access_token, verify_token
+from app.core.config import settings
 from app.models import User
 from app.database.session import AsyncSessionLocal
 from sqlalchemy import select
 from datetime import datetime
+from fastapi.responses import RedirectResponse
+from fastapi import HTTPException
 
 
 google_auth = GoogleAuthClient()
@@ -97,7 +100,7 @@ async def get_github_auth_url(request):
     return await github_auth.get_authorization_url(request)
 
 
-async def handle_google_callback(request) -> LoginResponse:
+async def handle_google_callback(request) -> RedirectResponse:
     userinfo = await google_auth.get_user_info(request)
 
     social_id = userinfo.get("sub")
@@ -124,29 +127,22 @@ async def handle_google_callback(request) -> LoginResponse:
         scope="access",
     )
 
-    # Format response theo schema
-    user = SocialLoginUser(
-        id=user_data["id"],
-        social_id=user_data["social_id"],
-        provider=user_data["provider"],
-        email=user_data["email"],
-        full_name=user_data["full_name"],
-        avatar=user_data["avatar"],
-        role=user_data["role"],
-        localId=user_data.get("localId"),
-        is_active=user_data["is_active"],
-        is_verified=user_data["is_verified"],
-        is_new_user=user_data["id"] == 0,  # New if ID is 0
-    )
+    # Create redirect response with HttpOnly cookie
+    response = RedirectResponse(url=settings.FRONTEND_URL)
 
-    response = LoginResponse(
-        access_token=access_token, token_type="bearer", user=user
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
     )
 
     return response
 
 
-async def handle_github_callback(request) -> LoginResponse:
+async def handle_github_callback(request) -> RedirectResponse:
     userinfo = await github_auth.get_user_info(request)
 
     social_id = str(userinfo.get("id"))
@@ -173,22 +169,67 @@ async def handle_github_callback(request) -> LoginResponse:
         scope="access",
     )
 
-    user = SocialLoginUser(
-        id=user_data["id"],
-        social_id=user_data["social_id"],
-        provider=user_data["provider"],
-        email=user_data["email"],
-        full_name=user_data["full_name"],
-        avatar=user_data["avatar"],
-        role=user_data["role"],
-        localId=user_data.get("localId"),
-        is_active=user_data["is_active"],
-        is_verified=user_data["is_verified"],
-        is_new_user=user_data["id"] == 0,  # New if ID is 0
-    )
+    # Create redirect response with HttpOnly cookie
+    response = RedirectResponse(url=settings.FRONTEND_URL)
 
-    response = LoginResponse(
-        access_token=access_token, token_type="bearer", user=user
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
     )
 
     return response
+
+
+async def get_current_user(access_token: str) -> SocialLoginUser:
+    """
+    Get current user information from access token
+
+    Args:
+        access_token: JWT access token from HttpOnly cookie
+
+    Returns:
+        SocialLoginUser: User information
+
+    Raises:
+        HTTPException: If token is invalid or user not found
+    """
+    # Verify token
+    payload = verify_token(access_token, required_scope="access")
+
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    user_id = payload.get("user_id")
+
+    try:
+        async with AsyncSessionLocal() as db:
+            # Get user from database
+            stmt = select(User).where(User.id == int(user_id))
+            result = await db.execute(stmt)
+            user = result.scalars().first()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            # Return user info
+            return SocialLoginUser(
+                id=user.id,
+                social_id=user.social_id,
+                provider=user.provider,
+                email=user.email,
+                full_name=user.full_name,
+                avatar=user.avatar,
+                role=user.role,
+                localId=user.localId,
+                is_active=user.is_active,
+                is_verified=user.is_verified,
+                is_new_user=False,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

@@ -1,25 +1,55 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
 from app.core.jwt_handler import verify_token
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> dict:
     """
-    Extract and verify JWT token from Authorization header.
+    Extract and verify JWT token from Authorization header OR HttpOnly cookie.
     Returns the decoded token payload (user info).
 
+    Priority:
+    1. Authorization header (Bearer token)
+    2. HttpOnly cookie (access_token)
+
     Raises:
-        HTTPException: 401 if token is invalid or expired
+        HTTPException: 401 if token is invalid, expired, or not found
     """
-    token = credentials.credentials
+    token = None
+
+    # ✅ 1. Ưu tiên token từ Authorization header
+    if credentials:
+        token = credentials.credentials
+
+    # ✅ 2. Fallback: lấy token từ cookie
+    if not token:
+        token = request.cookies.get("access_token")
+
+    # ❌ Không có token ở cả header lẫn cookie
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     try:
         payload = verify_token(token)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         return payload
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -1,10 +1,10 @@
 import { ofetch } from 'ofetch'
 
 export const $api = ofetch.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
+  credentials: 'include', // Important: send HttpOnly cookies with requests
   async onRequest({ options }) {
-    const accessToken = useCookie('accessToken').value
-    if (accessToken)
-      options.headers.append('Authorization', `Bearer ${accessToken}`)
+    // HttpOnly cookies are automatically sent with credentials: 'include'
+    // No need to manually add Authorization header
   },
 })

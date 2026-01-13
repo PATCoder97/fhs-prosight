@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     PIDKEY_API_KEY: str = ""
     PIDKEY_BASE_URL: str = "https://pidkey.com/ajax/pidms_api"
 
+    # Frontend & Cookie Settings
+    FRONTEND_URL: str = "/"
+    COOKIE_SECURE: bool = True
+
     # Logging
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 definePage({
   meta: {
@@ -11,69 +12,33 @@ definePage({
 
 const router = useRouter()
 
-onMounted(() => {
-  // Parse OAuth callback response from URL
-  // Backend returns: access_token, token_type, and user object as query params
-  const urlParams = new URLSearchParams(window.location.search)
-  const hashParams = new URLSearchParams(window.location.hash.substring(1))
+onMounted(async () => {
+  try {
+    // Backend now sets HttpOnly cookie and redirects to frontend
+    // We need to call /api/auth/me to get user info
+    const response = await axios.get('http://localhost:8001/api/auth/me', {
+      withCredentials: true, // Important: send HttpOnly cookies
+    })
 
-  const error = urlParams.get('error') || hashParams.get('error')
+    const user = response.data
 
-  if (error) {
-    // Handle error: redirect to login with error message
-    router.push({ path: '/login', query: { error } })
-    
-    return
+    // Save user information to localStorage (for UI purposes only, token is in HttpOnly cookie)
+    localStorage.setItem('user', JSON.stringify(user))
+
+    // Role-based routing: if role is not "guest", redirect to home
+    if (user.role && user.role !== 'guest') {
+      router.push('/')
+    }
+    else {
+      // Guest users - redirect to login
+      router.push('/login')
+    }
   }
+  catch (error) {
+    console.error('Failed to get user info:', error)
 
-  // Get access_token from URL params
-  const accessToken = urlParams.get('access_token') || hashParams.get('access_token')
-
-  // Get user data from URL params
-  const userId = urlParams.get('user_id') || hashParams.get('user_id')
-  const userRole = urlParams.get('user_role') || hashParams.get('user_role')
-  const userEmail = urlParams.get('user_email') || hashParams.get('user_email')
-  const userFullName = urlParams.get('user_full_name') || hashParams.get('user_full_name')
-  const userAvatar = urlParams.get('user_avatar') || hashParams.get('user_avatar')
-  const userProvider = urlParams.get('user_provider') || hashParams.get('user_provider')
-
-  if (!accessToken || !userId) {
-    // No token or user data found
-    router.push({ path: '/login', query: { error: 'no_token' } })
-    
-    return
-  }
-
-  // Basic JWT validation: must have 3 parts (header.payload.signature)
-  const parts = accessToken.split('.')
-  if (parts.length !== 3) {
-    // Invalid token format
-    router.push({ path: '/login', query: { error: 'invalid_token' } })
-    
-    return
-  }
-
-  // Save access token to localStorage
-  localStorage.setItem('access_token', accessToken)
-
-  // Save user information to localStorage
-  const user = {
-    id: userId,
-    role: userRole,
-    email: userEmail,
-    full_name: userFullName,
-    avatar: userAvatar,
-    provider: userProvider,
-  }
-
-  localStorage.setItem('user', JSON.stringify(user))
-
-  // Role-based routing: if role is not "guest", redirect to home
-  if (userRole && userRole !== 'guest') {
-    router.push('/')
-  } else {
-    // Guest users - you can redirect them to a different page or show a message
-    router.push('/login')
+    // If we can't get user info, redirect to login with error
+    router.push({ path: '/login', query: { error: 'auth_failed' } })
   }
 })
 </script>
