@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
+import { formatEmployeeId, getScoreColor, getScoreLabel, getScoreIcon } from '@/utils/formatters'
 
 // Protect from guest users
 useGuestProtection()
@@ -13,28 +14,6 @@ const error = ref(null)
 
 // Form input
 const employeeId = ref('')
-
-// Auto-format Employee ID: "14732" → "VNW0014732"
-const formatEmployeeId = (input) => {
-  if (!input) return ''
-
-  // Remove whitespace
-  const cleaned = input.toString().trim()
-
-  // If already starts with VNW, return as-is
-  if (cleaned.toUpperCase().startsWith('VNW')) {
-    return cleaned.toUpperCase()
-  }
-
-  // If just numbers, format as VNW + padded numbers
-  if (/^\d+$/.test(cleaned)) {
-    const paddedNumber = cleaned.padStart(7, '0')
-    return `VNW${paddedNumber}`
-  }
-
-  // Otherwise return as-is
-  return cleaned
-}
 
 // Load achievement data
 const loadAchievements = async () => {
@@ -66,39 +45,6 @@ const loadAchievements = async () => {
   finally {
     loading.value = false
   }
-}
-
-// Get score color
-const getScoreColor = (score) => {
-  if (score === '優') return 'success'     // Tốt
-  if (score === '良') return 'info'        // Khá
-  if (score === '甲' || score === '甲上' || score === '甲下') return 'primary'  // Trung Bình
-  if (score === '乙') return 'warning'     // Yếu
-  if (score === '丙') return 'error'       // Kém
-  return 'grey'
-}
-
-// Get score label
-const getScoreLabel = (score) => {
-  const labels = {
-    '優': 'Tốt',
-    '良': 'Khá',
-    '甲': 'Trung Bình',
-    '甲上': 'Trung Bình Trên',
-    '甲下': 'Trung Bình Dưới',
-    '乙': 'Yếu',
-    '丙': 'Kém',
-  }
-  return labels[score] || score
-}
-
-// Get score icon
-const getScoreIcon = (score) => {
-  if (score === '優') return 'tabler-trophy'
-  if (score === '良') return 'tabler-medal'
-  if (score === '甲') return 'tabler-award'
-  if (score === '乙') return 'tabler-star'
-  return 'tabler-circle'
 }
 </script>
 

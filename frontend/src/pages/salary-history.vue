@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
+import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
 
 // Protect from guest users
 useGuestProtection()
@@ -16,28 +17,6 @@ const employeeId = ref('')
 const selectedYear = ref(new Date().getFullYear())
 const fromMonth = ref(1)
 const toMonth = ref(12)
-
-// Auto-format Employee ID: "14732" → "VNW0014732"
-const formatEmployeeId = (input) => {
-  if (!input) return ''
-
-  // Remove whitespace
-  const cleaned = input.toString().trim()
-
-  // If already starts with VNW, return as-is
-  if (cleaned.toUpperCase().startsWith('VNW')) {
-    return cleaned.toUpperCase()
-  }
-
-  // If just numbers, format as VNW + padded numbers
-  if (/^\d+$/.test(cleaned)) {
-    const paddedNumber = cleaned.padStart(7, '0')
-    return `VNW${paddedNumber}`
-  }
-
-  // Otherwise return as-is
-  return cleaned
-}
 
 // Load salary history data
 const loadSalaryHistory = async () => {
@@ -77,15 +56,6 @@ const loadSalaryHistory = async () => {
   finally {
     loading.value = false
   }
-}
-
-// Format currency
-const formatCurrency = (amount) => {
-  if (!amount && amount !== 0) return '0 ₫'
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(amount)
 }
 
 // Format month display

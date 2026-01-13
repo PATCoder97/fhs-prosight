@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
+import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
 
 // Protect from guest users
 useGuestProtection()
@@ -14,6 +15,22 @@ const error = ref(null)
 // Form inputs
 const employeeId = ref('')
 const selectedYear = ref(new Date().getFullYear())
+
+// Parse number from string (remove commas)
+const parseNumber = (value) => {
+  if (!value || value === null) return 0
+  if (typeof value === 'number') return value
+  // Remove commas and parse: "7,205,600" → 7205600
+  const cleaned = value.toString().replace(/,/g, '')
+
+  return parseFloat(cleaned) || 0
+}
+
+// Local formatCurrency that handles parseNumber for this page
+const formatCurrencyLocal = (amount) => {
+  const numAmount = parseNumber(amount)
+  return formatCurrencyLocal(numAmount)
+}
 
 // Load year bonus data
 const loadYearBonus = async () => {
@@ -49,26 +66,6 @@ const loadYearBonus = async () => {
   }
 }
 
-// Parse number from string (remove commas)
-const parseNumber = (value) => {
-  if (!value || value === null) return 0
-  if (typeof value === 'number') return value
-  // Remove commas and parse: "7,205,600" → 7205600
-  const cleaned = value.toString().replace(/,/g, '')
-  
-  return parseFloat(cleaned) || 0
-}
-
-// Format currency
-const formatCurrency = (amount) => {
-  const numAmount = parseNumber(amount)
-
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(numAmount)
-}
-
 // Calculate total bonus (tpnttt + tpntst)
 const totalBonus = computed(() => {
   if (!bonusData.value) return 0
@@ -87,29 +84,6 @@ const yearOptions = computed(() => {
     label: `Năm ${currentYear - i}`,
   }))
 })
-
-// Auto-format Employee ID: "14732" → "VNW0014732"
-const formatEmployeeId = (input) => {
-  if (!input) return ''
-
-  // Remove whitespace
-  const cleaned = input.toString().trim()
-
-  // If already starts with VNW, return as-is
-  if (cleaned.toUpperCase().startsWith('VNW')) {
-    return cleaned.toUpperCase()
-  }
-
-  // If just numbers, format as VNW + padded numbers
-  if (/^\d+$/.test(cleaned)) {
-    const paddedNumber = cleaned.padStart(7, '0')
-
-    return `VNW${paddedNumber}`
-  }
-
-  // Otherwise return as-is
-  return cleaned
-}
 </script>
 
 <template>
@@ -305,7 +279,7 @@ const formatEmployeeId = (input) => {
                   Tổng Lương Cơ Bản
                 </p>
                 <p class="text-h6 font-weight-bold mb-0">
-                  {{ formatCurrency(bonusData.bonus_data.tlcb) }}
+                  {{ formatCurrencyLocal(bonusData.bonus_data.tlcb) }}
                 </p>
               </VCardText>
             </VCard>
@@ -374,7 +348,7 @@ const formatEmployeeId = (input) => {
                   Tổng Thưởng
                 </p>
                 <p class="text-h6 font-weight-bold mb-0">
-                  {{ formatCurrency(totalBonus) }}
+                  {{ formatCurrencyLocal(totalBonus) }}
                 </p>
               </VCardText>
             </VCard>
@@ -420,7 +394,7 @@ const formatEmployeeId = (input) => {
                       </VChip>
                     </div>
                     <p class="text-h4 font-weight-bold text-success mb-0">
-                      {{ formatCurrency(bonusData.bonus_data.tpnttt) }}
+                      {{ formatCurrencyLocal(bonusData.bonus_data.tpnttt) }}
                     </p>
                   </VCardText>
                 </VCard>
@@ -452,7 +426,7 @@ const formatEmployeeId = (input) => {
                       </VChip>
                     </div>
                     <p class="text-h4 font-weight-bold text-info mb-0">
-                      {{ formatCurrency(bonusData.bonus_data.tpntst) }}
+                      {{ formatCurrencyLocal(bonusData.bonus_data.tpntst) }}
                     </p>
                   </VCardText>
                 </VCard>
@@ -479,7 +453,7 @@ const formatEmployeeId = (input) => {
                     Tổng Lương Cơ Bản
                   </td>
                   <td class="text-end">
-                    {{ formatCurrency(bonusData.bonus_data.tlcb) }}
+                    {{ formatCurrencyLocal(bonusData.bonus_data.tlcb) }}
                   </td>
                 </tr>
                 <tr>
@@ -511,7 +485,7 @@ const formatEmployeeId = (input) => {
                     Tổng Số Tiền Thưởng
                   </td>
                   <td class="text-end font-weight-bold text-success">
-                    {{ formatCurrency(totalBonus) }}
+                    {{ formatCurrencyLocal(totalBonus) }}
                   </td>
                 </tr>
                 <tr>
@@ -519,7 +493,7 @@ const formatEmployeeId = (input) => {
                     • Thưởng Phần NT Trước Tết
                   </td>
                   <td class="text-end text-success">
-                    {{ formatCurrency(bonusData.bonus_data.tpnttt) }}
+                    {{ formatCurrencyLocal(bonusData.bonus_data.tpnttt) }}
                   </td>
                 </tr>
                 <tr>
@@ -527,7 +501,7 @@ const formatEmployeeId = (input) => {
                     • Thưởng Phần NT Sau Tết
                   </td>
                   <td class="text-end text-info">
-                    {{ formatCurrency(bonusData.bonus_data.tpntst) }}
+                    {{ formatCurrencyLocal(bonusData.bonus_data.tpntst) }}
                   </td>
                 </tr>
               </tbody>
@@ -544,7 +518,7 @@ const formatEmployeeId = (input) => {
                   TỔNG THƯỞNG TẾT NĂM {{ bonusData.year }}
                 </p>
                 <p class="text-h3 font-weight-bold text-success mb-0">
-                  {{ formatCurrency(totalBonus) }}
+                  {{ formatCurrencyLocal(totalBonus) }}
                 </p>
               </div>
               <VIcon

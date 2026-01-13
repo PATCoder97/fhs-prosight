@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { $api } from '@/utils/api'
+import { formatEmployeeId, getScoreColor } from '@/utils/formatters'
 
 // State
 const loading = ref(false)
@@ -11,28 +12,6 @@ const total = ref(0)
 const searchEmployeeId = ref('')
 const searchTermCode = ref('')
 const searchDeptCode = ref('')
-
-// Auto-format Employee ID: "14732" → "VNW0014732"
-const formatEmployeeId = (input) => {
-  if (!input) return ''
-
-  // Remove whitespace
-  const cleaned = input.toString().trim()
-
-  // If already starts with VNW, return as-is
-  if (cleaned.toUpperCase().startsWith('VNW')) {
-    return cleaned.toUpperCase()
-  }
-
-  // If just numbers, format as VNW + padded numbers
-  if (/^\d+$/.test(cleaned)) {
-    const paddedNumber = cleaned.padStart(7, '0')
-    return `VNW${paddedNumber}`
-  }
-
-  // Otherwise return as-is
-  return cleaned
-}
 
 // Pagination
 const page = ref(1)
@@ -122,22 +101,6 @@ const totalPages = computed(() => {
   if (total.value === 0) return 1
   return Math.ceil(total.value / pageSize.value)
 })
-
-// Get score color
-const getScoreColor = (score) => {
-  if (!score) return 'default'
-  switch (score) {
-    case '優': return 'success'    // Tốt - Xanh lá
-    case '良': return 'info'       // Khá - Xanh dương
-    case '甲':                     // Trung Bình - Primary
-    case '甲上':                   // Trung Bình Trên - Primary
-    case '甲下':                   // Trung Bình Dưới - Primary
-      return 'primary'
-    case '乙': return 'warning'    // Yếu - Vàng
-    case '丙': return 'error'      // Kém - Đỏ
-    default: return 'default'
-  }
-}
 
 // Evaluation detail dialog
 const detailDialog = ref(false)
