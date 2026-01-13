@@ -1,6 +1,8 @@
 <script setup>
 import navItems from '@/navigation/vertical'
 import { themeConfig } from '@themeConfig'
+import { useNavigation } from '@/composables/useNavigation'
+import { computed } from 'vue'
 
 // Components
 import Footer from '@/layouts/components/Footer.vue'
@@ -10,10 +12,14 @@ import NavBarI18n from '@core/components/I18n.vue'
 
 // @layouts plugin
 import { VerticalNavLayout } from '@layouts'
+
+// Filter navigation items based on user role
+const { filterNavByRole } = useNavigation()
+const filteredNavItems = computed(() => filterNavByRole(navItems))
 </script>
 
 <template>
-  <VerticalNavLayout :nav-items="navItems">
+  <VerticalNavLayout :nav-items="filteredNavItems">
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">

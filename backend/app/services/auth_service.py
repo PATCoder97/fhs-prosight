@@ -128,7 +128,8 @@ async def handle_google_callback(request) -> RedirectResponse:
     )
 
     # Create redirect response with HttpOnly cookie
-    response = RedirectResponse(url=settings.FRONTEND_URL)
+    # Redirect to auth-callback page instead of home
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/auth-callback")
 
     response.set_cookie(
         key="access_token",
@@ -170,7 +171,8 @@ async def handle_github_callback(request) -> RedirectResponse:
     )
 
     # Create redirect response with HttpOnly cookie
-    response = RedirectResponse(url=settings.FRONTEND_URL)
+    # Redirect to auth-callback page instead of home
+    response = RedirectResponse(url=f"{settings.FRONTEND_URL}/auth-callback")
 
     response.set_cookie(
         key="access_token",

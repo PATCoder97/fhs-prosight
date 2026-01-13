@@ -19,9 +19,9 @@ const authProviders = [
 ]
 
 const loginWithOAuth = provider => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001'
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api'
 
-  window.location.href = `${baseUrl}/api/auth/login/${provider.toLowerCase()}`
+  window.location.href = `${baseUrl}/auth/login/${provider.toLowerCase()}`
 }
 </script>
 

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { $api } from '@/utils/api'
 
 definePage({
   meta: {
@@ -15,22 +15,28 @@ const router = useRouter()
 onMounted(async () => {
   try {
     // Backend now sets HttpOnly cookie and redirects to frontend
-    // We need to call /api/auth/me to get user info
-    const response = await axios.get('http://localhost:8001/api/auth/me', {
-      withCredentials: true, // Important: send HttpOnly cookies
-    })
+    // We need to call /auth/me to get user info
+    const user = await $api('/auth/me')
 
-    const user = response.data
+    console.log('User info from /auth/me:', user)
 
     // Save user information to localStorage (for UI purposes only, token is in HttpOnly cookie)
     localStorage.setItem('user', JSON.stringify(user))
 
-    // Role-based routing: if role is not "guest", redirect to home
-    if (user.role && user.role !== 'guest') {
+    // Role-based routing:
+    // - Guest users -> welcome page
+    // - Other users (user, admin, etc.) -> home page
+    if (user.role && user.role === 'guest') {
+      console.log('Redirecting to welcome - user is guest')
+      router.push('/welcome')
+    }
+    else if (user.role) {
+      console.log('Redirecting to home - user role:', user.role)
       router.push('/')
     }
     else {
-      // Guest users - redirect to login
+      // No role assigned, redirect to login
+      console.log('No role assigned - redirecting to login')
       router.push('/login')
     }
   }

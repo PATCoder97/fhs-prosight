@@ -1,3 +1,10 @@
+<script setup>
+import { useGuestProtection } from '@/composables/useGuestProtection'
+
+// Protect this page from guest users
+useGuestProtection()
+</script>
+
 <template>
   <div>
     <VCard title="Create Awesome 🙌">

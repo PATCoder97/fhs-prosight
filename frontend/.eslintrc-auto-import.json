@@ -165,6 +165,7 @@
     "urlValidator": true,
     "useAbs": true,
     "useActiveElement": true,
+    "useAdminProtection": true,
     "useAnimate": true,
     "useApi": true,
     "useArrayDifference": true,
@@ -238,6 +239,7 @@
     "useGamepad": true,
     "useGenerateImageVariant": true,
     "useGeolocation": true,
+    "useGuestProtection": true,
     "useI18n": true,
     "useId": true,
     "useIdle": true,
@@ -359,6 +361,7 @@
     "watchThrottled": true,
     "watchTriggerable": true,
     "watchWithFilter": true,
-    "whenever": true
+    "whenever": true,
+    "useNavigation": true
   }
 }

@@ -28,6 +28,7 @@ const errorMessages = {
   access_denied: 'Bạn đã hủy đăng nhập. Vui lòng thử lại.',
   invalid_token: 'Token không hợp lệ. Vui lòng thử đăng nhập lại.',
   no_token: 'Không nhận được token. Vui lòng thử đăng nhập lại.',
+  auth_failed: 'Xác thực thất bại. Vui lòng thử đăng nhập lại.',
   default: 'Đã xảy ra lỗi. Vui lòng thử lại.',
 }
 
