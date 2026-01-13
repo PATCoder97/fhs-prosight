@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
+import { $api } from '@/utils/api'
 
 // Protect from guest users
 useGuestProtection()
@@ -13,20 +14,6 @@ const error = ref(null)
 // Form inputs
 const employeeId = ref('')
 const selectedYear = ref(new Date().getFullYear())
-
-// Get current user
-const currentUser = computed(() => {
-  try {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      return JSON.parse(storedUser)
-    }
-  }
-  catch (error) {
-    console.error('Failed to parse user data:', error)
-  }
-  return null
-})
 
 // Load year bonus data
 const loadYearBonus = async () => {
