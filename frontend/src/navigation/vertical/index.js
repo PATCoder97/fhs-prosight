@@ -1,7 +1,7 @@
 export default [
   {
     title: 'HRS Dashboard',
-    to: { name: 'index' },
+    to: { name: 'root' },
     icon: { icon: 'tabler-dashboard' },
     requireRole: ['user', 'admin'], // User and Admin can view
   },
