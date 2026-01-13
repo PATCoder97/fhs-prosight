@@ -50,6 +50,11 @@ export default [
         to: { name: 'employee-search' },
         icon: { icon: 'tabler-user-search' },
       },
+      {
+        title: 'Evaluation Upload',
+        to: { name: 'evaluation-upload' },
+        icon: { icon: 'tabler-file-upload' },
+      },
     ],
   },
 ]
