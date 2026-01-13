@@ -146,8 +146,6 @@ const yearOptions = computed(() => {
                   placeholder="VD: VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
-                  hint="Nhập mã nhân viên"
-                  persistent-hint
                   @keyup.enter="loadSalary"
                 />
               </VCol>
