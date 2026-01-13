@@ -182,7 +182,7 @@ const totalPages = computed(() => {
               <VCol
                 cols="12"
                 md="3"
-                class="d-flex align-end"
+                class="d-flex align-end justify-end"
               >
                 <VBtn
                   color="primary"

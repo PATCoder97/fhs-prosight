@@ -80,7 +80,7 @@ const loadAchievements = async () => {
               <VCol
                 cols="12"
                 md="2"
-                class="d-flex align-end"
+                class="d-flex align-end justify-end"
               >
                 <VBtn
                   color="primary"
