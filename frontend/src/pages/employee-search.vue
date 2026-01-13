@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { $api } from '@/utils/api'
 
 // State
 const loading = ref(false)
