@@ -12,6 +12,18 @@ const searchEmployeeId = ref('')
 const searchTermCode = ref('')
 const searchDeptCode = ref('')
 
+// Format employee ID with VNW00 prefix
+const formatEmployeeId = (value) => {
+  if (!value) return ''
+  // Remove any existing VNW prefix and zeros
+  const cleanValue = value.replace(/^VNW0*/i, '')
+  // Only format if we have numbers
+  if (cleanValue && /^\d+$/.test(cleanValue)) {
+    return `VNW${cleanValue.padStart(7, '0')}`
+  }
+  return value
+}
+
 // Pagination
 const page = ref(1)
 const pageSize = ref(10)
@@ -48,7 +60,9 @@ const searchEvaluations = async (resetPage = false) => {
     const params = new URLSearchParams()
 
     if (searchEmployeeId.value.trim()) {
-      params.append('employee_id', searchEmployeeId.value.trim())
+      // Format employee ID before sending to API
+      const formattedId = formatEmployeeId(searchEmployeeId.value.trim())
+      params.append('employee_id', formattedId)
     }
     if (searchTermCode.value.trim()) {
       params.append('term_code', searchTermCode.value.trim())
@@ -89,16 +103,6 @@ const onPageSizeChange = () => {
   if (evaluations.value.length > 0) {
     searchEvaluations()
   }
-}
-
-// Reset filters
-const resetFilters = () => {
-  searchEmployeeId.value = ''
-  searchTermCode.value = ''
-  searchDeptCode.value = ''
-  page.value = 1
-  evaluations.value = []
-  total.value = 0
 }
 
 // Total pages
@@ -157,7 +161,7 @@ const closeDetail = () => {
                 <VTextField
                   v-model="searchEmployeeId"
                   label="Mã nhân viên"
-                  placeholder="VD: VNW0014732"
+                  placeholder="VD: 14732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
                   clearable
@@ -195,7 +199,7 @@ const closeDetail = () => {
               <VCol
                 cols="12"
                 md="3"
-                class="d-flex align-end gap-2"
+                class="d-flex align-end"
               >
                 <VBtn
                   color="primary"
@@ -208,14 +212,6 @@ const closeDetail = () => {
                     icon="tabler-search"
                   />
                   Tìm Kiếm
-                </VBtn>
-                <VBtn
-                  color="grey"
-                  variant="outlined"
-                  icon
-                  @click="resetFilters"
-                >
-                  <VIcon icon="tabler-refresh" />
                 </VBtn>
               </VCol>
             </VRow>
@@ -561,7 +557,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá ban đầu
@@ -572,11 +571,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.dept_evaluation?.init?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.dept_evaluation?.init?.reviewer"
-                      class="text-caption"
-                    >
-                      Người đánh giá: {{ selectedEvaluation.dept_evaluation.init.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.dept_evaluation?.init?.reviewer ? `Người đánh giá: ${selectedEvaluation.dept_evaluation.init.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -585,7 +581,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá xét duyệt
@@ -596,11 +595,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.dept_evaluation?.review?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.dept_evaluation?.review?.reviewer"
-                      class="text-caption"
-                    >
-                      Người xét duyệt: {{ selectedEvaluation.dept_evaluation.review.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.dept_evaluation?.review?.reviewer ? `Người xét duyệt: ${selectedEvaluation.dept_evaluation.review.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -609,7 +605,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá cuối cùng
@@ -620,11 +619,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.dept_evaluation?.final?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.dept_evaluation?.final?.reviewer"
-                      class="text-caption"
-                    >
-                      Người phê duyệt: {{ selectedEvaluation.dept_evaluation.final.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.dept_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.dept_evaluation.final.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -644,7 +640,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá ban đầu
@@ -655,11 +654,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.mgr_evaluation?.init?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.mgr_evaluation?.init?.reviewer"
-                      class="text-caption"
-                    >
-                      Người đánh giá: {{ selectedEvaluation.mgr_evaluation.init.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.mgr_evaluation?.init?.reviewer ? `Người đánh giá: ${selectedEvaluation.mgr_evaluation.init.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -668,7 +664,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá xét duyệt
@@ -679,11 +678,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.mgr_evaluation?.review?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.mgr_evaluation?.review?.reviewer"
-                      class="text-caption"
-                    >
-                      Người xét duyệt: {{ selectedEvaluation.mgr_evaluation.review.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.mgr_evaluation?.review?.reviewer ? `Người xét duyệt: ${selectedEvaluation.mgr_evaluation.review.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -692,7 +688,10 @@ const closeDetail = () => {
                 cols="12"
                 md="4"
               >
-                <VCard variant="tonal">
+                <VCard
+                  variant="tonal"
+                  class="evaluation-card"
+                >
                   <VCardText>
                     <div class="text-caption text-medium-emphasis mb-2">
                       Đánh giá cuối cùng
@@ -703,11 +702,8 @@ const closeDetail = () => {
                     >
                       {{ selectedEvaluation.mgr_evaluation?.final?.score || 'N/A' }}
                     </VChip>
-                    <div
-                      v-if="selectedEvaluation.mgr_evaluation?.final?.reviewer"
-                      class="text-caption"
-                    >
-                      Người phê duyệt: {{ selectedEvaluation.mgr_evaluation.final.reviewer }}
+                    <div class="text-caption reviewer-info">
+                      {{ selectedEvaluation.mgr_evaluation?.final?.reviewer ? `Người phê duyệt: ${selectedEvaluation.mgr_evaluation.final.reviewer}` : '\u00A0' }}
                     </div>
                   </VCardText>
                 </VCard>
@@ -758,3 +754,13 @@ const closeDetail = () => {
     </VSnackbar>
   </div>
 </template>
+
+<style scoped>
+.evaluation-card {
+  height: 100%;
+}
+
+.reviewer-info {
+  min-height: 1.5em;
+}
+</style>
