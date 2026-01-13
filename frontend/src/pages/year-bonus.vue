@@ -29,7 +29,7 @@ const parseNumber = (value) => {
 // Local formatCurrency that handles parseNumber for this page
 const formatCurrencyLocal = (amount) => {
   const numAmount = parseNumber(amount)
-  return formatCurrencyLocal(numAmount)
+  return formatCurrency(numAmount)
 }
 
 // Load year bonus data
