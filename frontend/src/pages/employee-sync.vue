@@ -145,7 +145,6 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                   placeholder="Nhập token"
                   variant="outlined"
                   prepend-inner-icon="tabler-key"
-                  type="password"
                   @keyup.enter="syncEmployee"
                 />
               </VCol>
@@ -163,9 +162,9 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                 >
                   <VIcon
                     start
-                    icon="tabler-refresh"
+                    icon="tabler-search"
                   />
-                  Đồng Bộ
+                  Tra Cứu
                 </VBtn>
               </VCol>
             </VRow>
