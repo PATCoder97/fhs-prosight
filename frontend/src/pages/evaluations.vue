@@ -161,7 +161,7 @@ const closeDetail = () => {
                 <VTextField
                   v-model="searchEmployeeId"
                   label="Mã nhân viên"
-                  placeholder="VD: 14732"
+                  placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
                   clearable
