@@ -341,7 +341,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
           <VCardText class="d-flex align-center justify-space-between flex-wrap gap-4">
             <div class="d-flex align-center gap-3">
               <div class="text-body-2 text-medium-emphasis">
-                Hiển thị {{ ((page - 1) * itemsPerPage) + 1 }} - {{ Math.min(page * itemsPerPage, total) }} trong tổng số {{ total }} nhân viên
+                Hiển thị {{ total === 0 ? 0 : ((page - 1) * itemsPerPage) + 1 }} - {{ Math.min(((page - 1) * itemsPerPage) + employees.length, total) }} trong tổng số {{ total }} nhân viên
               </div>
               <VSelect
                 v-model="itemsPerPage"
