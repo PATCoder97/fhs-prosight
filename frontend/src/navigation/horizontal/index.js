@@ -16,6 +16,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Achievements',
+    to: { name: 'achievements' },
+    icon: { icon: 'tabler-trophy' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Admin',
     icon: { icon: 'tabler-shield-lock' },
     requireRole: 'admin', // Only show for admin users
