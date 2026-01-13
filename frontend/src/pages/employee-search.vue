@@ -172,7 +172,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
               <VCol
                 cols="12"
                 md="3"
-                class="d-flex align-end gap-2"
+                class="d-flex align-end"
               >
                 <VBtn
                   color="primary"
@@ -185,13 +185,6 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
                     icon="tabler-search"
                   />
                   Tìm Kiếm
-                </VBtn>
-                <VBtn
-                  color="secondary"
-                  variant="tonal"
-                  @click="resetFilters"
-                >
-                  <VIcon icon="tabler-x" />
                 </VBtn>
               </VCol>
             </VRow>
