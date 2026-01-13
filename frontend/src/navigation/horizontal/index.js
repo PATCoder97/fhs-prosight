@@ -10,6 +10,12 @@ export default [
     icon: { icon: 'tabler-file' },
   },
   {
+    title: 'Salary',
+    to: { name: 'salary' },
+    icon: { icon: 'tabler-currency-dong' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Admin',
     icon: { icon: 'tabler-shield-lock' },
     requireRole: 'admin', // Only show for admin users
