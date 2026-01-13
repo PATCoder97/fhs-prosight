@@ -21,17 +21,17 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 @router.post("/sync", response_model=EmployeeResponse, status_code=status.HTTP_200_OK)
 async def sync_single_employee(
     request: SyncEmployeeRequest,
-    current_user: dict = Depends(require_role("admin")),
+    current_user: dict = Depends(require_role(["user", "admin"])),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Sync single employee from HRS or COVID API.
 
-    Requires: role = 'admin'
+    Requires: Authenticated user (user or admin, excludes guests)
 
     Args:
         request: SyncEmployeeRequest with emp_id, source, and optional token
-        current_user: Current authenticated admin user
+        current_user: Current authenticated user
         db: Database session
 
     Returns:
@@ -39,7 +39,7 @@ async def sync_single_employee(
 
     Raises:
         400: Invalid source or missing token for COVID
-        403: User is not admin
+        401: User is not authenticated
         404: Employee not found in external API
     """
     if request.source == "hrs":

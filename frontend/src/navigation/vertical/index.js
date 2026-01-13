@@ -30,6 +30,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Employee Sync',
+    to: { name: 'employee-sync' },
+    icon: { icon: 'tabler-refresh' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Admin',
     icon: { icon: 'tabler-shield-lock' },
     requireRole: 'admin', // Only show for admin users
