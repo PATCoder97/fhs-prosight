@@ -9,6 +9,12 @@ useAdminProtection()
 const users = ref([])
 const loading = ref(false)
 
+// LocalId dialog
+const localIdDialog = ref(false)
+const selectedUser = ref(null)
+const newLocalId = ref('')
+const localIdLoading = ref(false)
+
 // Load users from API
 onMounted(async () => {
   await loadUsers()
@@ -52,6 +58,56 @@ const updateUserRole = async (userId, newRole) => {
     console.error('Failed to update user role:', error)
     alert('❌ Cập nhật role thất bại!')
   }
+}
+
+// Open localId dialog
+const openLocalIdDialog = (user) => {
+  selectedUser.value = user
+  newLocalId.value = user.localId || ''
+  localIdDialog.value = true
+}
+
+// Update user localId
+const updateUserLocalId = async () => {
+  if (!selectedUser.value || !newLocalId.value.trim()) {
+    alert('❌ Vui lòng nhập Local ID!')
+    return
+  }
+
+  localIdLoading.value = true
+  try {
+    const response = await $api(`/users/${selectedUser.value.id}/localId`, {
+      method: 'PUT',
+      body: JSON.stringify({ localId: newLocalId.value.trim() }),
+    })
+
+    if (response.success) {
+      // Update local data with response
+      const user = users.value.find(u => u.id === selectedUser.value.id)
+      if (user && response.user) {
+        user.localId = response.user.localId
+      }
+
+      alert(`✅ ${response.message || 'Đã cập nhật Local ID thành công!'}`)
+      localIdDialog.value = false
+      newLocalId.value = ''
+      selectedUser.value = null
+    }
+  }
+  catch (error) {
+    console.error('Failed to update user localId:', error)
+    alert('❌ Cập nhật Local ID thất bại!')
+  }
+  finally {
+    localIdLoading.value = false
+  }
+}
+
+// Close localId dialog
+const closeLocalIdDialog = () => {
+  localIdDialog.value = false
+  newLocalId.value = ''
+  selectedUser.value = null
 }
 
 // Get role color
@@ -144,6 +200,9 @@ const getRoleIcon = role => {
                 Email
               </th>
               <th class="text-left">
+                Local ID
+              </th>
+              <th class="text-left">
                 Provider
               </th>
               <th class="text-left">
@@ -170,6 +229,20 @@ const getRoleIcon = role => {
                 </div>
               </td>
               <td>{{ user.email }}</td>
+              <td>
+                <VChip
+                  v-if="user.localId"
+                  color="success"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ user.localId }}
+                </VChip>
+                <span
+                  v-else
+                  class="text-medium-emphasis"
+                >N/A</span>
+              </td>
               <td>
                 <VChip
                   size="small"
@@ -238,6 +311,18 @@ const getRoleIcon = role => {
                       </template>
                       <VListItemTitle>Set as Guest</VListItemTitle>
                     </VListItem>
+
+                    <VDivider class="my-2" />
+
+                    <VListItem @click="openLocalIdDialog(user)">
+                      <template #prepend>
+                        <VIcon
+                          icon="tabler-id"
+                          color="success"
+                        />
+                      </template>
+                      <VListItemTitle>Set Local ID</VListItemTitle>
+                    </VListItem>
                   </VList>
                 </VMenu>
               </td>
@@ -261,5 +346,69 @@ const getRoleIcon = role => {
         </div>
       </VCardText>
     </VCard>
+
+    <!-- LocalId Dialog -->
+    <VDialog
+      v-model="localIdDialog"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-id"
+            color="success"
+          />
+          Set Local ID
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <div class="mb-4">
+            <div class="text-body-2 text-medium-emphasis mb-1">
+              User
+            </div>
+            <div class="font-weight-medium">
+              {{ selectedUser?.full_name }}
+            </div>
+            <div class="text-body-2 text-medium-emphasis">
+              {{ selectedUser?.email }}
+            </div>
+          </div>
+
+          <VTextField
+            v-model="newLocalId"
+            label="Local ID"
+            placeholder="VD: VNW0018616"
+            variant="outlined"
+            prepend-inner-icon="tabler-id"
+            :disabled="localIdLoading"
+            @keyup.enter="updateUserLocalId"
+          />
+        </VCardText>
+        <VDivider />
+        <VCardActions>
+          <VSpacer />
+          <VBtn
+            color="grey"
+            variant="text"
+            :disabled="localIdLoading"
+            @click="closeLocalIdDialog"
+          >
+            Hủy
+          </VBtn>
+          <VBtn
+            color="success"
+            variant="elevated"
+            :loading="localIdLoading"
+            @click="updateUserLocalId"
+          >
+            <VIcon
+              start
+              icon="tabler-check"
+            />
+            Cập Nhật
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
