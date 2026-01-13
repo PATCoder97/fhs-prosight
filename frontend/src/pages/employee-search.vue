@@ -108,7 +108,10 @@ const headers = [
 ]
 
 // Total pages
-const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
+const totalPages = computed(() => {
+  if (total.value === 0) return 1
+  return Math.ceil(total.value / itemsPerPage.value)
+})
 </script>
 
 <template>
