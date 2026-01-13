@@ -145,6 +145,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                   placeholder="Nhập token"
                   variant="outlined"
                   prepend-inner-icon="tabler-key"
+                  type="password"
                   @keyup.enter="syncEmployee"
                 />
               </VCol>
