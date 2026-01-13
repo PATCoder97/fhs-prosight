@@ -129,7 +129,10 @@ const getScoreColor = (score) => {
   switch (score) {
     case '優': return 'success'    // Tốt - Xanh lá
     case '良': return 'info'       // Khá - Xanh dương
-    case '甲': return 'primary'    // Trung Bình - Primary
+    case '甲':                     // Trung Bình - Primary
+    case '甲上':                   // Trung Bình Trên - Primary
+    case '甲下':                   // Trung Bình Dưới - Primary
+      return 'primary'
     case '乙': return 'warning'    // Yếu - Vàng
     case '丙': return 'error'      // Kém - Đỏ
     default: return 'default'
