@@ -30,6 +30,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Evaluations',
+    to: { name: 'evaluations' },
+    icon: { icon: 'tabler-chart-bar' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Employee Sync',
     to: { name: 'employee-sync' },
     icon: { icon: 'tabler-refresh' },
