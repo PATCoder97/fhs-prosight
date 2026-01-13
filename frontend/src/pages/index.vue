@@ -39,15 +39,26 @@ const now = new Date()
 const currentYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
 const currentMonth = now.getMonth() === 0 ? 12 : now.getMonth() // Previous month
 
-// Get current term code (25A or 25B based on current month)
+// Get current term code (26A based on current month in 2026)
 const currentTermCode = computed(() => {
   const year = new Date().getFullYear()
   const month = new Date().getMonth() + 1
   const shortYear = year.toString().slice(-2)
-  return month <= 6 ? `${shortYear}A` : `${shortYear}B`
+
+  // Determine term based on month
+  // A-I: regular terms, A/B/C: end of year (Oct/Nov/Dec)
+  if (month >= 10) {
+    // October-December: use A, B, C for end of year
+    const endOfYearTerms = ['A', 'B', 'C']
+    return `${shortYear}${endOfYearTerms[month - 10]}`
+  }
+
+  // January-September: use letters starting from A
+  const regularTerms = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+  return `${shortYear}${regularTerms[month - 1]}`
 })
 
-// Sort term codes: 25I, 25H, ..., 25A, 25B, 25C, 25
+// Sort term codes: Largest to smallest (26I, 26H, ..., 26A, 25, 25C, 25B, 25A, ...)
 const sortTermCodes = (a, b) => {
   const extractYear = (term) => parseInt(term.match(/^\d+/)?.[0] || '0')
   const extractSuffix = (term) => term.match(/[A-Z]+$/)?.[0] || ''
@@ -55,7 +66,7 @@ const sortTermCodes = (a, b) => {
   const yearA = extractYear(a)
   const yearB = extractYear(b)
 
-  // Different years: sort by year descending
+  // Different years: sort by year descending (newer first)
   if (yearA !== yearB) {
     return yearB - yearA
   }
@@ -64,24 +75,30 @@ const sortTermCodes = (a, b) => {
   const suffixA = extractSuffix(a)
   const suffixB = extractSuffix(b)
 
-  // No suffix (e.g., "25") comes last
-  if (!suffixA && suffixB) return 1
-  if (suffixA && !suffixB) return -1
+  // No suffix (e.g., "25") comes after regular letters but before A/B/C
   if (!suffixA && !suffixB) return 0
+  if (!suffixA && suffixB) {
+    // "25" vs "25X": check if suffixB is A/B/C
+    return ['A', 'B', 'C'].includes(suffixB) ? -1 : 1
+  }
+  if (suffixA && !suffixB) {
+    // "25X" vs "25": check if suffixA is A/B/C
+    return ['A', 'B', 'C'].includes(suffixA) ? 1 : -1
+  }
 
-  // Special handling for A, B, C (end of year) vs regular letters
+  // Both have suffixes
   const isEndOfYearA = ['A', 'B', 'C'].includes(suffixA)
   const isEndOfYearB = ['A', 'B', 'C'].includes(suffixB)
 
+  if (isEndOfYearA && isEndOfYearB) {
+    // Both are A/B/C: sort C > B > A (descending)
+    return suffixB.localeCompare(suffixA)
+  }
   if (isEndOfYearA && !isEndOfYearB) return 1 // A/B/C comes after regular letters
   if (!isEndOfYearA && isEndOfYearB) return -1 // Regular letters come before A/B/C
-  if (isEndOfYearA && isEndOfYearB) {
-    // Both are A/B/C: sort A < B < C
-    return suffixA.localeCompare(suffixB)
-  }
 
   // Both are regular letters: sort descending (I > H > ... > D)
-  return suffixB.localeCompare(suffixA)
+  return suffixA.localeCompare(suffixB)
 }
 
 // Load dashboard data
