@@ -152,11 +152,12 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
               <VCol
                 cols="12"
                 :md="isCovidSource ? 2 : 5"
-                class="d-flex align-end"
+                class="d-flex align-end justify-end"
               >
                 <VBtn
                   color="primary"
-                  block
+                  :block="$vuetify.display.smAndDown"
+                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
                   :loading="loading"
                   @click="syncEmployee"
                 >

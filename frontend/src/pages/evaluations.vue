@@ -188,7 +188,7 @@ const closeDetail = () => {
             <VRow>
               <VCol
                 cols="12"
-                md="3"
+                md="4"
               >
                 <VTextField
                   v-model="searchEmployeeId"
@@ -230,7 +230,7 @@ const closeDetail = () => {
               </VCol>
               <VCol
                 cols="12"
-                md="3"
+                md="2"
                 class="d-flex align-end justify-end"
               >
                 <VBtn
