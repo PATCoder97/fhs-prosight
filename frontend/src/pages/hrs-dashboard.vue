@@ -46,7 +46,7 @@ const formatCurrency = (amount) => {
 
 // Load dashboard data
 const loadDashboardData = async () => {
-  if (!currentUser.value || !currentUser.value.employee_id) {
+  if (!currentUser.value || !currentUser.value.localId) {
     error.value = 'Không tìm thấy Employee ID của bạn'
     return
   }
@@ -57,17 +57,17 @@ const loadDashboardData = async () => {
   try {
     // Load current month salary
     const salaryPromise = $api(
-      `/hrs-data/salary/${currentUser.value.employee_id}?year=${currentYear}&month=${currentMonth}`
+      `/hrs-data/salary/${currentUser.value.localId}?year=${currentYear}&month=${currentMonth}`
     ).catch(() => null)
 
     // Load achievements
     const achievementsPromise = $api(
-      `/hrs-data/achievements/${currentUser.value.employee_id}`
+      `/hrs-data/achievements/${currentUser.value.localId}`
     ).catch(() => null)
 
     // Load current year bonus
     const yearBonusPromise = $api(
-      `/hrs-data/year-bonus/${currentUser.value.employee_id}/${currentYear}`
+      `/hrs-data/year-bonus/${currentUser.value.localId}/${currentYear}`
     ).catch(() => null)
 
     // Wait for all requests
