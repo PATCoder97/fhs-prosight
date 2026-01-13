@@ -10,6 +10,12 @@ export default [
     icon: { icon: 'tabler-file' },
   },
   {
+    title: 'HRS Dashboard',
+    to: { name: 'hrs-dashboard' },
+    icon: { icon: 'tabler-dashboard' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Salary',
     to: { name: 'salary' },
     icon: { icon: 'tabler-currency-dong' },
