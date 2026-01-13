@@ -14,8 +14,9 @@ const error = ref(null)
 
 // Form inputs
 const employeeId = ref('')
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth() + 1)
+const now = new Date()
+const selectedYear = ref(now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear())
+const selectedMonth = ref(now.getMonth() === 0 ? 12 : now.getMonth()) // Previous month (getMonth() is 0-indexed, so already -1)
 
 // Load salary data
 const loadSalary = async () => {
