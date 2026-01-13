@@ -147,44 +147,16 @@ const getTrendIcon = (percentage) => {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <VRow>
-      <VCol cols="12">
-        <div class="d-flex align-center justify-space-between mb-6">
-          <div>
-            <h2 class="text-h4 font-weight-bold mb-1">
-              📊 Lịch Sử Lương
-            </h2>
-            <p class="text-body-1 text-medium-emphasis">
-              Tra cứu lịch sử lương theo khoảng thời gian với phân tích xu hướng
-            </p>
-          </div>
-          <VChip
-            v-if="currentUser"
-            color="primary"
-            variant="tonal"
-            size="large"
-          >
-            <VIcon
-              start
-              icon="tabler-user"
-            />
-            {{ currentUser.full_name || currentUser.email }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
-
     <!-- Search Form -->
     <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
             <VIcon
-              icon="tabler-search"
+              icon="tabler-chart-line"
               class="me-2"
             />
-            Thông Tin Tra Cứu
+            Lịch Sử Lương
           </VCardTitle>
           <VDivider />
           <VCardText>

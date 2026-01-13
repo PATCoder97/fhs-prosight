@@ -134,34 +134,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <VRow>
-      <VCol cols="12">
-        <div class="d-flex align-center justify-space-between mb-6">
-          <div>
-            <h2 class="text-h4 font-weight-bold mb-1">
-              📊 HRS Dashboard
-            </h2>
-            <p class="text-body-1 text-medium-emphasis">
-              Tổng quan dữ liệu nhân sự của bạn
-            </p>
-          </div>
-          <VChip
-            v-if="currentUser"
-            color="primary"
-            variant="tonal"
-            size="large"
-          >
-            <VIcon
-              start
-              icon="tabler-user"
-            />
-            {{ currentUser.full_name || currentUser.email }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
-
     <!-- Error Alert -->
     <VAlert
       v-if="error"

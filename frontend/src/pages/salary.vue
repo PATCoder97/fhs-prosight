@@ -122,44 +122,16 @@ const yearOptions = computed(() => {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <VRow>
-      <VCol cols="12">
-        <div class="d-flex align-center justify-space-between mb-6">
-          <div>
-            <h2 class="text-h4 font-weight-bold mb-1">
-              💰 Tra Cứu Lương
-            </h2>
-            <p class="text-body-1 text-medium-emphasis">
-              Tra cứu thông tin lương theo Employee ID
-            </p>
-          </div>
-          <VChip
-            v-if="currentUser"
-            color="primary"
-            variant="tonal"
-            size="large"
-          >
-            <VIcon
-              start
-              icon="tabler-user"
-            />
-            {{ currentUser.full_name || currentUser.email }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
-
     <!-- Search Form -->
     <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
             <VIcon
-              icon="tabler-search"
+              icon="tabler-currency-dong"
               class="me-2"
             />
-            Thông Tin Tra Cứu
+            Tra Cứu Lương
           </VCardTitle>
           <VDivider />
           <VCardText>

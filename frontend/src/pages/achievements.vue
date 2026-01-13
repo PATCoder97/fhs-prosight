@@ -115,44 +115,16 @@ const getScoreIcon = (score) => {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <VRow>
-      <VCol cols="12">
-        <div class="d-flex align-center justify-space-between mb-6">
-          <div>
-            <h2 class="text-h4 font-weight-bold mb-1">
-              🏆 Tra Cứu Thành Tích
-            </h2>
-            <p class="text-body-1 text-medium-emphasis">
-              Tra cứu lịch sử đánh giá thành tích theo Employee ID
-            </p>
-          </div>
-          <VChip
-            v-if="currentUser"
-            color="primary"
-            variant="tonal"
-            size="large"
-          >
-            <VIcon
-              start
-              icon="tabler-user"
-            />
-            {{ currentUser.full_name || currentUser.email }}
-          </VChip>
-        </div>
-      </VCol>
-    </VRow>
-
     <!-- Search Form -->
     <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
             <VIcon
-              icon="tabler-search"
+              icon="tabler-trophy"
               class="me-2"
             />
-            Thông Tin Tra Cứu
+            Tra Cứu Thành Tích
           </VCardTitle>
           <VDivider />
           <VCardText>
