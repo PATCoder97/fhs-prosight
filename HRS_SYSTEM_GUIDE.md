@@ -164,41 +164,45 @@ GET /api/hrs-data/achievements/{employee_id}
 
 **Features**:
 - ✅ Search form: Employee ID, Year
-- ✅ Employee info với rank badge
+- ✅ Employee info với score badge
 - ✅ 4 Summary Cards:
   - Tổng lương cơ bản
   - Tỷ lệ thưởng (%)
-  - Số tháng đóng BHTN
-  - Tổng thưởng
+  - Tỷ lệ BHTN (%)
+  - Tổng thưởng (calculated)
 - ✅ Bonus Breakdown Cards:
   - Thưởng trước Tết (Phần 1) - Green
   - Thưởng sau Tết (Phần 2) - Blue
 - ✅ Detailed Information Table
 - ✅ Large Total Bonus Summary Display
+- ✅ Smart number parsing (handles comma-separated strings)
+- ✅ Null-safe calculations
 
 **API Call**:
 ```
 GET /api/hrs-data/year-bonus/{employee_id}/{year}
 ```
 
-**Response Structure**:
+**Actual Response Structure**:
 ```json
 {
   "employee_id": "VNW0014732",
-  "employee_name": "NGUYEN VAN A",
-  "year": 2024,
+  "employee_name": "Phan Anh Tuấn",
+  "year": 2022,
   "bonus_data": {
     "mnv": "VNW0014732",
-    "tlcb": "15000000",        // Tổng lương cơ bản
-    "stdltbtn": "12",          // Số tháng đóng BHTN
-    "capbac": "Senior",        // Cấp bậc
-    "tile": "100",             // Tỷ lệ (%)
-    "stienthuong": "5000000",  // Tổng thưởng
-    "tpnttt": "2500000",       // Thưởng phần NT trước Tết
-    "tpntst": "2500000"        // Thưởng phần NT sau Tết
+    "tlcb": "7,205,600",       // Tổng lương cơ bản (string with commas)
+    "stdltbtn": "100.00%",     // Tỷ lệ BHTN (percentage string)
+    "capbac": "優",            // Score (not rank)
+    "tile": "195.00%",         // Tỷ lệ thưởng (includes %)
+    "stienthuong": "0",        // Not reliable - use calculated total
+    "tpnttt": "14,050,920",    // Thưởng phần NT trước Tết (string)
+    "tpntst": null             // Thưởng phần NT sau Tết (can be null)
   }
 }
 ```
+
+**Note**: The page uses `parseNumber()` utility to handle comma-separated strings and calculates total bonus as `tpnttt + tpntst` instead of using `stienthuong`.
 
 ---
 
@@ -266,19 +270,54 @@ Tất cả trang đều được thêm vào:
 
 ---
 
-## 📝 Backend Bug Fixes
+## 📝 Bug Fixes & Improvements
 
 ### Fixed Issues
+
 1. ✅ **Missing asyncio import** (`fhs_hrs_client.py`)
-   - Lỗi: `name 'asyncio' is not defined`
-   - Fix: Thêm `import asyncio` vào đầu file
-   - Commit: `c9cef60`
+   - **Lỗi**: `name 'asyncio' is not defined` khi gọi year-bonus endpoint
+   - **Root Cause**: File `backend/app/integrations/fhs_hrs_client.py` sử dụng `asyncio.gather()` nhưng thiếu `import asyncio`
+   - **Fix**: Thêm `import asyncio` vào đầu file
+   - **File**: `backend/app/integrations/fhs_hrs_client.py:1`
+   - **Commit**: `c9cef60`
+
+2. ✅ **Year Bonus API Response Format** (`year-bonus.vue`)
+   - **Lỗi**: Không hiển thị đúng dữ liệu vì API response có format khác với expected
+   - **Issues**:
+     - Số tiền là string với dấu phẩy: `"7,205,600"` thay vì number
+     - `stdltbtn` là percentage `"100.00%"` không phải số tháng
+     - `tile` đã bao gồm `"%"` → `"195.00%"`
+     - `stienthuong` không đáng tin cậy (thường là "0")
+     - `tpntst` có thể null
+   - **Fix**:
+     - Thêm `parseNumber()` function để parse comma-separated strings
+     - Thêm `totalBonus` computed property: `tpnttt + tpntst`
+     - Đổi label "Số Tháng BHTN" → "Tỷ Lệ BHTN"
+     - Không thêm `"%"` cho `tile` display
+     - Replace tất cả `stienthuong` → `totalBonus`
+   - **File**: `frontend/src/pages/year-bonus.vue:59-83`
+   - **Commit**: `05417f6`
+
+3. ✅ **Dashboard LocalId Field** (`hrs-dashboard.vue`)
+   - **Lỗi**: Dashboard không load được data vì dùng sai field name
+   - **Root Cause**: User object trong localStorage có field `localId` không phải `employee_id`
+   - **Fix**: Đổi tất cả `currentUser.value.employee_id` → `currentUser.value.localId`
+   - **Affected Lines**:
+     - Validation check: `hrs-dashboard.vue:49`
+     - Salary API call: `hrs-dashboard.vue:60`
+     - Achievements API call: `hrs-dashboard.vue:65`
+     - Year Bonus API call: `hrs-dashboard.vue:70`
+   - **File**: `frontend/src/pages/hrs-dashboard.vue:49-71`
+   - **Commit**: `2a2b337`
 
 ---
 
 ## 🚀 Git Commits History
 
 ```bash
+2a2b337 fix: update HRS Dashboard to use localId from user object
+05417f6 fix: update year-bonus page to handle actual API response format
+d021021 docs: add comprehensive HRS System documentation
 a55ecee feat: add HRS Dashboard with overview of all employee data
 c9cef60 fix: add missing asyncio import in fhs_hrs_client
 4bb90a4 feat: add salary-history page with trend analysis
