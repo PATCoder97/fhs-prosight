@@ -45,6 +45,11 @@ export default [
         to: { name: 'user-manager' },
         icon: { icon: 'tabler-users-group' },
       },
+      {
+        title: 'Employee Search',
+        to: { name: 'employee-search' },
+        icon: { icon: 'tabler-user-search' },
+      },
     ],
   },
 ]
