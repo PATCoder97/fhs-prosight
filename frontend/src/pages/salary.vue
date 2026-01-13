@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 
 // Protect from guest users
@@ -8,10 +8,12 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const salaryData = ref(null)
-const salaryHistory = ref(null)
+const error = ref(null)
+
+// Form inputs
+const employeeId = ref('')
 const selectedYear = ref(new Date().getFullYear())
 const selectedMonth = ref(new Date().getMonth() + 1)
-const error = ref(null)
 
 // Get current user
 const currentUser = computed(() => {
@@ -29,11 +31,20 @@ const currentUser = computed(() => {
 
 // Load salary data
 const loadSalary = async () => {
+  // Validate employee ID
+  if (!employeeId.value || !employeeId.value.trim()) {
+    error.value = 'Vui lòng nhập Employee ID'
+    return
+  }
+
   loading.value = true
   error.value = null
+  salaryData.value = null
 
   try {
-    const response = await $api(`/hrs-data/salary?year=${selectedYear.value}&month=${selectedMonth.value}`)
+    const response = await $api(
+      `/hrs-data/salary/${employeeId.value}?year=${selectedYear.value}&month=${selectedMonth.value}`
+    )
     salaryData.value = response
   }
   catch (err) {
@@ -46,54 +57,13 @@ const loadSalary = async () => {
   }
 }
 
-// Load salary history
-const loadSalaryHistory = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const response = await $api(`/hrs-data/salary/history?year=${selectedYear.value}&from_month=1&to_month=12`)
-    salaryHistory.value = response
-  }
-  catch (err) {
-    console.error('Failed to load salary history:', err)
-    error.value = err.message || 'Không thể tải lịch sử lương'
-    salaryHistory.value = null
-  }
-  finally {
-    loading.value = false
-  }
-}
-
 // Format currency
 const formatCurrency = (amount) => {
-  if (!amount) return '0 ₫'
+  if (!amount && amount !== 0) return '0 ₫'
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
   }).format(amount)
-}
-
-// Format percentage
-const formatPercentage = (value) => {
-  if (!value) return '0%'
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`
-}
-
-// Get trend color
-const getTrendColor = (trend) => {
-  if (!trend) return 'grey'
-  if (trend === 'increasing') return 'success'
-  if (trend === 'decreasing') return 'error'
-  return 'warning'
-}
-
-// Get trend icon
-const getTrendIcon = (trend) => {
-  if (!trend) return 'tabler-minus'
-  if (trend === 'increasing') return 'tabler-trending-up'
-  if (trend === 'decreasing') return 'tabler-trending-down'
-  return 'tabler-minus'
 }
 
 // Month options
@@ -120,21 +90,6 @@ const yearOptions = computed(() => {
     label: `Năm ${currentYear - i}`,
   }))
 })
-
-// On month/year change
-const onFilterChange = () => {
-  loadSalary()
-}
-
-// On view history
-const onViewHistory = () => {
-  loadSalaryHistory()
-}
-
-// Load data on mount
-onMounted(async () => {
-  await loadSalary()
-})
 </script>
 
 <template>
@@ -145,10 +100,10 @@ onMounted(async () => {
         <div class="d-flex align-center justify-space-between mb-6">
           <div>
             <h2 class="text-h4 font-weight-bold mb-1">
-              💰 Thông Tin Lương
+              💰 Tra Cứu Lương
             </h2>
             <p class="text-body-1 text-medium-emphasis">
-              Xem thông tin lương và lịch sử lương của bạn
+              Tra cứu thông tin lương theo Employee ID
             </p>
           </div>
           <VChip
@@ -167,53 +122,82 @@ onMounted(async () => {
       </VCol>
     </VRow>
 
-    <!-- Filter Section -->
+    <!-- Search Form -->
     <VRow>
-      <VCol
-        cols="12"
-        md="4"
-      >
-        <VSelect
-          v-model="selectedYear"
-          :items="yearOptions"
-          item-title="label"
-          item-value="value"
-          label="Năm"
-          variant="outlined"
-          @update:model-value="onFilterChange"
-        />
-      </VCol>
-      <VCol
-        cols="12"
-        md="4"
-      >
-        <VSelect
-          v-model="selectedMonth"
-          :items="monthOptions"
-          item-title="label"
-          item-value="value"
-          label="Tháng"
-          variant="outlined"
-          @update:model-value="onFilterChange"
-        />
-      </VCol>
-      <VCol
-        cols="12"
-        md="4"
-        class="d-flex align-center"
-      >
-        <VBtn
-          color="secondary"
-          variant="tonal"
-          block
-          @click="onViewHistory"
-        >
-          <VIcon
-            start
-            icon="tabler-history"
-          />
-          Xem Lịch Sử
-        </VBtn>
+      <VCol cols="12">
+        <VCard>
+          <VCardTitle>
+            <VIcon
+              icon="tabler-search"
+              class="me-2"
+            />
+            Thông Tin Tra Cứu
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <VRow>
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <VTextField
+                  v-model="employeeId"
+                  label="Employee ID"
+                  placeholder="VD: VNW0014732"
+                  variant="outlined"
+                  prepend-inner-icon="tabler-id"
+                  hint="Nhập mã nhân viên"
+                  persistent-hint
+                  @keyup.enter="loadSalary"
+                />
+              </VCol>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <VSelect
+                  v-model="selectedYear"
+                  :items="yearOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Năm"
+                  variant="outlined"
+                />
+              </VCol>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <VSelect
+                  v-model="selectedMonth"
+                  :items="monthOptions"
+                  item-title="label"
+                  item-value="value"
+                  label="Tháng"
+                  variant="outlined"
+                />
+              </VCol>
+              <VCol
+                cols="12"
+                md="2"
+                class="d-flex align-center"
+              >
+                <VBtn
+                  color="primary"
+                  block
+                  size="large"
+                  @click="loadSalary"
+                >
+                  <VIcon
+                    start
+                    icon="tabler-search"
+                  />
+                  Tra Cứu
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
       </VCol>
     </VRow>
 
@@ -250,380 +234,380 @@ onMounted(async () => {
     <!-- Salary Data -->
     <VRow v-if="!loading && salaryData">
       <VCol cols="12">
-        <VCard>
-          <VCardTitle class="d-flex align-center justify-space-between">
-            <span>
-              <VIcon
-                icon="tabler-currency-dong"
-                class="me-2"
-              />
-              Lương Tháng {{ selectedMonth }}/{{ selectedYear }}
-            </span>
-            <VChip
-              color="success"
-              variant="flat"
-            >
-              {{ formatCurrency(salaryData.net_salary) }}
-            </VChip>
-          </VCardTitle>
-
-          <VDivider />
-
+        <!-- Employee Info -->
+        <VCard class="mb-4">
           <VCardText>
             <VRow>
-              <!-- Basic Salary -->
               <VCol
                 cols="12"
                 md="6"
               >
-                <div class="d-flex align-center justify-space-between mb-4">
-                  <div class="d-flex align-center">
-                    <VAvatar
-                      color="primary"
-                      variant="tonal"
-                      class="me-3"
-                    >
-                      <VIcon icon="tabler-coins" />
-                    </VAvatar>
-                    <div>
-                      <p class="text-caption text-medium-emphasis mb-0">
-                        Lương Cơ Bản
-                      </p>
-                      <p class="text-h6 font-weight-bold mb-0">
-                        {{ formatCurrency(salaryData.basic_salary) }}
-                      </p>
-                    </div>
+                <div class="d-flex align-center">
+                  <VAvatar
+                    color="primary"
+                    size="48"
+                    class="me-3"
+                  >
+                    <VIcon
+                      icon="tabler-user"
+                      size="24"
+                    />
+                  </VAvatar>
+                  <div>
+                    <p class="text-caption text-medium-emphasis mb-0">
+                      Nhân viên
+                    </p>
+                    <p class="text-h6 font-weight-bold mb-0">
+                      {{ salaryData.employee_name || salaryData.employee_id }}
+                    </p>
                   </div>
                 </div>
               </VCol>
-
-              <!-- Allowance -->
               <VCol
                 cols="12"
-                md="6"
+                md="3"
               >
-                <div class="d-flex align-center justify-space-between mb-4">
-                  <div class="d-flex align-center">
-                    <VAvatar
-                      color="info"
-                      variant="tonal"
-                      class="me-3"
-                    >
-                      <VIcon icon="tabler-gift" />
-                    </VAvatar>
-                    <div>
-                      <p class="text-caption text-medium-emphasis mb-0">
-                        Phụ Cấp
-                      </p>
-                      <p class="text-h6 font-weight-bold mb-0">
-                        {{ formatCurrency(salaryData.allowance) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </VCol>
-
-              <!-- Bonus -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <div class="d-flex align-center justify-space-between mb-4">
-                  <div class="d-flex align-center">
-                    <VAvatar
-                      color="success"
-                      variant="tonal"
-                      class="me-3"
-                    >
-                      <VIcon icon="tabler-award" />
-                    </VAvatar>
-                    <div>
-                      <p class="text-caption text-medium-emphasis mb-0">
-                        Thưởng
-                      </p>
-                      <p class="text-h6 font-weight-bold mb-0">
-                        {{ formatCurrency(salaryData.bonus) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </VCol>
-
-              <!-- Deduction -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <div class="d-flex align-center justify-space-between mb-4">
-                  <div class="d-flex align-center">
-                    <VAvatar
-                      color="error"
-                      variant="tonal"
-                      class="me-3"
-                    >
-                      <VIcon icon="tabler-receipt-tax" />
-                    </VAvatar>
-                    <div>
-                      <p class="text-caption text-medium-emphasis mb-0">
-                        Khấu Trừ
-                      </p>
-                      <p class="text-h6 font-weight-bold mb-0">
-                        {{ formatCurrency(salaryData.deduction) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </VCol>
-            </VRow>
-
-            <VDivider class="my-4" />
-
-            <!-- Net Salary -->
-            <div class="d-flex align-center justify-space-between pa-4 bg-primary-subtle rounded">
-              <div>
                 <p class="text-caption text-medium-emphasis mb-1">
-                  TỔNG LƯƠNG THỰC LĨNH
+                  Employee ID
                 </p>
-                <p class="text-h4 font-weight-bold text-primary mb-0">
-                  {{ formatCurrency(salaryData.net_salary) }}
-                </p>
-              </div>
-              <VIcon
-                icon="tabler-wallet"
-                size="48"
-                color="primary"
-              />
-            </div>
-
-            <!-- Additional Info -->
-            <VRow
-              v-if="salaryData.payment_date || salaryData.notes"
-              class="mt-4"
-            >
-              <VCol
-                v-if="salaryData.payment_date"
-                cols="12"
-                md="6"
-              >
-                <VAlert
-                  variant="tonal"
+                <VChip
                   color="info"
-                  density="compact"
+                  variant="flat"
                 >
-                  <div class="d-flex align-center">
-                    <VIcon
-                      icon="tabler-calendar"
-                      class="me-2"
-                    />
-                    <span>Ngày thanh toán: <strong>{{ salaryData.payment_date }}</strong></span>
-                  </div>
-                </VAlert>
+                  {{ salaryData.employee_id }}
+                </VChip>
               </VCol>
               <VCol
-                v-if="salaryData.notes"
                 cols="12"
-                md="6"
+                md="3"
               >
-                <VAlert
-                  variant="tonal"
-                  color="warning"
-                  density="compact"
+                <p class="text-caption text-medium-emphasis mb-1">
+                  Kỳ lương
+                </p>
+                <VChip
+                  color="success"
+                  variant="flat"
                 >
-                  <div class="d-flex align-center">
-                    <VIcon
-                      icon="tabler-note"
-                      class="me-2"
-                    />
-                    <span>{{ salaryData.notes }}</span>
-                  </div>
-                </VAlert>
+                  {{ salaryData.period.month }}/{{ salaryData.period.year }}
+                </VChip>
               </VCol>
             </VRow>
           </VCardText>
         </VCard>
-      </VCol>
-    </VRow>
 
-    <!-- Salary History -->
-    <VRow v-if="!loading && salaryHistory">
-      <VCol cols="12">
-        <VCard>
-          <VCardTitle class="d-flex align-center justify-space-between">
-            <span>
-              <VIcon
-                icon="tabler-history"
-                class="me-2"
-              />
-              Lịch Sử Lương Năm {{ selectedYear }}
-            </span>
-            <VChip
-              v-if="salaryHistory.trend"
-              :color="getTrendColor(salaryHistory.trend)"
-              variant="flat"
-            >
-              <VIcon
-                :icon="getTrendIcon(salaryHistory.trend)"
-                start
-              />
-              {{ salaryHistory.trend === 'increasing' ? 'Tăng' : salaryHistory.trend === 'decreasing' ? 'Giảm' : 'Ổn định' }}
-            </VChip>
+        <!-- Summary Card -->
+        <VCard class="mb-4">
+          <VCardTitle>
+            <VIcon
+              icon="tabler-report-money"
+              class="me-2"
+            />
+            Tổng Quan
           </VCardTitle>
-
           <VDivider />
-
           <VCardText>
-            <!-- Summary Statistics -->
-            <VRow class="mb-6">
+            <VRow>
               <VCol
                 cols="12"
-                md="3"
-              >
-                <VCard
-                  variant="tonal"
-                  color="primary"
-                >
-                  <VCardText class="text-center">
-                    <p class="text-caption mb-1">
-                      Trung Bình
-                    </p>
-                    <p class="text-h6 font-weight-bold mb-0">
-                      {{ formatCurrency(salaryHistory.average_salary) }}
-                    </p>
-                  </VCardText>
-                </VCard>
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
+                md="4"
               >
                 <VCard
                   variant="tonal"
                   color="success"
                 >
                   <VCardText class="text-center">
+                    <VIcon
+                      icon="tabler-coin"
+                      size="32"
+                      class="mb-2"
+                    />
                     <p class="text-caption mb-1">
-                      Cao Nhất
+                      Tổng Tiền Công
                     </p>
-                    <p class="text-h6 font-weight-bold mb-0">
-                      {{ formatCurrency(salaryHistory.max_salary) }}
+                    <p class="text-h5 font-weight-bold mb-0">
+                      {{ formatCurrency(salaryData.summary.tong_tien_cong) }}
                     </p>
                   </VCardText>
                 </VCard>
               </VCol>
               <VCol
                 cols="12"
-                md="3"
+                md="4"
               >
                 <VCard
                   variant="tonal"
-                  color="warning"
+                  color="error"
                 >
                   <VCardText class="text-center">
+                    <VIcon
+                      icon="tabler-receipt-tax"
+                      size="32"
+                      class="mb-2"
+                    />
                     <p class="text-caption mb-1">
-                      Thấp Nhất
+                      Tổng Tiền Trừ
                     </p>
-                    <p class="text-h6 font-weight-bold mb-0">
-                      {{ formatCurrency(salaryHistory.min_salary) }}
+                    <p class="text-h5 font-weight-bold mb-0">
+                      {{ formatCurrency(salaryData.summary.tong_tien_tru) }}
                     </p>
                   </VCardText>
                 </VCard>
               </VCol>
               <VCol
                 cols="12"
-                md="3"
+                md="4"
               >
                 <VCard
                   variant="tonal"
-                  color="info"
+                  color="primary"
                 >
                   <VCardText class="text-center">
+                    <VIcon
+                      icon="tabler-wallet"
+                      size="32"
+                      class="mb-2"
+                    />
                     <p class="text-caption mb-1">
-                      Tổng Thu Nhập
+                      Thực Lĩnh
                     </p>
-                    <p class="text-h6 font-weight-bold mb-0">
-                      {{ formatCurrency(salaryHistory.total_income) }}
+                    <p class="text-h5 font-weight-bold mb-0">
+                      {{ formatCurrency(salaryData.summary.thuc_linh) }}
                     </p>
                   </VCardText>
                 </VCard>
               </VCol>
             </VRow>
+          </VCardText>
+        </VCard>
 
-            <!-- Monthly Data Table -->
-            <VTable>
-              <thead>
-                <tr>
-                  <th>Tháng</th>
-                  <th class="text-end">
-                    Lương Cơ Bản
-                  </th>
-                  <th class="text-end">
-                    Phụ Cấp
-                  </th>
-                  <th class="text-end">
-                    Thưởng
-                  </th>
-                  <th class="text-end">
-                    Thực Lĩnh
-                  </th>
-                  <th class="text-center">
-                    Xu Hướng
-                  </th>
-                </tr>
-              </thead>
+        <!-- Income Details -->
+        <VCard class="mb-4">
+          <VCardTitle class="bg-success-subtle">
+            <VIcon
+              icon="tabler-trending-up"
+              class="me-2"
+            />
+            Chi Tiết Thu Nhập
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <VTable density="comfortable">
               <tbody>
-                <tr
-                  v-for="item in salaryHistory.monthly_data"
-                  :key="item.month"
-                >
-                  <td>
-                    <strong>Tháng {{ item.month }}</strong>
+                <tr v-if="salaryData.income.luong_co_ban">
+                  <td class="font-weight-medium">
+                    Lương Cơ Bản
                   </td>
                   <td class="text-end">
-                    {{ formatCurrency(item.basic_salary) }}
+                    {{ formatCurrency(salaryData.income.luong_co_ban) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.thuong_nang_suat">
+                  <td class="font-weight-medium">
+                    Thưởng Năng Suất
                   </td>
                   <td class="text-end">
-                    {{ formatCurrency(item.allowance) }}
+                    {{ formatCurrency(salaryData.income.thuong_nang_suat) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.thuong_tet">
+                  <td class="font-weight-medium">
+                    Thưởng Tết
                   </td>
                   <td class="text-end">
-                    {{ formatCurrency(item.bonus) }}
+                    {{ formatCurrency(salaryData.income.thuong_tet) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.tro_cap_com">
+                  <td class="font-weight-medium">
+                    Trợ Cấp Cơm
                   </td>
                   <td class="text-end">
-                    <strong>{{ formatCurrency(item.net_salary) }}</strong>
+                    {{ formatCurrency(salaryData.income.tro_cap_com) }}
                   </td>
-                  <td class="text-center">
-                    <VChip
-                      v-if="item.change_percentage !== null"
-                      :color="item.change_percentage > 0 ? 'success' : item.change_percentage < 0 ? 'error' : 'grey'"
-                      size="small"
-                      variant="flat"
-                    >
-                      {{ formatPercentage(item.change_percentage) }}
-                    </VChip>
+                </tr>
+                <tr v-if="salaryData.income.tro_cap_di_lai">
+                  <td class="font-weight-medium">
+                    Trợ Cấp Đi Lại
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.tro_cap_di_lai) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.thuong_chuyen_can">
+                  <td class="font-weight-medium">
+                    Thưởng Chuyên Cần
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.thuong_chuyen_can) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.phu_cap_dac_biet">
+                  <td class="font-weight-medium">
+                    Phụ Cấp Đặc Biệt
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.phu_cap_dac_biet) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.phu_cap_tac_nghiep">
+                  <td class="font-weight-medium">
+                    Phụ Cấp Tác Nghiệp
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.phu_cap_tac_nghiep) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.phi_khac">
+                  <td class="font-weight-medium">
+                    Phí Khác
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.phi_khac) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.income.tro_cap_com2">
+                  <td class="font-weight-medium">
+                    Trợ Cấp Cơm 2
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.income.tro_cap_com2) }}
                   </td>
                 </tr>
               </tbody>
+              <tfoot>
+                <tr class="font-weight-bold bg-success-subtle">
+                  <td>TỔNG THU NHẬP</td>
+                  <td class="text-end text-success">
+                    {{ formatCurrency(salaryData.summary.tong_tien_cong) }}
+                  </td>
+                </tr>
+              </tfoot>
             </VTable>
+          </VCardText>
+        </VCard>
+
+        <!-- Deductions Details -->
+        <VCard>
+          <VCardTitle class="bg-error-subtle">
+            <VIcon
+              icon="tabler-trending-down"
+              class="me-2"
+            />
+            Chi Tiết Khấu Trừ
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <VTable density="comfortable">
+              <tbody>
+                <tr v-if="salaryData.deductions.bhxh">
+                  <td class="font-weight-medium">
+                    Bảo Hiểm Xã Hội
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.bhxh) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.bhyt">
+                  <td class="font-weight-medium">
+                    Bảo Hiểm Y Tế
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.bhyt) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.bh_that_nghiep">
+                  <td class="font-weight-medium">
+                    Bảo Hiểm Thất Nghiệp
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.bh_that_nghiep) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.ky_tuc_xa">
+                  <td class="font-weight-medium">
+                    Ký Túc Xá
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.ky_tuc_xa) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.cong_doan">
+                  <td class="font-weight-medium">
+                    Công Đoàn
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.cong_doan) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.thue_thu_nhap">
+                  <td class="font-weight-medium">
+                    Thuế Thu Nhập Cá Nhân
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.thue_thu_nhap) }}
+                  </td>
+                </tr>
+                <tr v-if="salaryData.deductions.khac">
+                  <td class="font-weight-medium">
+                    Khác
+                  </td>
+                  <td class="text-end">
+                    {{ formatCurrency(salaryData.deductions.khac) }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="font-weight-bold bg-error-subtle">
+                  <td>TỔNG KHẤU TRỪ</td>
+                  <td class="text-end text-error">
+                    {{ formatCurrency(salaryData.summary.tong_tien_tru) }}
+                  </td>
+                </tr>
+              </tfoot>
+            </VTable>
+          </VCardText>
+        </VCard>
+
+        <!-- Net Salary -->
+        <VCard class="mt-4">
+          <VCardText>
+            <div class="d-flex align-center justify-space-between pa-4 bg-primary-subtle rounded">
+              <div>
+                <p class="text-caption text-medium-emphasis mb-1">
+                  TỔNG LƯƠNG THỰC LĨNH
+                </p>
+                <p class="text-h3 font-weight-bold text-primary mb-0">
+                  {{ formatCurrency(salaryData.summary.thuc_linh) }}
+                </p>
+              </div>
+              <VIcon
+                icon="tabler-currency-dong"
+                size="64"
+                color="primary"
+                class="opacity-50"
+              />
+            </div>
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
 
     <!-- No Data State -->
-    <VRow v-if="!loading && !salaryData && !salaryHistory">
+    <VRow v-if="!loading && !salaryData && !error">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
             <VIcon
-              icon="tabler-file-search"
+              icon="tabler-search"
               size="64"
               color="grey-lighten-1"
               class="mb-4"
             />
             <p class="text-h6 text-medium-emphasis mb-2">
-              Không có dữ liệu lương
+              Nhập thông tin để tra cứu
             </p>
             <p class="text-body-2 text-medium-emphasis">
-              Vui lòng chọn tháng/năm khác hoặc liên hệ bộ phận nhân sự
+              Vui lòng nhập Employee ID, chọn tháng/năm và nhấn "Tra Cứu"
             </p>
           </VCardText>
         </VCard>
@@ -635,5 +619,13 @@ onMounted(async () => {
 <style scoped>
 .bg-primary-subtle {
   background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.bg-success-subtle {
+  background-color: rgba(var(--v-theme-success), 0.08);
+}
+
+.bg-error-subtle {
+  background-color: rgba(var(--v-theme-error), 0.08);
 }
 </style>
