@@ -129,6 +129,15 @@ async def search_employees(
     Raises:
         403: User is not admin
     """
+    # Get total count with same filters (for accurate pagination)
+    total = await employee_service.count_employees(
+        db,
+        name=name,
+        department_code=department_code,
+        dorm_id=dorm_id
+    )
+
+    # Get paginated employees
     employees = await employee_service.search_employees(
         db,
         name=name,
@@ -137,10 +146,6 @@ async def search_employees(
         skip=skip,
         limit=limit
     )
-
-    # Get total count with same filters (for pagination)
-    # For now, return len(employees) as total (can be optimized with COUNT query)
-    total = len(employees)
 
     return EmployeeListResponse(
         items=employees,

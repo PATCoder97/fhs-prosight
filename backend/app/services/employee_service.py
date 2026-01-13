@@ -262,6 +262,44 @@ async def bulk_sync_employees(
     }
 
 
+async def count_employees(
+    db: AsyncSession,
+    name: Optional[str] = None,
+    department_code: Optional[str] = None,
+    dorm_id: Optional[str] = None
+) -> int:
+    """Count total employees matching filters
+
+    Args:
+        db: Database session
+        name: Search in name_tw or name_en (case-insensitive, partial match)
+        department_code: Exact match on department_code
+        dorm_id: Exact match on dorm_id
+
+    Returns:
+        Total count of matching employees
+    """
+    query = select(func.count()).select_from(Employee)
+
+    # Apply same filters as search
+    if name:
+        query = query.where(
+            or_(
+                Employee.name_tw.ilike(f"%{name}%"),
+                Employee.name_en.ilike(f"%{name}%")
+            )
+        )
+
+    if department_code:
+        query = query.where(Employee.department_code == department_code)
+
+    if dorm_id:
+        query = query.where(Employee.dorm_id == dorm_id)
+
+    result = await db.execute(query)
+    return result.scalar_one()
+
+
 async def search_employees(
     db: AsyncSession,
     name: Optional[str] = None,

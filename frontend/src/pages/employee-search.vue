@@ -15,6 +15,12 @@ const searchDormId = ref('')
 // Pagination
 const page = ref(1)
 const itemsPerPage = ref(10)
+const itemsPerPageOptions = [
+  { value: 10, title: '10' },
+  { value: 25, title: '25' },
+  { value: 50, title: '50' },
+  { value: 100, title: '100' },
+]
 
 // Search employees
 const searchEmployees = async () => {
@@ -63,6 +69,14 @@ const resetFilters = () => {
   employees.value = []
   total.value = 0
   error.value = null
+}
+
+// When items per page changes, reset to page 1 and search again
+const onItemsPerPageChange = () => {
+  page.value = 1
+  if (employees.value.length > 0) {
+    searchEmployees()
+  }
 }
 
 // Format currency
@@ -326,9 +340,20 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
 
           <!-- Pagination -->
           <VDivider />
-          <VCardText class="d-flex align-center justify-space-between">
-            <div class="text-body-2 text-medium-emphasis">
-              Hiển thị {{ ((page - 1) * itemsPerPage) + 1 }} - {{ Math.min(page * itemsPerPage, total) }} trong tổng số {{ total }} nhân viên
+          <VCardText class="d-flex align-center justify-space-between flex-wrap gap-4">
+            <div class="d-flex align-center gap-3">
+              <div class="text-body-2 text-medium-emphasis">
+                Hiển thị {{ ((page - 1) * itemsPerPage) + 1 }} - {{ Math.min(page * itemsPerPage, total) }} trong tổng số {{ total }} nhân viên
+              </div>
+              <VSelect
+                v-model="itemsPerPage"
+                :items="itemsPerPageOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                style="max-width: 100px;"
+                @update:model-value="onItemsPerPageChange"
+              />
             </div>
             <VPagination
               v-model="page"
@@ -383,19 +408,9 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value))
             <p class="text-h6 text-medium-emphasis mb-2">
               Tìm kiếm nhân viên
             </p>
-            <p class="text-body-2 text-medium-emphasis mb-4">
-              Nhập điều kiện tìm kiếm và nhấn "Tìm Kiếm" để xem danh sách nhân viên
+            <p class="text-body-2 text-medium-emphasis">
+              Nhập điều kiện tìm kiếm hoặc nhấn "Tìm Kiếm" để xem danh sách nhân viên theo trang
             </p>
-            <VBtn
-              color="primary"
-              @click="searchEmployees"
-            >
-              <VIcon
-                start
-                icon="tabler-search"
-              />
-              Xem Tất Cả Nhân Viên
-            </VBtn>
           </VCardText>
         </VCard>
       </VCol>
