@@ -37,10 +37,10 @@ const showToast = (message, color = 'success') => {
   }
 }
 
-// Sort term codes: Largest to smallest (26I, 26H, ..., 26A, 25, 25C, 25B, 25A, ...)
+// Sort term codes: 25 > 25C > 25B > 25A > 259 > 258 > ... > 251 > 24 > 24C > ...
 const sortTermCodes = (a, b) => {
   const extractYear = (term) => parseInt(term.match(/^\d+/)?.[0] || '0')
-  const extractSuffix = (term) => term.match(/[A-Z]+$/)?.[0] || ''
+  const extractSuffix = (term) => term.match(/[A-Z]$/)?.[0] || term.match(/\d$/)?.[0] || ''
 
   const yearA = extractYear(a)
   const yearB = extractYear(b)
@@ -54,30 +54,26 @@ const sortTermCodes = (a, b) => {
   const suffixA = extractSuffix(a)
   const suffixB = extractSuffix(b)
 
-  // No suffix (e.g., "25") comes after regular letters but before A/B/C
+  // No suffix (e.g., "25") means year-end summary - comes first
   if (!suffixA && !suffixB) return 0
-  if (!suffixA && suffixB) {
-    // "25" vs "25X": check if suffixB is A/B/C
-    return ['A', 'B', 'C'].includes(suffixB) ? -1 : 1
-  }
-  if (suffixA && !suffixB) {
-    // "25X" vs "25": check if suffixA is A/B/C
-    return ['A', 'B', 'C'].includes(suffixA) ? 1 : -1
-  }
+  if (!suffixA) return -1 // "25" comes before everything
+  if (!suffixB) return 1
 
-  // Both have suffixes
-  const isEndOfYearA = ['A', 'B', 'C'].includes(suffixA)
-  const isEndOfYearB = ['A', 'B', 'C'].includes(suffixB)
+  // Both have suffixes - check if they are letters (A/B/C) or numbers (1-9)
+  const isLetterA = /[A-Z]/.test(suffixA)
+  const isLetterB = /[A-Z]/.test(suffixB)
 
-  if (isEndOfYearA && isEndOfYearB) {
-    // Both are A/B/C: sort C > B > A (descending)
+  // Letters (A/B/C for Oct/Nov/Dec) come before numbers (1-9 for Jan-Sep)
+  if (isLetterA && !isLetterB) return -1
+  if (!isLetterA && isLetterB) return 1
+
+  if (isLetterA && isLetterB) {
+    // Both letters: C > B > A
     return suffixB.localeCompare(suffixA)
   }
-  if (isEndOfYearA && !isEndOfYearB) return 1 // A/B/C comes after regular letters
-  if (!isEndOfYearA && isEndOfYearB) return -1 // Regular letters come before A/B/C
 
-  // Both are regular letters: sort descending (I > H > ... > D)
-  return suffixA.localeCompare(suffixB)
+  // Both numbers: 9 > 8 > ... > 1
+  return parseInt(suffixB) - parseInt(suffixA)
 }
 
 // Search evaluations
