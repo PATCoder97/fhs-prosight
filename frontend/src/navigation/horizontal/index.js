@@ -22,6 +22,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Year Bonus',
+    to: { name: 'year-bonus' },
+    icon: { icon: 'tabler-gift' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Admin',
     icon: { icon: 'tabler-shield-lock' },
     requireRole: 'admin', // Only show for admin users
