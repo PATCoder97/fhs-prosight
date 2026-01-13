@@ -127,10 +127,11 @@ const totalPages = computed(() => {
 const getScoreColor = (score) => {
   if (!score) return 'default'
   switch (score) {
-    case '甲': return 'success'
-    case '乙': return 'info'
-    case '丙': return 'warning'
-    case '丁': return 'error'
+    case '優': return 'success'    // Tốt - Xanh lá
+    case '良': return 'info'       // Khá - Xanh dương
+    case '甲': return 'primary'    // Trung Bình - Primary
+    case '乙': return 'warning'    // Yếu - Vàng
+    case '丙': return 'error'      // Kém - Đỏ
     default: return 'default'
   }
 }
@@ -321,13 +322,7 @@ const closeDetail = () => {
                     </VChip>
                   </td>
                   <td>
-                    <VChip
-                      color="info"
-                      variant="flat"
-                      size="small"
-                    >
-                      {{ evaluation.employee_id }}
-                    </VChip>
+                    {{ evaluation.employee_id }}
                   </td>
                   <td>
                     <span class="font-weight-medium">{{ evaluation.employee_name }}</span>
@@ -353,20 +348,20 @@ const closeDetail = () => {
                     </div>
                   </td>
                   <td class="text-center">
-                    <VChip
-                      :color="getScoreColor(evaluation.dept_evaluation?.final?.score)"
-                      size="small"
+                    <span
+                      class="score-badge"
+                      :style="{ color: `rgb(var(--v-theme-${getScoreColor(evaluation.dept_evaluation?.final?.score)}))` }"
                     >
                       {{ evaluation.dept_evaluation?.final?.score || 'N/A' }}
-                    </VChip>
+                    </span>
                   </td>
                   <td class="text-center">
-                    <VChip
-                      :color="getScoreColor(evaluation.mgr_evaluation?.final?.score)"
-                      size="small"
+                    <span
+                      class="score-badge"
+                      :style="{ color: `rgb(var(--v-theme-${getScoreColor(evaluation.mgr_evaluation?.final?.score)}))` }"
                     >
                       {{ evaluation.mgr_evaluation?.final?.score || 'N/A' }}
-                    </VChip>
+                    </span>
                   </td>
                   <td class="text-center">
                     <VBtn
@@ -774,5 +769,10 @@ const closeDetail = () => {
 
 .reviewer-info {
   min-height: 1.5em;
+}
+
+.score-badge {
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 </style>
