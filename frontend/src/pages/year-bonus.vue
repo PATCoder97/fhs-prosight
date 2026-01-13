@@ -56,16 +56,31 @@ const loadYearBonus = async () => {
   }
 }
 
+// Parse number from string (remove commas)
+const parseNumber = (value) => {
+  if (!value || value === null) return 0
+  if (typeof value === 'number') return value
+  // Remove commas and parse: "7,205,600" → 7205600
+  const cleaned = value.toString().replace(/,/g, '')
+  return parseFloat(cleaned) || 0
+}
+
 // Format currency
 const formatCurrency = (amount) => {
-  if (!amount && amount !== 0) return '0 ₫'
-  // Convert string to number if needed
-  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
+  const numAmount = parseNumber(amount)
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
   }).format(numAmount)
 }
+
+// Calculate total bonus (tpnttt + tpntst)
+const totalBonus = computed(() => {
+  if (!bonusData.value) return 0
+  const preTet = parseNumber(bonusData.value.bonus_data.tpnttt)
+  const postTet = parseNumber(bonusData.value.bonus_data.tpntst)
+  return preTet + postTet
+})
 
 // Year options (last 5 years)
 const yearOptions = computed(() => {
@@ -321,7 +336,7 @@ const yearOptions = computed(() => {
                   Tỷ Lệ Thưởng
                 </p>
                 <p class="text-h6 font-weight-bold mb-0">
-                  {{ bonusData.bonus_data.tile || '0' }}%
+                  {{ bonusData.bonus_data.tile || '0%' }}
                 </p>
               </VCardText>
             </VCard>
@@ -341,10 +356,10 @@ const yearOptions = computed(() => {
                   class="mb-2"
                 />
                 <p class="text-caption mb-1">
-                  Số Tháng BHTN
+                  Tỷ Lệ BHTN
                 </p>
                 <p class="text-h6 font-weight-bold mb-0">
-                  {{ bonusData.bonus_data.stdltbtn || '0' }} tháng
+                  {{ bonusData.bonus_data.stdltbtn || '0%' }}
                 </p>
               </VCardText>
             </VCard>
@@ -367,7 +382,7 @@ const yearOptions = computed(() => {
                   Tổng Thưởng
                 </p>
                 <p class="text-h6 font-weight-bold mb-0">
-                  {{ formatCurrency(bonusData.bonus_data.stienthuong) }}
+                  {{ formatCurrency(totalBonus) }}
                 </p>
               </VCardText>
             </VCard>
@@ -504,7 +519,7 @@ const yearOptions = computed(() => {
                     Tổng Số Tiền Thưởng
                   </td>
                   <td class="text-end font-weight-bold text-success">
-                    {{ formatCurrency(bonusData.bonus_data.stienthuong) }}
+                    {{ formatCurrency(totalBonus) }}
                   </td>
                 </tr>
                 <tr>
@@ -537,7 +552,7 @@ const yearOptions = computed(() => {
                   TỔNG THƯỞNG TẾT NĂM {{ bonusData.year }}
                 </p>
                 <p class="text-h3 font-weight-bold text-success mb-0">
-                  {{ formatCurrency(bonusData.bonus_data.stienthuong) }}
+                  {{ formatCurrency(totalBonus) }}
                 </p>
               </div>
               <VIcon
