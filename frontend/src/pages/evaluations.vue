@@ -37,6 +37,43 @@ const showToast = (message, color = 'success') => {
   }
 }
 
+// Sort term codes: 25I, 25H, ..., 25A, 25B, 25C, 25
+const sortTermCodes = (a, b) => {
+  const extractYear = (term) => parseInt(term.match(/^\d+/)?.[0] || '0')
+  const extractSuffix = (term) => term.match(/[A-Z]+$/)?.[0] || ''
+
+  const yearA = extractYear(a)
+  const yearB = extractYear(b)
+
+  // Different years: sort by year descending
+  if (yearA !== yearB) {
+    return yearB - yearA
+  }
+
+  // Same year: sort by suffix
+  const suffixA = extractSuffix(a)
+  const suffixB = extractSuffix(b)
+
+  // No suffix (e.g., "25") comes last
+  if (!suffixA && suffixB) return 1
+  if (suffixA && !suffixB) return -1
+  if (!suffixA && !suffixB) return 0
+
+  // Special handling for A, B, C (end of year) vs regular letters
+  const isEndOfYearA = ['A', 'B', 'C'].includes(suffixA)
+  const isEndOfYearB = ['A', 'B', 'C'].includes(suffixB)
+
+  if (isEndOfYearA && !isEndOfYearB) return 1 // A/B/C comes after regular letters
+  if (!isEndOfYearA && isEndOfYearB) return -1 // Regular letters come before A/B/C
+  if (isEndOfYearA && isEndOfYearB) {
+    // Both are A/B/C: sort A < B < C
+    return suffixA.localeCompare(suffixB)
+  }
+
+  // Both are regular letters: sort descending (I > H > ... > D)
+  return suffixB.localeCompare(suffixA)
+}
+
 // Search evaluations
 const searchEvaluations = async (resetPage = false) => {
   if (resetPage) {
@@ -68,7 +105,11 @@ const searchEvaluations = async (resetPage = false) => {
     const queryString = params.toString()
     const response = await $api(`/evaluations/search?${queryString}`)
 
-    evaluations.value = response.results || []
+    // Sort evaluations by term_code
+    const results = response.results || []
+    results.sort((a, b) => sortTermCodes(a.term_code, b.term_code))
+
+    evaluations.value = results
     total.value = response.total || 0
   }
   catch (err) {
