@@ -83,22 +83,24 @@ const loadAchievements = async () => {
 
 // Get score color
 const getScoreColor = (score) => {
-  if (score === '優') return 'success'
-  if (score === '良') return 'info'
-  if (score === '甲') return 'primary'
-  if (score === '乙') return 'warning'
-  if (score === '丙') return 'error'
+  if (score === '優') return 'success'     // Tốt
+  if (score === '良') return 'info'        // Khá
+  if (score === '甲' || score === '甲上' || score === '甲下') return 'primary'  // Trung Bình
+  if (score === '乙') return 'warning'     // Yếu
+  if (score === '丙') return 'error'       // Kém
   return 'grey'
 }
 
 // Get score label
 const getScoreLabel = (score) => {
   const labels = {
-    '優': 'Xuất Sắc',
-    '良': 'Tốt',
-    '甲': 'Khá',
-    '乙': 'Trung Bình',
-    '丙': 'Yếu',
+    '優': 'Tốt',
+    '良': 'Khá',
+    '甲': 'Trung Bình',
+    '甲上': 'Trung Bình Trên',
+    '甲下': 'Trung Bình Dưới',
+    '乙': 'Yếu',
+    '丙': 'Kém',
   }
   return labels[score] || score
 }
@@ -391,7 +393,7 @@ const getScoreIcon = (score) => {
                     優
                   </VChip>
                   <p class="text-caption mb-0">
-                    Xuất Sắc
+                    Tốt
                   </p>
                 </div>
               </VCol>
@@ -409,7 +411,7 @@ const getScoreIcon = (score) => {
                     良
                   </VChip>
                   <p class="text-caption mb-0">
-                    Tốt
+                    Khá
                   </p>
                 </div>
               </VCol>
@@ -427,7 +429,7 @@ const getScoreIcon = (score) => {
                     甲
                   </VChip>
                   <p class="text-caption mb-0">
-                    Khá
+                    Trung Bình
                   </p>
                 </div>
               </VCol>
@@ -445,7 +447,7 @@ const getScoreIcon = (score) => {
                     乙
                   </VChip>
                   <p class="text-caption mb-0">
-                    Trung Bình
+                    Yếu
                   </p>
                 </div>
               </VCol>
@@ -463,7 +465,7 @@ const getScoreIcon = (score) => {
                     丙
                   </VChip>
                   <p class="text-caption mb-0">
-                    Yếu
+                    Kém
                   </p>
                 </div>
               </VCol>
