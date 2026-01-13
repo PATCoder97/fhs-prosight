@@ -195,7 +195,7 @@ const totalPages = computed(() => {
                     start
                     icon="tabler-search"
                   />
-                  Tìm Kiếm
+                  Tra Cứu
                 </VBtn>
               </VCol>
             </VRow>

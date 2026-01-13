@@ -34,10 +34,10 @@ const currentUser = computed(() => {
   return null
 })
 
-// Get current date and calculate previous month
+// Get current date and calculate previous month for salary
 const now = new Date()
 const currentYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
-const currentMonth = now.getMonth() === 0 ? 12 : now.getMonth() // Previous month
+const currentMonth = now.getMonth() === 0 ? 12 : now.getMonth() // now.getMonth() is 0-indexed, so it's already -1
 
 // Get current term code (261 for January 2026)
 const currentTermCode = computed(() => {

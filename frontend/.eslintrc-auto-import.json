@@ -362,6 +362,11 @@
     "watchTriggerable": true,
     "watchWithFilter": true,
     "whenever": true,
-    "useNavigation": true
+    "useNavigation": true,
+    "formatCurrency": true,
+    "formatEmployeeId": true,
+    "getScoreColor": true,
+    "getScoreIcon": true,
+    "getScoreLabel": true
   }
 }

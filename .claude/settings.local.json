@@ -73,7 +73,8 @@
       "Bash(npm run type-check:*)",
       "Bash(timeout 5 tail:*)",
       "Bash(exit 0)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(node:*)"
     ]
   }
 }
