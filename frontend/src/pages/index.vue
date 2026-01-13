@@ -57,8 +57,18 @@ const currentTermCode = computed(() => {
 
 // Sort term codes: 25 > 25C > 25B > 25A > 259 > 258 > ... > 251 > 24 > 24C > ...
 const sortTermCodes = (a, b) => {
-  const extractYear = (term) => parseInt(term.match(/^\d+/)?.[0] || '0')
-  const extractSuffix = (term) => term.match(/[A-Z]$/)?.[0] || term.match(/\d$/)?.[0] || ''
+  // Extract year (first 2 digits)
+  const extractYear = (term) => {
+    const match = term.match(/^(\d{2})/)
+    return match ? parseInt(match[1]) : 0
+  }
+
+  // Extract suffix (everything after year)
+  // "25" -> "", "25A" -> "A", "251" -> "1"
+  const extractSuffix = (term) => {
+    const match = term.match(/^\d{2}(.*)/)
+    return match ? match[1] : ''
+  }
 
   const yearA = extractYear(a)
   const yearB = extractYear(b)
@@ -78,8 +88,8 @@ const sortTermCodes = (a, b) => {
   if (!suffixB) return 1
 
   // Both have suffixes - check if they are letters (A/B/C) or numbers (1-9)
-  const isLetterA = /[A-Z]/.test(suffixA)
-  const isLetterB = /[A-Z]/.test(suffixB)
+  const isLetterA = /^[A-Z]$/.test(suffixA)
+  const isLetterB = /^[A-Z]$/.test(suffixB)
 
   // Letters (A/B/C for Oct/Nov/Dec) come before numbers (1-9 for Jan-Sep)
   if (isLetterA && !isLetterB) return -1
