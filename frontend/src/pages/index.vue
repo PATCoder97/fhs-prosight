@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGuestProtection } from '@/composables/useGuestProtection'
+import { $api } from '@/utils/api'
+import { formatCurrency, getScoreColor } from '@/utils/formatters'
 
 // Protect from guest users
 useGuestProtection()
@@ -14,6 +16,7 @@ const dashboardData = ref({
   salary: null,
   achievements: null,
   yearBonus: null,
+  evaluations: null,
 })
 const error = ref(null)
 
@@ -36,14 +39,13 @@ const now = new Date()
 const currentYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
 const currentMonth = now.getMonth() === 0 ? 12 : now.getMonth() // Previous month
 
-// Format currency
-const formatCurrency = (amount) => {
-  if (!amount && amount !== 0) return '0 ₫'
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(amount)
-}
+// Get current term code (25A or 25B based on current month)
+const currentTermCode = computed(() => {
+  const year = new Date().getFullYear()
+  const month = new Date().getMonth() + 1
+  const shortYear = year.toString().slice(-2)
+  return month <= 6 ? `${shortYear}A` : `${shortYear}B`
+})
 
 // Load dashboard data
 const loadDashboardData = async () => {
@@ -71,17 +73,24 @@ const loadDashboardData = async () => {
       `/hrs-data/year-bonus/${currentUser.value.localId}/${currentYear}`
     ).catch(() => null)
 
+    // Load evaluations for current employee
+    const evaluationsPromise = $api(
+      `/evaluations/search?employee_id=${currentUser.value.localId}&page=1&page_size=5`
+    ).catch(() => null)
+
     // Wait for all requests
-    const [salary, achievements, yearBonus] = await Promise.all([
+    const [salary, achievements, yearBonus, evaluations] = await Promise.all([
       salaryPromise,
       achievementsPromise,
       yearBonusPromise,
+      evaluationsPromise,
     ])
 
     dashboardData.value = {
       salary,
       achievements,
       yearBonus,
+      evaluations,
     }
   }
   catch (err) {
@@ -104,15 +113,11 @@ const latestAchievement = computed(() => {
   return dashboardData.value.achievements.achievements[0]
 })
 
-// Get score color
-const getScoreColor = (score) => {
-  if (score === '優') return 'success'
-  if (score === '良') return 'info'
-  if (score === '甲') return 'primary'
-  if (score === '乙') return 'warning'
-  if (score === '丙') return 'error'
-  return 'grey'
-}
+// Get latest evaluation
+const latestEvaluation = computed(() => {
+  if (!dashboardData.value.evaluations?.results?.length) return null
+  return dashboardData.value.evaluations.results[0]
+})
 
 // Get score label
 const getScoreLabel = (score) => {
@@ -120,6 +125,8 @@ const getScoreLabel = (score) => {
     '優': 'Xuất Sắc',
     '良': 'Tốt',
     '甲': 'Khá',
+    '甲上': 'Khá Giỏi',
+    '甲下': 'Khá Yếu',
     '乙': 'Trung Bình',
     '丙': 'Yếu',
   }
@@ -134,6 +141,55 @@ onMounted(() => {
 
 <template>
   <div>
+    <!-- Welcome Header -->
+    <VCard class="mb-6 welcome-card">
+      <VCardText>
+        <VRow align="center">
+          <VCol
+            cols="12"
+            md="8"
+          >
+            <div class="d-flex align-center gap-3">
+              <VAvatar
+                color="primary"
+                size="64"
+              >
+                <VIcon
+                  icon="tabler-user"
+                  size="32"
+                />
+              </VAvatar>
+              <div>
+                <h4 class="text-h4 font-weight-bold mb-1">
+                  Xin chào, {{ currentUser?.full_name || 'User' }}! 👋
+                </h4>
+                <p class="text-body-1 text-medium-emphasis mb-0">
+                  {{ currentUser?.localId }} - {{ currentUser?.email }}
+                </p>
+              </div>
+            </div>
+          </VCol>
+          <VCol
+            cols="12"
+            md="4"
+            class="text-md-end"
+          >
+            <VChip
+              color="primary"
+              variant="tonal"
+              size="large"
+            >
+              <VIcon
+                start
+                icon="tabler-calendar"
+              />
+              Kỳ {{ currentTermCode }}
+            </VChip>
+          </VCol>
+        </VRow>
+      </VCardText>
+    </VCard>
+
     <!-- Error Alert -->
     <VAlert
       v-if="error"
@@ -167,45 +223,50 @@ onMounted(() => {
     <!-- Dashboard Content -->
     <div v-if="!loading">
       <!-- Quick Stats Row -->
-      <VRow class="mb-4">
+      <VRow class="mb-6">
         <!-- Current Salary Card -->
         <VCol
           cols="12"
-          md="4"
+          md="3"
         >
           <VCard
-            class="dashboard-card"
-            :class="{ 'cursor-pointer': dashboardData.salary }"
-            @click="dashboardData.salary ? navigateTo('salary') : null"
+            class="stat-card"
+            color="success"
+            variant="tonal"
           >
             <VCardText>
               <div class="d-flex align-center justify-space-between mb-3">
-                <VIcon
-                  icon="tabler-currency-dong"
-                  size="32"
+                <VAvatar
                   color="success"
-                />
+                  size="48"
+                  variant="tonal"
+                >
+                  <VIcon
+                    icon="tabler-currency-dong"
+                    size="24"
+                  />
+                </VAvatar>
                 <VBtn
                   icon
                   variant="text"
                   size="small"
-                  @click.stop="navigateTo('salary')"
+                  @click="navigateTo('salary')"
                 >
                   <VIcon icon="tabler-arrow-right" />
                 </VBtn>
               </div>
-              <p class="text-caption text-medium-emphasis mb-1">
+              <p class="text-caption mb-1">
                 Lương Tháng {{ currentMonth }}/{{ currentYear }}
               </p>
               <p
                 v-if="dashboardData.salary"
-                class="text-h5 font-weight-bold text-success mb-0"
+                class="text-h5 font-weight-bold mb-0"
               >
                 {{ formatCurrency(dashboardData.salary.summary.thuc_linh) }}
               </p>
               <p
                 v-else
-                class="text-body-2 text-medium-emphasis mb-0"
+                class="text-body-2 mb-0"
               >
                 Chưa có dữ liệu
               </p>
@@ -216,30 +277,35 @@ onMounted(() => {
         <!-- Latest Achievement Card -->
         <VCol
           cols="12"
-          md="4"
+          md="3"
         >
           <VCard
-            class="dashboard-card"
-            :class="{ 'cursor-pointer': latestAchievement }"
-            @click="latestAchievement ? navigateTo('achievements') : null"
+            class="stat-card"
+            color="info"
+            variant="tonal"
           >
             <VCardText>
               <div class="d-flex align-center justify-space-between mb-3">
-                <VIcon
-                  icon="tabler-trophy"
-                  size="32"
+                <VAvatar
                   :color="latestAchievement ? getScoreColor(latestAchievement.score) : 'grey'"
-                />
+                  size="48"
+                  variant="tonal"
+                >
+                  <VIcon
+                    icon="tabler-trophy"
+                    size="24"
+                  />
+                </VAvatar>
                 <VBtn
                   icon
                   variant="text"
                   size="small"
-                  @click.stop="navigateTo('achievements')"
+                  @click="navigateTo('achievements')"
                 >
                   <VIcon icon="tabler-arrow-right" />
                 </VBtn>
               </div>
-              <p class="text-caption text-medium-emphasis mb-1">
+              <p class="text-caption mb-1">
                 Thành Tích Gần Nhất
               </p>
               <div
@@ -248,17 +314,15 @@ onMounted(() => {
               >
                 <VChip
                   :color="getScoreColor(latestAchievement.score)"
-                  variant="flat"
                   size="small"
                 >
                   {{ latestAchievement.score }}
                 </VChip>
-                <span class="text-body-2">{{ getScoreLabel(latestAchievement.score) }}</span>
-                <span class="text-caption text-medium-emphasis">({{ latestAchievement.year }})</span>
+                <span class="text-body-2 font-weight-medium">{{ getScoreLabel(latestAchievement.score) }}</span>
               </div>
               <p
                 v-else
-                class="text-body-2 text-medium-emphasis mb-0"
+                class="text-body-2 mb-0"
               >
                 Chưa có dữ liệu
               </p>
@@ -269,41 +333,102 @@ onMounted(() => {
         <!-- Year Bonus Card -->
         <VCol
           cols="12"
-          md="4"
+          md="3"
         >
           <VCard
-            class="dashboard-card"
-            :class="{ 'cursor-pointer': dashboardData.yearBonus }"
-            @click="dashboardData.yearBonus ? navigateTo('year-bonus') : null"
+            class="stat-card"
+            color="warning"
+            variant="tonal"
           >
             <VCardText>
               <div class="d-flex align-center justify-space-between mb-3">
-                <VIcon
-                  icon="tabler-gift"
-                  size="32"
+                <VAvatar
                   color="warning"
-                />
+                  size="48"
+                  variant="tonal"
+                >
+                  <VIcon
+                    icon="tabler-gift"
+                    size="24"
+                  />
+                </VAvatar>
                 <VBtn
                   icon
                   variant="text"
                   size="small"
-                  @click.stop="navigateTo('year-bonus')"
+                  @click="navigateTo('year-bonus')"
                 >
                   <VIcon icon="tabler-arrow-right" />
                 </VBtn>
               </div>
-              <p class="text-caption text-medium-emphasis mb-1">
+              <p class="text-caption mb-1">
                 Thưởng Tết {{ currentYear }}
               </p>
               <p
                 v-if="dashboardData.yearBonus"
-                class="text-h5 font-weight-bold text-warning mb-0"
+                class="text-h5 font-weight-bold mb-0"
               >
                 {{ formatCurrency(dashboardData.yearBonus.bonus_data.stienthuong) }}
               </p>
               <p
                 v-else
-                class="text-body-2 text-medium-emphasis mb-0"
+                class="text-body-2 mb-0"
+              >
+                Chưa có dữ liệu
+              </p>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <!-- Latest Evaluation Card -->
+        <VCol
+          cols="12"
+          md="3"
+        >
+          <VCard
+            class="stat-card"
+            color="primary"
+            variant="tonal"
+          >
+            <VCardText>
+              <div class="d-flex align-center justify-space-between mb-3">
+                <VAvatar
+                  :color="latestEvaluation ? getScoreColor(latestEvaluation.mgr_evaluation?.final?.score) : 'grey'"
+                  size="48"
+                  variant="tonal"
+                >
+                  <VIcon
+                    icon="tabler-chart-bar"
+                    size="24"
+                  />
+                </VAvatar>
+                <VBtn
+                  icon
+                  variant="text"
+                  size="small"
+                  @click="navigateTo('evaluations')"
+                >
+                  <VIcon icon="tabler-arrow-right" />
+                </VBtn>
+              </div>
+              <p class="text-caption mb-1">
+                Đánh Giá Gần Nhất
+              </p>
+              <div
+                v-if="latestEvaluation"
+                class="d-flex align-center gap-2"
+              >
+                <VChip
+                  :color="getScoreColor(latestEvaluation.mgr_evaluation?.final?.score)"
+                  size="small"
+                >
+                  {{ latestEvaluation.mgr_evaluation?.final?.score || 'N/A' }}
+                </VChip>
+                <span class="text-caption">Kỳ {{ latestEvaluation.term_code }}</span>
+              </div>
+              <p
+                v-else
+                class="text-body-2 mb-0"
               >
                 Chưa có dữ liệu
               </p>
@@ -312,28 +437,29 @@ onMounted(() => {
         </VCol>
       </VRow>
 
-      <!-- Detailed Cards Row -->
+      <!-- Main Content Row -->
       <VRow>
-        <!-- Salary Details -->
+        <!-- Evaluations Card -->
         <VCol
           cols="12"
-          md="6"
+          md="8"
         >
           <VCard>
             <VCardTitle class="d-flex align-center justify-space-between">
-              <div>
+              <div class="d-flex align-center gap-2">
                 <VIcon
-                  icon="tabler-wallet"
-                  class="me-2"
+                  icon="tabler-chart-bar"
+                  size="24"
                 />
-                Chi Tiết Lương
+                <span>Lịch Sử Đánh Giá</span>
               </div>
               <VBtn
                 size="small"
                 variant="tonal"
-                @click="navigateTo('salary')"
+                color="primary"
+                @click="navigateTo('evaluations')"
               >
-                Xem Chi Tiết
+                Xem Tất Cả
                 <VIcon
                   end
                   icon="tabler-arrow-right"
@@ -342,107 +468,154 @@ onMounted(() => {
             </VCardTitle>
             <VDivider />
             <VCardText>
-              <div v-if="dashboardData.salary">
-                <VRow class="mb-3">
-                  <VCol cols="6">
-                    <p class="text-caption text-medium-emphasis mb-1">
-                      Thu Nhập
-                    </p>
-                    <p class="text-h6 text-success mb-0">
-                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_cong) }}
-                    </p>
-                  </VCol>
-                  <VCol cols="6">
-                    <p class="text-caption text-medium-emphasis mb-1">
-                      Khấu Trừ
-                    </p>
-                    <p class="text-h6 text-error mb-0">
-                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_tru) }}
-                    </p>
-                  </VCol>
-                </VRow>
-                <VDivider class="my-3" />
-                <div class="d-flex align-center justify-space-between">
-                  <span class="text-body-1 font-weight-medium">Thực Lĩnh</span>
-                  <span class="text-h5 font-weight-bold text-primary">
-                    {{ formatCurrency(dashboardData.salary.summary.thuc_linh) }}
-                  </span>
-                </div>
+              <div v-if="dashboardData.evaluations?.results?.length">
+                <VTable>
+                  <thead>
+                    <tr>
+                      <th>Kỳ</th>
+                      <th>Phòng Ban</th>
+                      <th class="text-center">
+                        Đánh Giá PB
+                      </th>
+                      <th class="text-center">
+                        Đánh Giá QL
+                      </th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="evaluation in dashboardData.evaluations.results"
+                      :key="evaluation.id"
+                    >
+                      <td>
+                        <VChip
+                          color="primary"
+                          variant="tonal"
+                          size="small"
+                        >
+                          {{ evaluation.term_code }}
+                        </VChip>
+                      </td>
+                      <td>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ evaluation.dept_code }}
+                        </div>
+                        <div
+                          class="text-body-2"
+                          style="max-width: 250px;"
+                        >
+                          {{ evaluation.dept_name }}
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <VChip
+                          :color="getScoreColor(evaluation.dept_evaluation?.final?.score)"
+                          size="small"
+                        >
+                          {{ evaluation.dept_evaluation?.final?.score || 'N/A' }}
+                        </VChip>
+                      </td>
+                      <td class="text-center">
+                        <VChip
+                          :color="getScoreColor(evaluation.mgr_evaluation?.final?.score)"
+                          size="small"
+                        >
+                          {{ evaluation.mgr_evaluation?.final?.score || 'N/A' }}
+                        </VChip>
+                      </td>
+                      <td class="text-center">
+                        <VBtn
+                          icon
+                          variant="text"
+                          size="small"
+                          @click="navigateTo('evaluations')"
+                        >
+                          <VIcon icon="tabler-eye" />
+                        </VBtn>
+                      </td>
+                    </tr>
+                  </tbody>
+                </VTable>
               </div>
               <div
                 v-else
-                class="text-center py-8"
+                class="text-center py-12"
               >
                 <VIcon
-                  icon="tabler-alert-circle"
-                  size="48"
+                  icon="tabler-chart-bar-off"
+                  size="64"
                   color="grey-lighten-1"
-                  class="mb-2"
+                  class="mb-3"
                 />
-                <p class="text-body-2 text-medium-emphasis">
-                  Không có dữ liệu lương tháng {{ currentMonth }}/{{ currentYear }}
+                <p class="text-body-1 text-medium-emphasis">
+                  Chưa có dữ liệu đánh giá
                 </p>
+                <VBtn
+                  variant="tonal"
+                  color="primary"
+                  class="mt-2"
+                  @click="navigateTo('evaluations')"
+                >
+                  <VIcon
+                    start
+                    icon="tabler-search"
+                  />
+                  Tìm Kiếm Đánh Giá
+                </VBtn>
               </div>
             </VCardText>
           </VCard>
         </VCol>
 
-        <!-- Achievements Overview -->
+        <!-- Sidebar -->
         <VCol
           cols="12"
-          md="6"
+          md="4"
         >
-          <VCard>
+          <!-- Salary Details -->
+          <VCard class="mb-4">
             <VCardTitle class="d-flex align-center justify-space-between">
-              <div>
+              <div class="d-flex align-center gap-2">
                 <VIcon
-                  icon="tabler-trophy"
-                  class="me-2"
+                  icon="tabler-wallet"
+                  size="20"
                 />
-                Lịch Sử Thành Tích
+                <span>Chi Tiết Lương</span>
               </div>
-              <VBtn
-                size="small"
-                variant="tonal"
-                @click="navigateTo('achievements')"
-              >
-                Xem Chi Tiết
-                <VIcon
-                  end
-                  icon="tabler-arrow-right"
-                />
-              </VBtn>
             </VCardTitle>
             <VDivider />
             <VCardText>
-              <div v-if="dashboardData.achievements?.achievements?.length">
-                <VRow>
-                  <VCol
-                    v-for="achievement in dashboardData.achievements.achievements.slice(0, 4)"
-                    :key="achievement.year"
-                    cols="6"
-                    class="mb-2"
-                  >
-                    <div class="d-flex align-center gap-2">
-                      <VChip
-                        :color="getScoreColor(achievement.score)"
-                        variant="flat"
-                        size="small"
-                      >
-                        {{ achievement.score }}
-                      </VChip>
-                      <span class="text-caption">Năm {{ achievement.year }}</span>
-                    </div>
-                  </VCol>
-                </VRow>
+              <div v-if="dashboardData.salary">
+                <div class="mb-4">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span class="text-caption text-medium-emphasis">Thu Nhập</span>
+                    <span class="text-body-1 font-weight-medium text-success">
+                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_cong) }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-caption text-medium-emphasis">Khấu Trừ</span>
+                    <span class="text-body-1 font-weight-medium text-error">
+                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_tru) }}
+                    </span>
+                  </div>
+                </div>
+                <VDivider class="my-3" />
+                <div class="d-flex align-center justify-space-between">
+                  <span class="text-body-1 font-weight-bold">Thực Lĩnh</span>
+                  <span class="text-h6 font-weight-bold text-primary">
+                    {{ formatCurrency(dashboardData.salary.summary.thuc_linh) }}
+                  </span>
+                </div>
                 <VBtn
-                  v-if="dashboardData.achievements.achievements.length > 4"
-                  variant="text"
-                  size="small"
-                  class="mt-2"
-                  @click="navigateTo('achievements')"
+                  block
+                  variant="tonal"
+                  color="success"
+                  class="mt-4"
+                  @click="navigateTo('salary')"
                 >
-                  Xem thêm {{ dashboardData.achievements.achievements.length - 4 }} năm
+                  Xem Chi Tiết
                   <VIcon
                     end
                     icon="tabler-arrow-right"
@@ -459,106 +632,82 @@ onMounted(() => {
                   color="grey-lighten-1"
                   class="mb-2"
                 />
-                <p class="text-body-2 text-medium-emphasis">
-                  Không có dữ liệu thành tích
+                <p class="text-body-2 text-medium-emphasis mb-3">
+                  Không có dữ liệu lương<br>tháng {{ currentMonth }}/{{ currentYear }}
                 </p>
+                <VBtn
+                  variant="tonal"
+                  size="small"
+                  @click="navigateTo('salary')"
+                >
+                  Tra Cứu Lương
+                </VBtn>
               </div>
             </VCardText>
           </VCard>
-        </VCol>
-      </VRow>
 
-      <!-- Quick Actions -->
-      <VRow class="mt-4">
-        <VCol cols="12">
+          <!-- Achievements Overview -->
           <VCard>
-            <VCardTitle>
-              <VIcon
-                icon="tabler-bolt"
-                class="me-2"
-              />
-              Tra Cứu Nhanh
+            <VCardTitle class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center gap-2">
+                <VIcon
+                  icon="tabler-trophy"
+                  size="20"
+                />
+                <span>Thành Tích</span>
+              </div>
             </VCardTitle>
             <VDivider />
             <VCardText>
-              <VRow>
-                <VCol
-                  cols="12"
-                  sm="6"
-                  md="3"
+              <div v-if="dashboardData.achievements?.achievements?.length">
+                <div
+                  v-for="achievement in dashboardData.achievements.achievements.slice(0, 5)"
+                  :key="achievement.year"
+                  class="d-flex align-center justify-space-between mb-3"
                 >
-                  <VBtn
-                    block
-                    variant="tonal"
-                    color="primary"
-                    size="large"
-                    @click="navigateTo('salary')"
+                  <span class="text-body-2">Năm {{ achievement.year }}</span>
+                  <VChip
+                    :color="getScoreColor(achievement.score)"
+                    size="small"
                   >
-                    <VIcon
-                      start
-                      icon="tabler-currency-dong"
-                    />
-                    Tra Cứu Lương
-                  </VBtn>
-                </VCol>
-                <VCol
-                  cols="12"
-                  sm="6"
-                  md="3"
+                    {{ achievement.score }}
+                  </VChip>
+                </div>
+                <VBtn
+                  block
+                  variant="tonal"
+                  color="info"
+                  class="mt-2"
+                  @click="navigateTo('achievements')"
                 >
-                  <VBtn
-                    block
-                    variant="tonal"
-                    color="info"
-                    size="large"
-                    @click="navigateTo('salary-history')"
-                  >
-                    <VIcon
-                      start
-                      icon="tabler-chart-line"
-                    />
-                    Lịch Sử Lương
-                  </VBtn>
-                </VCol>
-                <VCol
-                  cols="12"
-                  sm="6"
-                  md="3"
+                  Xem Tất Cả
+                  <VIcon
+                    end
+                    icon="tabler-arrow-right"
+                  />
+                </VBtn>
+              </div>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <VIcon
+                  icon="tabler-trophy-off"
+                  size="48"
+                  color="grey-lighten-1"
+                  class="mb-2"
+                />
+                <p class="text-body-2 text-medium-emphasis mb-3">
+                  Không có dữ liệu thành tích
+                </p>
+                <VBtn
+                  variant="tonal"
+                  size="small"
+                  @click="navigateTo('achievements')"
                 >
-                  <VBtn
-                    block
-                    variant="tonal"
-                    color="success"
-                    size="large"
-                    @click="navigateTo('achievements')"
-                  >
-                    <VIcon
-                      start
-                      icon="tabler-trophy"
-                    />
-                    Thành Tích
-                  </VBtn>
-                </VCol>
-                <VCol
-                  cols="12"
-                  sm="6"
-                  md="3"
-                >
-                  <VBtn
-                    block
-                    variant="tonal"
-                    color="warning"
-                    size="large"
-                    @click="navigateTo('year-bonus')"
-                  >
-                    <VIcon
-                      start
-                      icon="tabler-gift"
-                    />
-                    Thưởng Tết
-                  </VBtn>
-                </VCol>
-              </VRow>
+                  Xem Thành Tích
+                </VBtn>
+              </div>
             </VCardText>
           </VCard>
         </VCol>
@@ -568,13 +717,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.dashboard-card {
-  transition: transform 0.2s, box-shadow 0.2s;
+.welcome-card {
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
+  color: white;
 }
 
-.dashboard-card.cursor-pointer:hover {
+.welcome-card :deep(*) {
+  color: white !important;
+}
+
+.stat-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+
+.stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 </style>
