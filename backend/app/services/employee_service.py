@@ -279,7 +279,7 @@ async def count_employees(
     Returns:
         Total count of matching employees
     """
-    query = select(func.count()).select_from(Employee)
+    query = select(func.count(Employee.id))
 
     # Apply same filters as search
     if name:
