@@ -186,7 +186,8 @@ const totalPages = computed(() => {
               >
                 <VBtn
                   color="primary"
-                  block
+                  :block="$vuetify.display.smAndDown"
+                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
                   :loading="loading"
                   @click="searchEmployees(true)"
                 >

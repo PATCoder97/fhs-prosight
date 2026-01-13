@@ -235,7 +235,8 @@ const closeDetail = () => {
               >
                 <VBtn
                   color="primary"
-                  block
+                  :block="$vuetify.display.smAndDown"
+                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
                   :loading="loading"
                   @click="searchEvaluations(true)"
                 >

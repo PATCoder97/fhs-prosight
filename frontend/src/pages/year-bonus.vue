@@ -135,7 +135,8 @@ const yearOptions = computed(() => {
               >
                 <VBtn
                   color="primary"
-                  block
+                  :block="$vuetify.display.smAndDown"
+                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
                   @click="loadYearBonus"
                 >
                   <VIcon
