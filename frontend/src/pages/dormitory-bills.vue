@@ -54,10 +54,10 @@ const searchBills = async (resetPage = false) => {
     const params = new URLSearchParams()
 
     if (searchEmployeeId.value?.trim()) {
+      // Auto-format employee ID (14732 -> VNW0014732)
       const formattedId = formatEmployeeId(searchEmployeeId.value)
-      // Extract numeric ID from formatted ID (VNW0014732 → 14732)
-      const numericId = formattedId.replace(/^VNW0*/i, '')
-      params.append('employee_id', numericId)
+      searchEmployeeId.value = formattedId
+      params.append('employee_id', formattedId)
     }
 
     if (searchTermCode.value?.trim()) {
