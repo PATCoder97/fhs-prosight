@@ -17,6 +17,7 @@ const dashboardData = ref({
   achievements: null,
   yearBonus: null,
   evaluations: null,
+  dormitoryBills: null,
 })
 const error = ref(null)
 
@@ -135,12 +136,18 @@ const loadDashboardData = async () => {
       `/evaluations/search?employee_id=${currentUser.value.localId}&page=1&page_size=5`
     ).catch(() => null)
 
+    // Load dormitory bills for current employee (latest term)
+    const dormitoryBillsPromise = $api(
+      `/dormitory-bills/search?employee_id=${currentUser.value.localId}&page=1&page_size=3`
+    ).catch(() => null)
+
     // Wait for all requests
-    const [salary, achievements, yearBonus, evaluations] = await Promise.all([
+    const [salary, achievements, yearBonus, evaluations, dormitoryBills] = await Promise.all([
       salaryPromise,
       achievementsPromise,
       yearBonusPromise,
       evaluationsPromise,
+      dormitoryBillsPromise,
     ])
 
     // Sort evaluations by term_code
@@ -153,6 +160,7 @@ const loadDashboardData = async () => {
       achievements,
       yearBonus,
       evaluations,
+      dormitoryBills,
     }
   }
   catch (err) {
@@ -695,7 +703,7 @@ onMounted(() => {
           </VCard>
 
           <!-- Achievements Overview -->
-          <VCard>
+          <VCard class="mb-4">
             <VCardTitle class="d-flex align-center justify-space-between">
               <div class="d-flex align-center gap-2">
                 <VIcon
@@ -754,6 +762,97 @@ onMounted(() => {
                   @click="navigateTo('achievements')"
                 >
                   Xem Thành Tích
+                </VBtn>
+              </div>
+            </VCardText>
+          </VCard>
+
+          <!-- Dormitory Bills -->
+          <VCard>
+            <VCardTitle class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center gap-2">
+                <VIcon
+                  icon="tabler-home-dollar"
+                  size="20"
+                />
+                <span>Hóa Đơn KTX</span>
+              </div>
+            </VCardTitle>
+            <VDivider />
+            <VCardText>
+              <div v-if="dashboardData.dormitoryBills?.results?.length">
+                <div
+                  v-for="bill in dashboardData.dormitoryBills.results"
+                  :key="bill.bill_id"
+                  class="mb-4 pb-3 border-b"
+                >
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <VChip
+                      color="info"
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ bill.term_code }}
+                    </VChip>
+                    <span class="text-caption text-medium-emphasis">{{ bill.dorm_code }}</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between text-caption mb-1">
+                    <span class="text-medium-emphasis">Điện:</span>
+                    <span>{{ formatCurrency(bill.elec_amount) }}</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between text-caption mb-1">
+                    <span class="text-medium-emphasis">Nước:</span>
+                    <span>{{ formatCurrency(bill.water_amount) }}</span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between text-caption mb-2">
+                    <span class="text-medium-emphasis">Phí khác:</span>
+                    <span>{{ formatCurrency(bill.shared_fee + bill.management_fee) }}</span>
+                  </div>
+                  <VDivider class="my-2" />
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2 font-weight-bold">Tổng:</span>
+                    <VChip
+                      color="success"
+                      variant="tonal"
+                      size="small"
+                    >
+                      {{ formatCurrency(bill.total_amount) }}
+                    </VChip>
+                  </div>
+                </div>
+                <VBtn
+                  block
+                  variant="tonal"
+                  color="primary"
+                  class="mt-2"
+                  @click="navigateTo('dormitory-bills')"
+                >
+                  Xem Tất Cả
+                  <VIcon
+                    end
+                    icon="tabler-arrow-right"
+                  />
+                </VBtn>
+              </div>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <VIcon
+                  icon="tabler-home-off"
+                  size="48"
+                  color="grey-lighten-1"
+                  class="mb-2"
+                />
+                <p class="text-body-2 text-medium-emphasis mb-3">
+                  Không có hóa đơn KTX
+                </p>
+                <VBtn
+                  variant="tonal"
+                  size="small"
+                  @click="navigateTo('dormitory-bills')"
+                >
+                  Tra Cứu Hóa Đơn
                 </VBtn>
               </div>
             </VCardText>
