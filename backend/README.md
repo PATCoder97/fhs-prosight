@@ -87,3 +87,7 @@ deactivate
 - Luôn kích hoạt virtual environment trước khi cài đặt hoặc chạy ứng dụng
 - Thư mục `venv/` không nên commit vào version control (đã được ignore bởi `.gitignore`)
 - Để cài thêm thư viện, hãy sử dụng: `pip install <package-name>`
+
+## API Documentation
+- Swagger UI: `http://localhost:8001/docs`
+- ReDoc: `http://localhost:8001/redoc`
