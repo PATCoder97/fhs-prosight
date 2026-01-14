@@ -253,6 +253,18 @@ const closeDetail = () => {
       </VCol>
     </VRow>
 
+    <!-- Error Alert -->
+    <VAlert
+      v-if="error"
+      type="error"
+      variant="tonal"
+      closable
+      class="mb-6"
+      @click:close="error = null"
+    >
+      {{ error }}
+    </VAlert>
+
     <!-- Loading State -->
     <VRow
       v-if="loading"
@@ -426,50 +438,25 @@ const closeDetail = () => {
       </VCol>
     </VRow>
 
-    <!-- No Results State -->
+    <!-- No Data State -->
     <VRow
-      v-if="!loading && evaluations.length === 0 && (searchEmployeeId || searchTermCode || searchDeptCode)"
+      v-if="!loading && evaluations.length === 0 && !error"
       class="mt-4"
     >
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
             <VIcon
-              icon="tabler-search-off"
+              icon="tabler-search"
               size="64"
               color="grey-lighten-1"
               class="mb-4"
             />
             <p class="text-h6 text-medium-emphasis mb-2">
-              Không tìm thấy kết quả
+              Nhập thông tin để tra cứu
             </p>
             <p class="text-body-2 text-medium-emphasis">
-              Thử thay đổi các tiêu chí tìm kiếm
-            </p>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- Initial State -->
-    <VRow
-      v-if="!loading && evaluations.length === 0 && !searchEmployeeId && !searchTermCode && !searchDeptCode"
-      class="mt-4"
-    >
-      <VCol cols="12">
-        <VCard>
-          <VCardText class="text-center py-16">
-            <VIcon
-              icon="tabler-chart-bar"
-              size="64"
-              color="grey-lighten-1"
-              class="mb-4"
-            />
-            <p class="text-h6 text-medium-emphasis mb-2">
-              Tìm kiếm đánh giá
-            </p>
-            <p class="text-body-2 text-medium-emphasis">
-              Nhập điều kiện tìm kiếm để xem kết quả đánh giá
+              Vui lòng nhập điều kiện tìm kiếm và nhấn "Tra Cứu"
             </p>
           </VCardText>
         </VCard>

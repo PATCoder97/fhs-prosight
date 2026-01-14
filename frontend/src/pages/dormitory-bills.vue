@@ -159,6 +159,18 @@ const handlePageChange = (page) => {
       </VCol>
     </VRow>
 
+    <!-- Error Alert -->
+    <VAlert
+      v-if="error && !loading"
+      type="error"
+      variant="tonal"
+      closable
+      class="mt-4"
+      @click:close="error = null"
+    >
+      {{ error }}
+    </VAlert>
+
     <!-- Loading State -->
     <VRow
       v-if="loading"
@@ -179,18 +191,6 @@ const handlePageChange = (page) => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error && !loading"
-      type="error"
-      variant="tonal"
-      closable
-      class="mt-4"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Results -->
     <VRow
@@ -297,31 +297,7 @@ const handlePageChange = (page) => {
       </VCol>
     </VRow>
 
-    <!-- No Results -->
-    <VRow
-      v-if="billsData && billsData.length === 0 && !loading"
-      class="mt-4"
-    >
-      <VCol cols="12">
-        <VCard>
-          <VCardText class="text-center py-16">
-            <VIcon
-              icon="tabler-file-search"
-              size="64"
-              color="grey-lighten-1"
-            />
-            <p class="text-h6 mt-4">
-              Không tìm thấy hóa đơn
-            </p>
-            <p class="text-body-2 text-medium-emphasis">
-              Thử thay đổi các tiêu chí tìm kiếm
-            </p>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- Empty State -->
+    <!-- No Data State -->
     <VRow
       v-if="!billsData && !loading && !error"
       class="mt-4"
@@ -330,15 +306,16 @@ const handlePageChange = (page) => {
         <VCard>
           <VCardText class="text-center py-16">
             <VIcon
-              icon="tabler-home-dollar"
+              icon="tabler-search"
               size="64"
               color="grey-lighten-1"
+              class="mb-4"
             />
-            <p class="text-h6 mt-4">
-              Tra cứu hóa đơn KTX
+            <p class="text-h6 text-medium-emphasis mb-2">
+              Nhập thông tin để tra cứu
             </p>
             <p class="text-body-2 text-medium-emphasis">
-              Nhập điều kiện tìm kiếm để xem kết quả hóa đơn
+              Vui lòng nhập điều kiện tìm kiếm và nhấn "Tra Cứu"
             </p>
           </VCardText>
         </VCard>

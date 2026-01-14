@@ -375,50 +375,25 @@ const totalPages = computed(() => {
       </VCol>
     </VRow>
 
-    <!-- No Results State -->
+    <!-- No Data State -->
     <VRow
-      v-if="!loading && employees.length === 0 && (searchName || searchDepartmentCode || searchDormId)"
+      v-if="!loading && employees.length === 0 && !error"
       class="mt-4"
     >
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
             <VIcon
-              icon="tabler-search-off"
+              icon="tabler-search"
               size="64"
               color="grey-lighten-1"
               class="mb-4"
             />
             <p class="text-h6 text-medium-emphasis mb-2">
-              Không tìm thấy kết quả
+              Nhập thông tin để tìm kiếm
             </p>
             <p class="text-body-2 text-medium-emphasis">
-              Thử thay đổi các tiêu chí tìm kiếm hoặc nhấn "Tìm Kiếm" để xem tất cả nhân viên
-            </p>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- Initial State -->
-    <VRow
-      v-if="!loading && employees.length === 0 && !searchName && !searchDepartmentCode && !searchDormId && !error"
-      class="mt-4"
-    >
-      <VCol cols="12">
-        <VCard>
-          <VCardText class="text-center py-16">
-            <VIcon
-              icon="tabler-users"
-              size="64"
-              color="grey-lighten-1"
-              class="mb-4"
-            />
-            <p class="text-h6 text-medium-emphasis mb-2">
-              Tìm kiếm nhân viên
-            </p>
-            <p class="text-body-2 text-medium-emphasis">
-              Nhập điều kiện tìm kiếm hoặc nhấn "Tìm Kiếm" để xem danh sách nhân viên theo trang
+              Vui lòng nhập điều kiện tìm kiếm và nhấn "Tra Cứu"
             </p>
           </VCardText>
         </VCard>
