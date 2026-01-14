@@ -17,9 +17,9 @@ services:
       - POSTGRES_HOST=tp75-db
       - POSTGRES_PORT=5432
       - POSTGRES_USER=tp75user
-      - POSTGRES_PASSWORD=tp75pass
+      - POSTGRES_PASSWORD=tp75pass_change_in_production
       - POSTGRES_DATABASE=tp75db
-      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass@tp75-db:5432/tp75db
+      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass_change_in_production@tp75-db:5432/tp75db
 
       # OAuth - IMPORTANT: Replace with your own credentials
       - GOOGLE_CLIENT_ID=your_google_client_id_here
@@ -57,7 +57,7 @@ services:
     devices: []
     cap_add: []
     networks:
-      - tp75_fhs_network
+      - tp75-fhs_network
     privileged: false
 
   tp75-web:
@@ -89,7 +89,7 @@ services:
     devices: []
     cap_add: []
     networks:
-      - tp75_fhs_network
+      - tp75-fhs_network
     privileged: false
 
   tp75-db:
@@ -102,7 +102,7 @@ services:
           memory: 1024M
     environment:
       - POSTGRES_DB=tp75db
-      - POSTGRES_PASSWORD=tp75pass
+      - POSTGRES_PASSWORD=tp75pass_change_in_production
       - POSTGRES_USER=tp75user
     hostname: tp75-db
     image: postgres:16-alpine
@@ -119,11 +119,11 @@ services:
     devices: []
     cap_add: []
     networks:
-      - tp75_fhs_network
+      - tp75-fhs_network
     privileged: false
 
 networks:
-  tp75_fhs_network:
+  tp75-fhs_network:
     name: tp75-fhs_network
     driver: bridge
 

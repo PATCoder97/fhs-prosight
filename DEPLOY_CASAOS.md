@@ -96,7 +96,7 @@ Nội dung file `.env`:
 ```env
 # Database
 POSTGRES_USER=tp75user
-POSTGRES_PASSWORD=tp75pass_change_this
+POSTGRES_PASSWORD=tp75pass_change_in_production
 POSTGRES_DATABASE=tp75db
 
 # OAuth
