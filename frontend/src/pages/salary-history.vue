@@ -120,7 +120,7 @@ const getTrendIcon = (percentage) => {
             <VRow>
               <VCol
                 cols="12"
-                md="4"
+                md="3"
               >
                 <VTextField
                   v-model="employeeId"
@@ -134,7 +134,7 @@ const getTrendIcon = (percentage) => {
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="3"
               >
                 <VSelect
                   v-model="selectedYear"

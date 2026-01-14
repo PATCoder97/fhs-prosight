@@ -66,7 +66,7 @@ const loadAchievements = async () => {
             <VRow>
               <VCol
                 cols="12"
-                md="10"
+                md="3"
               >
                 <VTextField
                   v-model="employeeId"
@@ -80,7 +80,7 @@ const loadAchievements = async () => {
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="9"
                 class="d-flex align-end justify-end"
               >
                 <VBtn

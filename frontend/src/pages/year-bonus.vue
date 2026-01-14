@@ -104,7 +104,7 @@ const yearOptions = computed(() => {
             <VRow>
               <VCol
                 cols="12"
-                md="8"
+                md="3"
               >
                 <VTextField
                   v-model="employeeId"
@@ -118,7 +118,7 @@ const yearOptions = computed(() => {
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="3"
               >
                 <VSelect
                   v-model="selectedYear"
@@ -131,7 +131,7 @@ const yearOptions = computed(() => {
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="6"
                 class="d-flex align-end justify-end"
               >
                 <VBtn
