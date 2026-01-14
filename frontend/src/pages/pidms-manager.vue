@@ -32,6 +32,12 @@ const productKeysLoading = ref(false)
 const productKeysPage = ref(1)
 const productKeysPageSize = ref(50)
 const productKeysTotalResults = ref(0)
+const productKeysPageSizeOptions = [
+  { value: 10, title: '10' },
+  { value: 25, title: '25' },
+  { value: 50, title: '50' },
+  { value: 100, title: '100' },
+]
 
 // Search filters
 const searchProduct = ref('')
@@ -41,6 +47,12 @@ const searchBlocked = ref(null)
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalResults = ref(0)
+const pageSizeOptions = [
+  { value: 10, title: '10' },
+  { value: 25, title: '25' },
+  { value: 50, title: '50' },
+  { value: 100, title: '100' },
+]
 
 // Import form
 const importKeys = ref('')
@@ -237,6 +249,14 @@ const handlePageChange = (page) => {
   searchKeys(false)
 }
 
+// Handle page size change
+const handlePageSizeChange = () => {
+  currentPage.value = 1
+  if (searchResults.value.length > 0) {
+    searchKeys(false)
+  }
+}
+
 // Filtered products for table
 const filteredProducts = computed(() => {
   if (!productsSearch.value) return products.value
@@ -297,6 +317,14 @@ const viewProductKeys = async (product, page = 1) => {
 const handleProductKeysPageChange = (page) => {
   if (selectedProduct.value) {
     viewProductKeys(selectedProduct.value, page)
+  }
+}
+
+// Handle product keys page size change
+const handleProductKeysPageSizeChange = () => {
+  productKeysPage.value = 1
+  if (selectedProduct.value) {
+    viewProductKeys(selectedProduct.value, 1)
   }
 }
 
@@ -797,10 +825,26 @@ const closeProductKeysDialog = () => {
           </VTable>
 
           <!-- Pagination -->
-          <div class="d-flex justify-center mt-4">
+          <VDivider class="mt-4" />
+          <div class="d-flex align-center justify-space-between flex-wrap gap-4 pa-4">
+            <div class="d-flex align-center gap-3">
+              <div class="text-body-2 text-medium-emphasis">
+                Hiển thị {{ totalResults === 0 ? 0 : ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(((currentPage - 1) * pageSize) + searchResults.length, totalResults) }} trong tổng số {{ totalResults }} kết quả
+              </div>
+              <VSelect
+                v-model="pageSize"
+                :items="pageSizeOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                style="max-width: 100px;"
+                @update:model-value="handlePageSizeChange"
+              />
+            </div>
             <VPagination
               v-model="currentPage"
               :length="totalPages"
+              :total-visible="7"
               @update:model-value="handlePageChange"
             />
           </div>
@@ -1172,13 +1216,29 @@ const closeProductKeysDialog = () => {
           </VTable>
 
           <!-- Pagination -->
+          <VDivider class="mt-4" />
           <div
-            v-if="productKeys.length > 0 && productKeysTotalPages > 1"
-            class="d-flex justify-center mt-4"
+            v-if="productKeys.length > 0"
+            class="d-flex align-center justify-space-between flex-wrap gap-4 pa-4"
           >
+            <div class="d-flex align-center gap-3">
+              <div class="text-body-2 text-medium-emphasis">
+                Hiển thị {{ productKeysTotalResults === 0 ? 0 : ((productKeysPage - 1) * productKeysPageSize) + 1 }} - {{ Math.min(((productKeysPage - 1) * productKeysPageSize) + productKeys.length, productKeysTotalResults) }} trong tổng số {{ productKeysTotalResults }} kết quả
+              </div>
+              <VSelect
+                v-model="productKeysPageSize"
+                :items="productKeysPageSizeOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                style="max-width: 100px;"
+                @update:model-value="handleProductKeysPageSizeChange"
+              />
+            </div>
             <VPagination
               v-model="productKeysPage"
               :length="productKeysTotalPages"
+              :total-visible="7"
               @update:model-value="handleProductKeysPageChange"
             />
           </div>
