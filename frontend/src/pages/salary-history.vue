@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const historyData = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -30,7 +44,8 @@ const loadSalaryHistory = async () => {
 
   // Validate month range
   if (fromMonth.value > toMonth.value) {
-    error.value = 'Tháng bắt đầu phải nhỏ hơn hoặc bằng tháng kết thúc'
+    showToast('Tháng bắt đầu phải nhỏ hơn hoặc bằng tháng kết thúc', 'warning')
+
     return
   }
 
@@ -39,18 +54,18 @@ const loadSalaryHistory = async () => {
   employeeId.value = formattedId
 
   loading.value = true
-  error.value = null
   historyData.value = null
 
   try {
     const response = await $api(
-      `/hrs-data/salary/history/${formattedId}?year=${selectedYear.value}&from_month=${fromMonth.value}&to_month=${toMonth.value}`
+      `/hrs-data/salary/history/${formattedId}?year=${selectedYear.value}&from_month=${fromMonth.value}&to_month=${toMonth.value}`,
     )
+
     historyData.value = response
   }
   catch (err) {
     console.error('Failed to load salary history:', err)
-    error.value = err.message || 'Không thể tải lịch sử lương'
+    showToast(err.message || 'Không thể tải lịch sử lương')
     historyData.value = null
   }
   finally {
@@ -204,18 +219,6 @@ const getTrendIcon = (percentage) => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -559,7 +562,7 @@ const getTrendIcon = (percentage) => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow v-if="!loading && !historyData && !error">
+    <VRow v-if="!loading && !historyData">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -579,6 +582,24 @@ const getTrendIcon = (percentage) => {
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
   </div>
 </template>
 

@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const bonusData = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -47,18 +61,18 @@ const loadYearBonus = async () => {
   employeeId.value = formattedId
 
   loading.value = true
-  error.value = null
   bonusData.value = null
 
   try {
     const response = await $api(
-      `/hrs-data/year-bonus/${formattedId}/${selectedYear.value}`
+      `/hrs-data/year-bonus/${formattedId}/${selectedYear.value}`,
     )
+
     bonusData.value = response
   }
   catch (err) {
     console.error('Failed to load year bonus:', err)
-    error.value = err.message || 'Không thể tải thông tin thưởng'
+    showToast(err.message || 'Không thể tải thông tin thưởng')
     bonusData.value = null
   }
   finally {
@@ -160,18 +174,6 @@ const yearOptions = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -544,7 +546,7 @@ const yearOptions = computed(() => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow v-if="!loading && !bonusData && !error">
+    <VRow v-if="!loading && !bonusData">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -564,6 +566,24 @@ const yearOptions = computed(() => {
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
   </div>
 </template>
 

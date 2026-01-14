@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const syncedEmployee = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -35,7 +49,8 @@ const syncEmployee = async () => {
 
   // Validate COVID token if COVID source is selected
   if (selectedSource.value === 'covid' && (!covidToken.value || !covidToken.value.trim())) {
-    error.value = 'Vui lòng nhập token cho COVID System'
+    showToast('Vui lòng nhập token cho COVID System', 'warning')
+
     return
   }
 
@@ -44,7 +59,6 @@ const syncEmployee = async () => {
   employeeId.value = formattedId
 
   loading.value = true
-  error.value = null
   syncedEmployee.value = null
 
   try {
@@ -70,7 +84,7 @@ const syncEmployee = async () => {
   }
   catch (err) {
     console.error('Failed to sync employee:', err)
-    error.value = err.message || 'Không thể đồng bộ nhân viên'
+    showToast(err.message || 'Không thể đồng bộ nhân viên')
     syncedEmployee.value = null
   }
   finally {

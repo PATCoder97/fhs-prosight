@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const salaryData = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -33,7 +47,6 @@ const loadSalary = async () => {
   employeeId.value = formattedId
 
   loading.value = true
-  error.value = null
   salaryData.value = null
 
   try {
@@ -44,7 +57,7 @@ const loadSalary = async () => {
   }
   catch (err) {
     console.error('Failed to load salary:', err)
-    error.value = err.message || 'Không thể tải thông tin lương'
+    showToast(err.message || 'Không thể tải thông tin lương')
     salaryData.value = null
   }
   finally {
@@ -166,18 +179,6 @@ const yearOptions = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -559,7 +560,7 @@ const yearOptions = computed(() => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow v-if="!loading && !salaryData && !error">
+    <VRow v-if="!loading && !salaryData">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -579,6 +580,24 @@ const yearOptions = computed(() => {
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
   </div>
 </template>
 

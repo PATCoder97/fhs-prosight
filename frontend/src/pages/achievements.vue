@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const achievementData = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -30,7 +44,6 @@ const loadAchievements = async () => {
   employeeId.value = formattedId
 
   loading.value = true
-  error.value = null
   achievementData.value = null
 
   try {
@@ -39,7 +52,7 @@ const loadAchievements = async () => {
   }
   catch (err) {
     console.error('Failed to load achievements:', err)
-    error.value = err.message || 'Không thể tải thông tin thành tích'
+    showToast(err.message || 'Không thể tải thông tin thành tích')
     achievementData.value = null
   }
   finally {
@@ -108,18 +121,6 @@ const loadAchievements = async () => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -418,7 +419,7 @@ const loadAchievements = async () => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow v-if="!loading && !achievementData && !error">
+    <VRow v-if="!loading && !achievementData">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -438,6 +439,24 @@ const loadAchievements = async () => {
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
   </div>
 </template>
 

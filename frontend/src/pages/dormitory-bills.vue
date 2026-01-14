@@ -11,7 +11,21 @@ useGuestProtection()
 // State
 const loading = ref(false)
 const billsData = ref(null)
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Form ref
 const formRef = ref()
@@ -33,7 +47,6 @@ const searchBills = async (resetPage = false) => {
   }
 
   loading.value = true
-  error.value = null
   billsData.value = null
 
   try {
@@ -65,7 +78,7 @@ const searchBills = async (resetPage = false) => {
   }
   catch (err) {
     console.error('Failed to search dormitory bills:', err)
-    error.value = err.message || 'Không thể tìm kiếm hóa đơn KTX'
+    showToast(err.message || 'Không thể tìm kiếm hóa đơn KTX')
     billsData.value = null
   }
   finally {
@@ -169,18 +182,6 @@ const handlePageChange = (page) => {
         </VCard>
       </VCol>
     </VRow>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error && !loading"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -323,4 +324,22 @@ const handlePageChange = (page) => {
         </VCard>
       </VCol>
     </VRow>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top"
+    >
+      {{ toast.message }}
+      <template #actions>
+        <VBtn
+          variant="text"
+          @click="toast.show = false"
+        >
+          Đóng
+        </VBtn>
+      </template>
+    </VSnackbar>
 </template>
