@@ -569,10 +569,7 @@ onMounted(() => {
       <!-- Main Content Row -->
       <VRow>
         <!-- Evaluations Card -->
-        <VCol
-          cols="12"
-          md="8"
-        >
+        <VCol cols="12">
           <VCard>
             <VCardTitle class="d-flex align-center justify-space-between">
               <div class="d-flex align-center gap-2">
@@ -696,157 +693,17 @@ onMounted(() => {
             </VCardText>
           </VCard>
         </VCol>
+      </VRow>
 
-        <!-- Sidebar -->
-        <VCol
-          cols="12"
-          md="4"
-        >
-          <!-- Salary Details -->
-          <VCard class="mb-4">
-            <VCardTitle class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center gap-2">
-                <VIcon
-                  icon="tabler-wallet"
-                  size="20"
-                />
-                <span>Chi Tiết Lương</span>
-              </div>
-            </VCardTitle>
-            <VDivider />
-            <VCardText>
-              <div v-if="dashboardData.salary">
-                <div class="mb-4">
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <span class="text-caption text-medium-emphasis">Thu Nhập</span>
-                    <span class="text-body-1 font-weight-medium text-success">
-                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_cong) }}
-                    </span>
-                  </div>
-                  <div class="d-flex align-center justify-space-between">
-                    <span class="text-caption text-medium-emphasis">Khấu Trừ</span>
-                    <span class="text-body-1 font-weight-medium text-error">
-                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_tru) }}
-                    </span>
-                  </div>
-                </div>
-                <VDivider class="my-3" />
-                <div class="d-flex align-center justify-space-between">
-                  <span class="text-body-1 font-weight-bold">Thực Lĩnh</span>
-                  <span class="text-h6 font-weight-bold text-primary">
-                    {{ formatCurrency(dashboardData.salary.summary.thuc_linh) }}
-                  </span>
-                </div>
-                <VBtn
-                  block
-                  variant="tonal"
-                  color="success"
-                  class="mt-4"
-                  @click="navigateTo('salary')"
-                >
-                  Xem Chi Tiết
-                  <VIcon
-                    end
-                    icon="tabler-arrow-right"
-                  />
-                </VBtn>
-              </div>
-              <div
-                v-else
-                class="text-center py-8"
-              >
-                <VIcon
-                  icon="tabler-alert-circle"
-                  size="48"
-                  color="grey-lighten-1"
-                  class="mb-2"
-                />
-                <p class="text-body-2 text-medium-emphasis mb-3">
-                  Không có dữ liệu lương<br>tháng {{ currentMonth }}/{{ currentYear }}
-                </p>
-                <VBtn
-                  variant="tonal"
-                  size="small"
-                  @click="navigateTo('salary')"
-                >
-                  Tra Cứu Lương
-                </VBtn>
-              </div>
-            </VCardText>
-          </VCard>
-
-          <!-- Achievements Overview -->
-          <VCard class="mb-4">
-            <VCardTitle class="d-flex align-center justify-space-between">
-              <div class="d-flex align-center gap-2">
-                <VIcon
-                  icon="tabler-trophy"
-                  size="20"
-                />
-                <span>Thành Tích</span>
-              </div>
-            </VCardTitle>
-            <VDivider />
-            <VCardText>
-              <div v-if="dashboardData.achievements?.achievements?.length">
-                <div
-                  v-for="achievement in dashboardData.achievements.achievements.slice(0, 5)"
-                  :key="achievement.year"
-                  class="d-flex align-center justify-space-between mb-3"
-                >
-                  <span class="text-body-2">Năm {{ achievement.year }}</span>
-                  <VChip
-                    :color="getScoreColor(achievement.score)"
-                    size="small"
-                  >
-                    {{ achievement.score }}
-                  </VChip>
-                </div>
-                <VBtn
-                  block
-                  variant="tonal"
-                  color="info"
-                  class="mt-2"
-                  @click="navigateTo('achievements')"
-                >
-                  Xem Tất Cả
-                  <VIcon
-                    end
-                    icon="tabler-arrow-right"
-                  />
-                </VBtn>
-              </div>
-              <div
-                v-else
-                class="text-center py-8"
-              >
-                <VIcon
-                  icon="tabler-trophy-off"
-                  size="48"
-                  color="grey-lighten-1"
-                  class="mb-2"
-                />
-                <p class="text-body-2 text-medium-emphasis mb-3">
-                  Không có dữ liệu thành tích
-                </p>
-                <VBtn
-                  variant="tonal"
-                  size="small"
-                  @click="navigateTo('achievements')"
-                >
-                  Xem Thành Tích
-                </VBtn>
-              </div>
-            </VCardText>
-          </VCard>
-
-          <!-- Dormitory Bills -->
+      <!-- Dormitory Bills Row -->
+      <VRow>
+        <VCol cols="12">
           <VCard>
             <VCardTitle class="d-flex align-center justify-space-between">
               <div class="d-flex align-center gap-2">
                 <VIcon
                   icon="tabler-home-dollar"
-                  size="20"
+                  size="24"
                 />
                 <span>Hóa Đơn KTX</span>
               </div>
@@ -968,6 +825,157 @@ onMounted(() => {
                     icon="tabler-search"
                   />
                   Tra Cứu Hóa Đơn
+                </VBtn>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VRow>
+
+      <!-- Sidebar Row -->
+      <VRow>
+        <!-- Salary Details -->
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VCard class="h-100">
+            <VCardTitle class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center gap-2">
+                <VIcon
+                  icon="tabler-wallet"
+                  size="20"
+                />
+                <span>Chi Tiết Lương</span>
+              </div>
+            </VCardTitle>
+            <VDivider />
+            <VCardText>
+              <div v-if="dashboardData.salary">
+                <div class="mb-4">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span class="text-caption text-medium-emphasis">Thu Nhập</span>
+                    <span class="text-body-1 font-weight-medium text-success">
+                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_cong) }}
+                    </span>
+                  </div>
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-caption text-medium-emphasis">Khấu Trừ</span>
+                    <span class="text-body-1 font-weight-medium text-error">
+                      {{ formatCurrency(dashboardData.salary.summary.tong_tien_tru) }}
+                    </span>
+                  </div>
+                </div>
+                <VDivider class="my-3" />
+                <div class="d-flex align-center justify-space-between">
+                  <span class="text-body-1 font-weight-bold">Thực Lĩnh</span>
+                  <span class="text-h6 font-weight-bold text-primary">
+                    {{ formatCurrency(dashboardData.salary.summary.thuc_linh) }}
+                  </span>
+                </div>
+                <VBtn
+                  block
+                  variant="tonal"
+                  color="success"
+                  class="mt-4"
+                  @click="navigateTo('salary')"
+                >
+                  Xem Chi Tiết
+                  <VIcon
+                    end
+                    icon="tabler-arrow-right"
+                  />
+                </VBtn>
+              </div>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <VIcon
+                  icon="tabler-alert-circle"
+                  size="48"
+                  color="grey-lighten-1"
+                  class="mb-2"
+                />
+                <p class="text-body-2 text-medium-emphasis mb-3">
+                  Không có dữ liệu lương<br>tháng {{ currentMonth }}/{{ currentYear }}
+                </p>
+                <VBtn
+                  variant="tonal"
+                  size="small"
+                  @click="navigateTo('salary')"
+                >
+                  Tra Cứu Lương
+                </VBtn>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <!-- Achievements Overview -->
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VCard class="h-100">
+            <VCardTitle class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center gap-2">
+                <VIcon
+                  icon="tabler-trophy"
+                  size="20"
+                />
+                <span>Thành Tích</span>
+              </div>
+            </VCardTitle>
+            <VDivider />
+            <VCardText>
+              <div v-if="dashboardData.achievements?.achievements?.length">
+                <div
+                  v-for="achievement in dashboardData.achievements.achievements.slice(0, 5)"
+                  :key="achievement.year"
+                  class="d-flex align-center justify-space-between mb-3"
+                >
+                  <span class="text-body-2">Năm {{ achievement.year }}</span>
+                  <VChip
+                    :color="getScoreColor(achievement.score)"
+                    size="small"
+                  >
+                    {{ achievement.score }}
+                  </VChip>
+                </div>
+                <VBtn
+                  block
+                  variant="tonal"
+                  color="info"
+                  class="mt-2"
+                  @click="navigateTo('achievements')"
+                >
+                  Xem Tất Cả
+                  <VIcon
+                    end
+                    icon="tabler-arrow-right"
+                  />
+                </VBtn>
+              </div>
+              <div
+                v-else
+                class="text-center py-8"
+              >
+                <VIcon
+                  icon="tabler-trophy-off"
+                  size="48"
+                  color="grey-lighten-1"
+                  class="mb-2"
+                />
+                <p class="text-body-2 text-medium-emphasis mb-3">
+                  Không có dữ liệu thành tích
+                </p>
+                <VBtn
+                  variant="tonal"
+                  size="small"
+                  @click="navigateTo('achievements')"
+                >
+                  Xem Thành Tích
                 </VBtn>
               </div>
             </VCardText>
