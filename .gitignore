@@ -249,3 +249,6 @@ public/mockServiceWorker.js
 # Env files
 .env*
 !.env.example
+
+# Claude Code temporary files
+tmpclaude-*
