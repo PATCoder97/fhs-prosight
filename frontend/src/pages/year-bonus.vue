@@ -112,6 +112,7 @@ const yearOptions = computed(() => {
                   placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
+                  clearable
                   @keyup.enter="loadYearBonus"
                 />
               </VCol>

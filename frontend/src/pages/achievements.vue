@@ -74,6 +74,7 @@ const loadAchievements = async () => {
                   placeholder="VD: 14732 hoặc VNW0014732"
                   variant="outlined"
                   prepend-inner-icon="tabler-id"
+                  clearable
                   @keyup.enter="loadAchievements"
                 />
               </VCol>
