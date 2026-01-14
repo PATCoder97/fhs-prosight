@@ -94,7 +94,7 @@ const handlePageChange = (page) => {
             <VRow>
               <VCol
                 cols="12"
-                md="4"
+                md="3"
               >
                 <VTextField
                   v-model="searchEmployeeId"
@@ -136,7 +136,7 @@ const handlePageChange = (page) => {
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="3"
                 class="d-flex align-end justify-end"
               >
                 <VBtn
