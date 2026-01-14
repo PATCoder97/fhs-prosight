@@ -86,9 +86,9 @@ async def check_and_upsert_keys(
                     "keyname": keyname,
                     "keyname_with_dash": key_data.get("keyname_with_dash"),
                     "status": "error",
-                    "error": "Missing required field: prd",
-                    "prd": None,
+                    "prd": "UNKNOWN",  # Set default value to match schema requirement
                     "remaining": 0,
+                    "blocked": -1,
                 })
                 continue
 
