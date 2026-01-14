@@ -171,9 +171,8 @@ const closeDetail = () => {
 </script>
 
 <template>
-  <div>
-    <!-- Search Form -->
-    <VRow>
+  <!-- Search Form -->
+  <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
@@ -733,7 +732,6 @@ const closeDetail = () => {
         </VBtn>
       </template>
     </VSnackbar>
-  </div>
 </template>
 
 <style scoped>

@@ -77,9 +77,8 @@ const handlePageChange = (page) => {
 </script>
 
 <template>
-  <div>
-    <!-- Search Form -->
-    <VRow>
+  <!-- Search Form -->
+  <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
@@ -321,5 +320,4 @@ const handlePageChange = (page) => {
         </VCard>
       </VCol>
     </VRow>
-  </div>
 </template>

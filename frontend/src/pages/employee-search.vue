@@ -122,9 +122,8 @@ const totalPages = computed(() => {
 </script>
 
 <template>
-  <div>
-    <!-- Search Form -->
-    <VRow>
+  <!-- Search Form -->
+  <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
@@ -399,7 +398,6 @@ const totalPages = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-  </div>
 </template>
 
 <style scoped>

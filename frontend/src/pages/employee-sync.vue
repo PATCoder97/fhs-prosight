@@ -92,9 +92,8 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
 </script>
 
 <template>
-  <div>
-    <!-- Sync Form -->
-    <VRow>
+  <!-- Sync Form -->
+  <VRow>
       <VCol cols="12">
         <VCard>
           <VCardTitle>
@@ -521,7 +520,6 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
         </VCard>
       </VCol>
     </VRow>
-  </div>
 </template>
 
 <style scoped>
