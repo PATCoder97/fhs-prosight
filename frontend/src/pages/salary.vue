@@ -93,7 +93,10 @@ const yearOptions = computed(() => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="loadSalary"
+            >
               <VRow>
                 <VCol
                   cols="12"

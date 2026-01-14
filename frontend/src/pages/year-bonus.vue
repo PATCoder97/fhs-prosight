@@ -101,7 +101,10 @@ const yearOptions = computed(() => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="loadYearBonus"
+            >
               <VRow>
                 <VCol
                   cols="12"

@@ -63,7 +63,10 @@ const loadAchievements = async () => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="loadAchievements"
+            >
               <VRow>
                 <VCol
                   cols="12"

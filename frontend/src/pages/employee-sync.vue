@@ -105,7 +105,10 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="syncEmployee"
+            >
               <VRow>
                 <VCol
                   cols="12"

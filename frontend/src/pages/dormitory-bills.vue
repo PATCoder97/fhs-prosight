@@ -94,7 +94,10 @@ const handlePageChange = (page) => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="searchBills(true)"
+            >
               <VRow>
                 <VCol
                   cols="12"

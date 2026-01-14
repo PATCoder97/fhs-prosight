@@ -117,7 +117,10 @@ const getTrendIcon = (percentage) => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VForm ref="formRef">
+            <VForm
+              ref="formRef"
+              @submit.prevent="loadSalaryHistory"
+            >
               <VRow>
                 <VCol
                   cols="12"
