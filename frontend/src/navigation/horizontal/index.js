@@ -36,9 +36,9 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
-    title: 'Đồng Bộ Nhân Viên',
+    title: 'Thông tin Nhân Viên',
     to: { name: 'employee-sync' },
-    icon: { icon: 'tabler-refresh' },
+    icon: { icon: 'tabler-users' },
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
