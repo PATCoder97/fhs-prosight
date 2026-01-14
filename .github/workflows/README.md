@@ -21,17 +21,44 @@ Workflow này tự động build và push 2 Docker images (Backend và Frontend)
 Workflow sẽ chạy khi:
 
 ### 1. Manual Trigger (Workflow Dispatch)
-Bấm nút "Run workflow" trên GitHub Actions tab.
+Bấm nút "Run workflow" trên GitHub Actions tab và chọn target build.
 
-### 2. Push to Main với [build]
-Commit message chứa từ khóa `[build]`:
+**Tùy chọn build:**
+- `both` (default) - Build cả backend và frontend
+- `backend` - Chỉ build backend
+- `frontend` - Chỉ build frontend
+
+**Cách sử dụng:**
+1. GitHub → Actions tab
+2. Chọn workflow "Build and Push Docker Images to Docker Hub"
+3. Click "Run workflow"
+4. Chọn "Build target" (both/backend/frontend)
+5. Click "Run workflow" button
+
+### 2. Push to Main với từ khóa
+
+#### Build cả 2 images:
 ```bash
 git commit -m "feat: add new feature [build]"
+# hoặc
+git commit -m "feat: update both services [build:all]"
+git push origin main
+```
+
+#### Build chỉ Backend:
+```bash
+git commit -m "fix: update backend API [build:backend]"
+git push origin main
+```
+
+#### Build chỉ Frontend:
+```bash
+git commit -m "feat: update UI components [build:frontend]"
 git push origin main
 ```
 
 ### 3. Tag Release
-Tạo tag với prefix `v`:
+Tạo tag với prefix `v` (build cả 2 images):
 ```bash
 git tag v1.0.0
 git push origin v1.0.0

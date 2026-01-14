@@ -3,6 +3,16 @@ name: Build and Push Docker Images to Docker Hub
 on:
   # 1. Cho phép bấm nút chạy bằng tay trên web GitHub
   workflow_dispatch:
+    inputs:
+      build_target:
+        description: 'Build target'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - backend
+          - frontend
 
   # 2. Lắng nghe sự kiện push
   push:
@@ -17,11 +27,16 @@ jobs:
     runs-on: ubuntu-latest
 
     # --- ĐIỀU KIỆN CHẠY (QUAN TRỌNG) ---
-    # Chỉ chạy khi: (Là Tag) HOẶC (Có từ khóa [build]) HOẶC (Bấm nút bằng tay)
+    # Chỉ chạy khi:
+    # 1. (Là Tag) HOẶC
+    # 2. (Có từ khóa [build] hoặc [build:backend] hoặc [build:all]) HOẶC
+    # 3. (Bấm nút bằng tay VÀ chọn backend hoặc both)
     if: >
       startsWith(github.ref, 'refs/tags/') ||
       contains(github.event.head_commit.message, '[build]') ||
-      github.event_name == 'workflow_dispatch'
+      contains(github.event.head_commit.message, '[build:backend]') ||
+      contains(github.event.head_commit.message, '[build:all]') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.build_target == 'backend' || github.event.inputs.build_target == 'both'))
     # -----------------------------------
 
     steps:
@@ -73,11 +88,16 @@ jobs:
     runs-on: ubuntu-latest
 
     # --- ĐIỀU KIỆN CHẠY (QUAN TRỌNG) ---
-    # Chỉ chạy khi: (Là Tag) HOẶC (Có từ khóa [build]) HOẶC (Bấm nút bằng tay)
+    # Chỉ chạy khi:
+    # 1. (Là Tag) HOẶC
+    # 2. (Có từ khóa [build] hoặc [build:frontend] hoặc [build:all]) HOẶC
+    # 3. (Bấm nút bằng tay VÀ chọn frontend hoặc both)
     if: >
       startsWith(github.ref, 'refs/tags/') ||
       contains(github.event.head_commit.message, '[build]') ||
-      github.event_name == 'workflow_dispatch'
+      contains(github.event.head_commit.message, '[build:frontend]') ||
+      contains(github.event.head_commit.message, '[build:all]') ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.build_target == 'frontend' || github.event.inputs.build_target == 'both'))
     # -----------------------------------
 
     steps:
