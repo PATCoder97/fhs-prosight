@@ -1,8 +1,18 @@
 import { createFetch } from '@vueuse/core'
 import { destr } from 'destr'
 
+// Runtime API base URL detection
+function getApiBaseUrl() {
+  // Production: Use relative path /api which nginx will proxy to backend
+  if (import.meta.env.PROD) {
+    return '/api'
+  }
+  // Development: Use VITE_API_BASE_URL or fallback to /api
+  return import.meta.env.VITE_API_BASE_URL || '/api'
+}
+
 export const useApi = createFetch({
-  baseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseUrl: getApiBaseUrl(),
   fetchOptions: {
     headers: {
       Accept: 'application/json',
@@ -18,7 +28,7 @@ export const useApi = createFetch({
           Authorization: `Bearer ${accessToken}`,
         }
       }
-      
+
       return { options }
     },
     afterFetch(ctx) {
@@ -32,7 +42,7 @@ export const useApi = createFetch({
       catch (error) {
         console.error(error)
       }
-      
+
       return { data: parsedData, response }
     },
   },

@@ -18,8 +18,18 @@ const authProviders = [
   },
 ]
 
+// Runtime API base URL detection
+function getApiBaseUrl() {
+  // Production: Use relative path /api which nginx will proxy to backend
+  if (import.meta.env.PROD) {
+    return '/api'
+  }
+  // Development: Use VITE_API_BASE_URL or localhost
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api'
+}
+
 const loginWithOAuth = provider => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api'
+  const baseUrl = getApiBaseUrl()
 
   window.location.href = `${baseUrl}/auth/login/${provider.toLowerCase()}`
 }
