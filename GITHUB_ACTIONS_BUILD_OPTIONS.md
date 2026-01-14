@@ -96,11 +96,14 @@ git push origin v1.0.0
 
 | Scenario | Time (approx) | GitHub Actions Minutes |
 |----------|---------------|------------------------|
-| Backend only | 8-10 min | 8-10 min |
-| Frontend only | 5-7 min | 5-7 min |
-| Both (parallel) | 10-12 min | ~18 min total (both jobs) |
+| Backend only | ~6 min | ~6 min |
+| Frontend only | ~12 min | ~12 min |
+| Both (parallel) | ~12 min | ~18 min total (both jobs) |
 
-**Note**: First build takes longer. Subsequent builds use cache and are faster.
+**Note**:
+- First build takes longer. Subsequent builds use cache and are faster.
+- Backend build is faster due to Python dependencies caching.
+- Frontend build includes npm dependencies + icon building + production build.
 
 ## 🔍 Check Build Status
 
@@ -114,8 +117,13 @@ git push origin v1.0.0
 ## 📦 Docker Hub Images
 
 After build completes:
-- Backend: https://hub.docker.com/r/patcoder97/fhs-backend
-- Frontend: https://hub.docker.com/r/patcoder97/fhs-frontend
+- Backend: https://hub.docker.com/r/patcoder97/prosight-backend
+- Frontend: https://hub.docker.com/r/patcoder97/prosight-frontend
+
+### Available Tags:
+- `dev` - Latest development build from main branch
+- `latest` - Latest stable release (from version tags)
+- `v1.0.0`, `v1.0.1`, etc. - Specific version tags
 
 ## 🆘 Troubleshooting
 
