@@ -69,11 +69,11 @@ fi
 echo ""
 echo "📦 Running database migrations..."
 
-cd /app/app
+cd /app
 
 # Kiểm tra xem alembic.ini có tồn tại không
 if [ ! -f "alembic.ini" ]; then
-    echo "❌ ERROR: alembic.ini not found in /app/app"
+    echo "❌ ERROR: alembic.ini not found in /app"
     exit 1
 fi
 
