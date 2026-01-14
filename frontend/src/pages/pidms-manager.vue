@@ -1,0 +1,875 @@
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useAdminProtection } from '@/composables/useAdminProtection'
+import { $api } from '@/utils/api'
+import { formatCurrency } from '@/utils/formatters'
+
+// Protect this page - only admin can access
+useAdminProtection()
+
+// State
+const loading = ref(false)
+const products = ref([])
+const searchResults = ref([])
+const searchLoading = ref(false)
+const importLoading = ref(false)
+const syncLoading = ref(false)
+
+// Dialogs
+const importDialog = ref(false)
+const syncDialog = ref(false)
+const keyDetailsDialog = ref(false)
+const selectedKey = ref(null)
+
+// Search filters
+const searchProduct = ref('')
+const searchMinRemaining = ref(null)
+const searchMaxRemaining = ref(null)
+const searchBlocked = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(50)
+const totalResults = ref(0)
+
+// Import form
+const importKeys = ref('')
+
+// Sync form
+const syncProductFilter = ref('')
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'success',
+})
+
+const showToast = (message, color = 'success') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
+
+// Load products summary on mount
+onMounted(async () => {
+  await loadProducts()
+})
+
+// Load products summary
+const loadProducts = async () => {
+  loading.value = true
+  try {
+    const response = await $api('/pidms/products')
+    products.value = response.products || []
+  }
+  catch (error) {
+    console.error('Failed to load products:', error)
+    showToast('Không thể tải danh sách sản phẩm!', 'error')
+  }
+  finally {
+    loading.value = false
+  }
+}
+
+// Search keys
+const searchKeys = async (resetPage = false) => {
+  if (resetPage) {
+    currentPage.value = 1
+  }
+
+  searchLoading.value = true
+  try {
+    const params = new URLSearchParams()
+
+    if (searchProduct.value?.trim()) {
+      params.append('product', searchProduct.value.trim())
+    }
+    if (searchMinRemaining.value !== null && searchMinRemaining.value !== '') {
+      params.append('min_remaining', searchMinRemaining.value)
+    }
+    if (searchMaxRemaining.value !== null && searchMaxRemaining.value !== '') {
+      params.append('max_remaining', searchMaxRemaining.value)
+    }
+    if (searchBlocked.value !== null && searchBlocked.value !== '') {
+      params.append('blocked', searchBlocked.value)
+    }
+    params.append('page', currentPage.value)
+    params.append('page_size', pageSize.value)
+
+    const response = await $api(`/pidms/search?${params.toString()}`)
+    searchResults.value = response.results || []
+    totalResults.value = response.total || 0
+  }
+  catch (error) {
+    console.error('Failed to search keys:', error)
+    showToast('Không thể tìm kiếm keys!', 'error')
+    searchResults.value = []
+    totalResults.value = 0
+  }
+  finally {
+    searchLoading.value = false
+  }
+}
+
+// Import keys
+const importKeysSubmit = async () => {
+  if (!importKeys.value.trim()) {
+    showToast('Vui lòng nhập product keys!', 'warning')
+    return
+  }
+
+  importLoading.value = true
+  try {
+    const response = await $api('/pidms/check', {
+      method: 'POST',
+      body: { keys: importKeys.value },
+    })
+
+    if (response.success) {
+      const { summary } = response
+      showToast(
+        `Import thành công! ${summary.new_keys} keys mới, ${summary.updated_keys} keys cập nhật`,
+        'success'
+      )
+      importDialog.value = false
+      importKeys.value = ''
+
+      // Reload products and search results
+      await loadProducts()
+      if (searchResults.value.length > 0) {
+        await searchKeys()
+      }
+    }
+  }
+  catch (error) {
+    console.error('Failed to import keys:', error)
+    showToast('Import keys thất bại!', 'error')
+  }
+  finally {
+    importLoading.value = false
+  }
+}
+
+// Sync all keys
+const syncKeysSubmit = async () => {
+  syncLoading.value = true
+  try {
+    const response = await $api('/pidms/sync', {
+      method: 'POST',
+      body: { product_filter: syncProductFilter.value || null },
+    })
+
+    if (response.success) {
+      const { summary } = response
+      showToast(
+        `Sync thành công! ${summary.total_synced} keys, ${summary.updated} cập nhật, ${summary.errors} lỗi`,
+        summary.errors > 0 ? 'warning' : 'success'
+      )
+      syncDialog.value = false
+      syncProductFilter.value = ''
+
+      // Reload products and search results
+      await loadProducts()
+      if (searchResults.value.length > 0) {
+        await searchKeys()
+      }
+    }
+  }
+  catch (error) {
+    console.error('Failed to sync keys:', error)
+    showToast('Sync keys thất bại!', 'error')
+  }
+  finally {
+    syncLoading.value = false
+  }
+}
+
+// Show key details
+const showKeyDetails = (key) => {
+  selectedKey.value = key
+  keyDetailsDialog.value = true
+}
+
+// Close key details
+const closeKeyDetails = () => {
+  keyDetailsDialog.value = false
+  selectedKey.value = null
+}
+
+// Get status color
+const getStatusColor = (remaining) => {
+  if (remaining === 0) return 'error'
+  if (remaining < 100) return 'warning'
+  return 'success'
+}
+
+// Get blocked color
+const getBlockedColor = (blocked) => {
+  return blocked === 1 ? 'error' : 'success'
+}
+
+// Blocked options
+const blockedOptions = [
+  { value: null, title: 'Tất cả' },
+  { value: -1, title: 'Không bị chặn' },
+  { value: 1, title: 'Bị chặn' },
+]
+
+// Total pages
+const totalPages = computed(() => Math.ceil(totalResults.value / pageSize.value))
+
+// Handle page change
+const handlePageChange = (page) => {
+  currentPage.value = page
+  searchKeys(false)
+}
+
+// Reset search
+const resetSearch = () => {
+  searchProduct.value = ''
+  searchMinRemaining.value = null
+  searchMaxRemaining.value = null
+  searchBlocked.value = null
+  currentPage.value = 1
+  searchResults.value = []
+  totalResults.value = 0
+}
+</script>
+
+<template>
+  <div>
+    <!-- Header -->
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-key"
+            size="28"
+          />
+          <span>PIDMS - Product Key Management</span>
+        </div>
+        <VChip
+          color="error"
+          variant="tonal"
+        >
+          <VIcon
+            icon="tabler-shield-lock"
+            start
+          />
+          Admin Only
+        </VChip>
+      </VCardTitle>
+
+      <VCardText>
+        <VAlert
+          type="info"
+          variant="tonal"
+          class="mb-4"
+        >
+          <template #prepend>
+            <VIcon icon="tabler-info-circle" />
+          </template>
+          <div>
+            <strong>Quản lý Product Keys</strong>
+            <p class="mt-2">
+              Trang này cho phép quản lý Microsoft product keys từ PIDKey.com. Bạn có thể import keys mới, tìm kiếm, và đồng bộ với API.
+            </p>
+          </div>
+        </VAlert>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-3">
+          <VBtn
+            color="primary"
+            prepend-icon="tabler-upload"
+            @click="importDialog = true"
+          >
+            Import Keys
+          </VBtn>
+          <VBtn
+            color="success"
+            prepend-icon="tabler-refresh"
+            @click="syncDialog = true"
+          >
+            Sync Keys
+          </VBtn>
+          <VBtn
+            color="info"
+            prepend-icon="tabler-reload"
+            :loading="loading"
+            @click="loadProducts"
+          >
+            Reload Stats
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+
+    <!-- Products Statistics -->
+    <VRow class="mb-6">
+      <VCol cols="12">
+        <VCard>
+          <VCardTitle>
+            <VIcon
+              icon="tabler-chart-bar"
+              class="me-2"
+            />
+            Thống Kê Sản Phẩm
+          </VCardTitle>
+          <VDivider />
+          <VCardText>
+            <!-- Loading State -->
+            <div
+              v-if="loading"
+              class="text-center py-8"
+            >
+              <VProgressCircular
+                indeterminate
+                color="primary"
+                size="64"
+              />
+              <p class="mt-4">
+                Đang tải thống kê...
+              </p>
+            </div>
+
+            <!-- Products Grid -->
+            <VRow v-else-if="products.length > 0">
+              <VCol
+                v-for="product in products"
+                :key="product.prd"
+                cols="12"
+                md="6"
+                lg="4"
+              >
+                <VCard
+                  variant="outlined"
+                  :color="product.low_inventory ? 'warning' : 'default'"
+                >
+                  <VCardText>
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <VIcon
+                        :icon="product.low_inventory ? 'tabler-alert-triangle' : 'tabler-key'"
+                        :color="product.low_inventory ? 'warning' : 'success'"
+                        size="32"
+                      />
+                      <VChip
+                        v-if="product.low_inventory"
+                        color="warning"
+                        size="small"
+                      >
+                        Low Inventory
+                      </VChip>
+                    </div>
+                    <h6 class="text-h6 mb-2">
+                      {{ product.prd }}
+                    </h6>
+                    <VDivider class="my-3" />
+                    <div class="d-flex justify-space-between mb-2">
+                      <span class="text-body-2">Keys:</span>
+                      <strong>{{ product.key_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-space-between mb-2">
+                      <span class="text-body-2">Total Remaining:</span>
+                      <strong class="text-success">{{ product.total_remaining.toLocaleString() }}</strong>
+                    </div>
+                    <div class="d-flex justify-space-between">
+                      <span class="text-body-2">Avg Remaining:</span>
+                      <strong>{{ product.avg_remaining.toFixed(1) }}</strong>
+                    </div>
+                  </VCardText>
+                </VCard>
+              </VCol>
+            </VRow>
+
+            <!-- Empty State -->
+            <div
+              v-else
+              class="text-center py-8"
+            >
+              <VIcon
+                icon="tabler-database-off"
+                size="64"
+                color="disabled"
+              />
+              <p class="mt-4 text-disabled">
+                Chưa có product keys nào
+              </p>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- Search Section -->
+    <VCard>
+      <VCardTitle>
+        <VIcon
+          icon="tabler-search"
+          class="me-2"
+        />
+        Tìm Kiếm Product Keys
+      </VCardTitle>
+      <VDivider />
+      <VCardText>
+        <!-- Search Filters -->
+        <VRow class="mb-4">
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <VTextField
+              v-model="searchProduct"
+              label="Product Name"
+              placeholder="VD: Office, Windows"
+              variant="outlined"
+              prepend-inner-icon="tabler-package"
+              clearable
+              hide-details
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="2"
+          >
+            <VTextField
+              v-model.number="searchMinRemaining"
+              label="Min Remaining"
+              placeholder="0"
+              variant="outlined"
+              type="number"
+              clearable
+              hide-details
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="2"
+          >
+            <VTextField
+              v-model.number="searchMaxRemaining"
+              label="Max Remaining"
+              placeholder="9999"
+              variant="outlined"
+              type="number"
+              clearable
+              hide-details
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="2"
+          >
+            <VSelect
+              v-model="searchBlocked"
+              :items="blockedOptions"
+              label="Trạng thái"
+              variant="outlined"
+              hide-details
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="3"
+            class="d-flex align-end gap-2"
+          >
+            <VBtn
+              color="primary"
+              :block="$vuetify.display.smAndDown"
+              :loading="searchLoading"
+              @click="searchKeys(true)"
+            >
+              <VIcon
+                start
+                icon="tabler-search"
+              />
+              Tìm Kiếm
+            </VBtn>
+            <VBtn
+              color="secondary"
+              variant="outlined"
+              :block="$vuetify.display.smAndDown"
+              @click="resetSearch"
+            >
+              <VIcon
+                start
+                icon="tabler-x"
+              />
+              Reset
+            </VBtn>
+          </VCol>
+        </VRow>
+
+        <!-- Search Results -->
+        <div v-if="searchResults.length > 0">
+          <div class="d-flex justify-space-between align-center mb-4">
+            <h6 class="text-h6">
+              Kết quả tìm kiếm
+            </h6>
+            <VChip
+              color="primary"
+              variant="tonal"
+            >
+              {{ totalResults }} keys
+            </VChip>
+          </div>
+
+          <VTable>
+            <thead>
+              <tr>
+                <th class="text-left">
+                  ID
+                </th>
+                <th class="text-left">
+                  Product Key
+                </th>
+                <th class="text-left">
+                  Product
+                </th>
+                <th class="text-center">
+                  Remaining
+                </th>
+                <th class="text-center">
+                  Status
+                </th>
+                <th class="text-center">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="key in searchResults"
+                :key="key.id"
+              >
+                <td>{{ key.id }}</td>
+                <td>
+                  <code class="text-body-2">{{ key.keyname_with_dash }}</code>
+                </td>
+                <td>{{ key.prd }}</td>
+                <td class="text-center">
+                  <VChip
+                    :color="getStatusColor(key.remaining)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    {{ key.remaining.toLocaleString() }}
+                  </VChip>
+                </td>
+                <td class="text-center">
+                  <VChip
+                    :color="getBlockedColor(key.blocked)"
+                    size="small"
+                  >
+                    {{ key.blocked === 1 ? 'Blocked' : 'Active' }}
+                  </VChip>
+                </td>
+                <td class="text-center">
+                  <VBtn
+                    icon
+                    variant="text"
+                    size="small"
+                    @click="showKeyDetails(key)"
+                  >
+                    <VIcon icon="tabler-eye" />
+                  </VBtn>
+                </td>
+              </tr>
+            </tbody>
+          </VTable>
+
+          <!-- Pagination -->
+          <div class="d-flex justify-center mt-4">
+            <VPagination
+              v-model="currentPage"
+              :length="totalPages"
+              @update:model-value="handlePageChange"
+            />
+          </div>
+        </div>
+
+        <!-- No Results -->
+        <div
+          v-else-if="!searchLoading && searchResults.length === 0 && (searchProduct || searchMinRemaining || searchMaxRemaining || searchBlocked !== null)"
+          class="text-center py-8"
+        >
+          <VIcon
+            icon="tabler-search-off"
+            size="64"
+            color="disabled"
+          />
+          <p class="mt-4 text-disabled">
+            Không tìm thấy kết quả nào
+          </p>
+        </div>
+      </VCardText>
+    </VCard>
+
+    <!-- Import Dialog -->
+    <VDialog
+      v-model="importDialog"
+      max-width="600"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-upload"
+            color="primary"
+          />
+          Import Product Keys
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <VAlert
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
+            Nhập các product keys (mỗi key một dòng, có thể có hoặc không có dấu gạch ngang)
+          </VAlert>
+
+          <VTextarea
+            v-model="importKeys"
+            label="Product Keys"
+            placeholder="6NRGD-KHFCF-Y4TF7-PRWFD-YBF3H&#10;8NFMQ-FTF43-RQCKR-T473J-JFHB2"
+            variant="outlined"
+            rows="8"
+            :disabled="importLoading"
+          />
+        </VCardText>
+        <VDivider />
+        <VCardActions class="px-6 py-4">
+          <VSpacer />
+          <VBtn
+            color="grey"
+            variant="text"
+            :disabled="importLoading"
+            @click="importDialog = false"
+          >
+            Hủy
+          </VBtn>
+          <VBtn
+            color="primary"
+            variant="elevated"
+            :loading="importLoading"
+            @click="importKeysSubmit"
+          >
+            <VIcon
+              start
+              icon="tabler-check"
+            />
+            Import
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Sync Dialog -->
+    <VDialog
+      v-model="syncDialog"
+      max-width="500"
+    >
+      <VCard>
+        <VCardTitle class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-refresh"
+            color="success"
+          />
+          Sync Product Keys
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <VAlert
+            type="warning"
+            variant="tonal"
+            class="mb-4"
+          >
+            Đồng bộ tất cả keys trong database với PIDKey.com API. Quá trình này có thể mất vài phút.
+          </VAlert>
+
+          <VTextField
+            v-model="syncProductFilter"
+            label="Product Filter (Optional)"
+            placeholder="VD: Office"
+            variant="outlined"
+            prepend-inner-icon="tabler-filter"
+            hint="Để trống để sync tất cả keys"
+            persistent-hint
+            :disabled="syncLoading"
+          />
+        </VCardText>
+        <VDivider />
+        <VCardActions class="px-6 py-4">
+          <VSpacer />
+          <VBtn
+            color="grey"
+            variant="text"
+            :disabled="syncLoading"
+            @click="syncDialog = false"
+          >
+            Hủy
+          </VBtn>
+          <VBtn
+            color="success"
+            variant="elevated"
+            :loading="syncLoading"
+            @click="syncKeysSubmit"
+          >
+            <VIcon
+              start
+              icon="tabler-refresh"
+            />
+            Sync Now
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+
+    <!-- Key Details Dialog -->
+    <VDialog
+      v-model="keyDetailsDialog"
+      max-width="700"
+    >
+      <VCard v-if="selectedKey">
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center gap-2">
+            <VIcon
+              icon="tabler-key"
+              color="primary"
+            />
+            Key Details
+          </div>
+          <VBtn
+            icon
+            variant="text"
+            @click="closeKeyDetails"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        <VDivider />
+        <VCardText>
+          <VRow>
+            <VCol cols="12">
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Product Key
+                </div>
+                <code class="text-h6">{{ selectedKey.keyname_with_dash }}</code>
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Product
+                </div>
+                <strong>{{ selectedKey.prd }}</strong>
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Remaining Activations
+                </div>
+                <VChip
+                  :color="getStatusColor(selectedKey.remaining)"
+                  variant="tonal"
+                >
+                  {{ selectedKey.remaining.toLocaleString() }}
+                </VChip>
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Status
+                </div>
+                <VChip :color="getBlockedColor(selectedKey.blocked)">
+                  {{ selectedKey.blocked === 1 ? 'Blocked' : 'Active' }}
+                </VChip>
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              md="6"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Key Type
+                </div>
+                <div>{{ selectedKey.is_key_type || 'N/A' }}</div>
+              </div>
+            </VCol>
+
+            <VCol
+              v-if="selectedKey.eid"
+              cols="12"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Enterprise ID
+                </div>
+                <div>{{ selectedKey.eid }}</div>
+              </div>
+            </VCol>
+
+            <VCol
+              v-if="selectedKey.datetime_checked_done"
+              cols="12"
+            >
+              <div class="mb-4">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  Last Checked
+                </div>
+                <div>{{ selectedKey.datetime_checked_done }}</div>
+              </div>
+            </VCol>
+          </VRow>
+        </VCardText>
+      </VCard>
+    </VDialog>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top end"
+      transition="slide-x-reverse-transition"
+      rounded="lg"
+      elevation="8"
+      min-width="300"
+      max-width="400"
+    >
+      <div class="d-flex align-center gap-3">
+        <VIcon
+          :icon="toast.color === 'success' ? 'tabler-circle-check' : toast.color === 'warning' ? 'tabler-alert-triangle' : 'tabler-circle-x'"
+          size="24"
+        />
+        <span>{{ toast.message }}</span>
+      </div>
+      <template #actions>
+        <VBtn
+          variant="text"
+          icon="tabler-x"
+          size="small"
+          @click="toast.show = false"
+        />
+      </template>
+    </VSnackbar>
+  </div>
+</template>

@@ -61,6 +61,11 @@ export default [
         to: { name: 'evaluation-upload' },
         icon: { icon: 'tabler-file-upload' },
       },
+      {
+        title: 'PIDMS Manager',
+        to: { name: 'pidms-manager' },
+        icon: { icon: 'tabler-key' },
+      },
     ],
   },
 ]

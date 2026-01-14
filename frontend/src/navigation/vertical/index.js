@@ -64,6 +64,10 @@ export default [
         title: 'Evaluation Upload',
         to: { name: 'evaluation-upload' },
       },
+      {
+        title: 'PIDMS Manager',
+        to: { name: 'pidms-manager' },
+      },
     ],
   },
 ]
