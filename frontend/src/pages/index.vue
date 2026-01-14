@@ -138,7 +138,7 @@ const loadDashboardData = async () => {
 
     // Load dormitory bills for current employee (latest term)
     const dormitoryBillsPromise = $api(
-      `/dormitory-bills/search?employee_id=${currentUser.value.localId}&page=1&page_size=10`
+      `/dormitory-bills/search?employee_id=${currentUser.value.localId}&page=1&page_size=5`
     ).catch(() => null)
 
     // Wait for all requests
