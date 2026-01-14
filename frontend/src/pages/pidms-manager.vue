@@ -25,6 +25,10 @@ const importDialog = ref(false)
 const syncDialog = ref(false)
 const keyDetailsDialog = ref(false)
 const selectedKey = ref(null)
+const productKeysDialog = ref(false)
+const selectedProduct = ref(null)
+const productKeys = ref([])
+const productKeysLoading = ref(false)
 
 // Search filters
 const searchProduct = ref('')
@@ -247,6 +251,7 @@ const productsHeaders = [
   { title: 'Total Remaining', key: 'total_remaining', align: 'center', sortable: true },
   { title: 'Avg Remaining', key: 'avg_remaining', align: 'center', sortable: true },
   { title: 'Status', key: 'low_inventory', align: 'center', sortable: true },
+  { title: 'Actions', key: 'actions', align: 'center', sortable: false },
 ]
 
 // Get inventory status
@@ -254,6 +259,39 @@ const getInventoryStatus = (product) => {
   if (product.total_remaining === 0) return { text: 'Out of Stock', color: 'error' }
   if (product.low_inventory) return { text: 'Low Stock', color: 'warning' }
   return { text: 'In Stock', color: 'success' }
+}
+
+// View product keys
+const viewProductKeys = async (product) => {
+  selectedProduct.value = product
+  productKeysDialog.value = true
+  productKeysLoading.value = true
+  productKeys.value = []
+
+  try {
+    const params = new URLSearchParams()
+    params.append('product', product.prd)
+    params.append('page', 1)
+    params.append('page_size', 100) // Load more keys for product view
+
+    const response = await $api(`/pidms/search?${params.toString()}`)
+    productKeys.value = response.results || []
+  }
+  catch (error) {
+    console.error('Failed to load product keys:', error)
+    showToast('Không thể tải danh sách keys!', 'error')
+    productKeys.value = []
+  }
+  finally {
+    productKeysLoading.value = false
+  }
+}
+
+// Close product keys dialog
+const closeProductKeysDialog = () => {
+  productKeysDialog.value = false
+  selectedProduct.value = null
+  productKeys.value = []
 }
 </script>
 
@@ -533,6 +571,21 @@ const getInventoryStatus = (product) => {
               >
                 {{ getInventoryStatus(item).text }}
               </VChip>
+            </template>
+
+            <template #item.actions="{ item }">
+              <VBtn
+                icon
+                variant="text"
+                size="small"
+                color="primary"
+                @click="viewProductKeys(item)"
+              >
+                <VIcon icon="tabler-eye" />
+                <VTooltip activator="parent">
+                  Xem keys
+                </VTooltip>
+              </VBtn>
             </template>
           </VDataTable>
         </div>
@@ -984,6 +1037,153 @@ const getInventoryStatus = (product) => {
             </VCol>
           </VRow>
         </VCardText>
+      </VCard>
+    </VDialog>
+
+    <!-- Product Keys Dialog -->
+    <VDialog
+      v-model="productKeysDialog"
+      max-width="1200"
+      scrollable
+    >
+      <VCard v-if="selectedProduct">
+        <VCardTitle class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center gap-2">
+            <VIcon
+              icon="tabler-list"
+              color="primary"
+            />
+            <div>
+              <div class="text-h6">
+                Keys - {{ selectedProduct.prd }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                {{ selectedProduct.key_count }} keys total
+              </div>
+            </div>
+          </div>
+          <VBtn
+            icon
+            variant="text"
+            @click="closeProductKeysDialog"
+          >
+            <VIcon icon="tabler-x" />
+          </VBtn>
+        </VCardTitle>
+        <VDivider />
+        <VCardText style="max-height: 600px;">
+          <!-- Loading State -->
+          <div
+            v-if="productKeysLoading"
+            class="text-center py-8"
+          >
+            <VProgressCircular
+              indeterminate
+              color="primary"
+              size="64"
+            />
+            <p class="mt-4">
+              Đang tải keys...
+            </p>
+          </div>
+
+          <!-- Keys Table -->
+          <VTable
+            v-else-if="productKeys.length > 0"
+            density="comfortable"
+          >
+            <thead>
+              <tr>
+                <th class="text-left">
+                  #
+                </th>
+                <th class="text-left">
+                  Product Key
+                </th>
+                <th class="text-center">
+                  Remaining
+                </th>
+                <th class="text-center">
+                  Status
+                </th>
+                <th class="text-center">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(key, index) in productKeys"
+                :key="key.id"
+              >
+                <td>{{ index + 1 }}</td>
+                <td>
+                  <code class="text-body-2">{{ key.keyname_with_dash }}</code>
+                </td>
+                <td class="text-center">
+                  <VChip
+                    :color="getStatusColor(key.remaining)"
+                    size="small"
+                    variant="tonal"
+                  >
+                    {{ key.remaining.toLocaleString() }}
+                  </VChip>
+                </td>
+                <td class="text-center">
+                  <VChip
+                    :color="getBlockedColor(key.blocked)"
+                    size="small"
+                  >
+                    {{ key.blocked === 1 ? 'Blocked' : 'Active' }}
+                  </VChip>
+                </td>
+                <td class="text-center">
+                  <VBtn
+                    icon
+                    variant="text"
+                    size="small"
+                    @click="showKeyDetails(key)"
+                  >
+                    <VIcon icon="tabler-eye" />
+                  </VBtn>
+                </td>
+              </tr>
+            </tbody>
+          </VTable>
+
+          <!-- Empty State -->
+          <div
+            v-else
+            class="text-center py-8"
+          >
+            <VIcon
+              icon="tabler-inbox-off"
+              size="64"
+              color="disabled"
+            />
+            <p class="mt-4 text-disabled">
+              Không tìm thấy keys nào
+            </p>
+          </div>
+        </VCardText>
+        <VDivider />
+        <VCardActions class="px-6 py-4">
+          <VChip
+            v-if="!productKeysLoading"
+            color="primary"
+            variant="tonal"
+          >
+            {{ productKeys.length }} keys
+          </VChip>
+          <VSpacer />
+          <VBtn
+            color="primary"
+            variant="elevated"
+            @click="closeProductKeysDialog"
+          >
+            Đóng
+          </VBtn>
+        </VCardActions>
       </VCard>
     </VDialog>
 
