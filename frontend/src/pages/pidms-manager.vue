@@ -30,7 +30,7 @@ const selectedProduct = ref(null)
 const productKeys = ref([])
 const productKeysLoading = ref(false)
 const productKeysPage = ref(1)
-const productKeysPageSize = ref(50)
+const productKeysPageSize = ref(10)
 const productKeysTotalResults = ref(0)
 const productKeysPageSizeOptions = [
   { value: 10, title: '10' },
@@ -45,7 +45,7 @@ const searchMinRemaining = ref(null)
 const searchMaxRemaining = ref(null)
 const searchBlocked = ref(null)
 const currentPage = ref(1)
-const pageSize = ref(50)
+const pageSize = ref(10)
 const totalResults = ref(0)
 const pageSizeOptions = [
   { value: 10, title: '10' },
