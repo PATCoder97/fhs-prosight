@@ -303,8 +303,8 @@ const handlePageChange = (page) => {
       </VCol>
     </VRow>
 
-    <!-- No Data State -->
-    <VRow v-if="!billsData && !loading && !error">
+    <!-- Empty State (No Search Yet) -->
+    <VRow v-if="!billsData && !loading">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -319,6 +319,28 @@ const handlePageChange = (page) => {
             </p>
             <p class="text-body-2 text-medium-emphasis">
               Vui lòng nhập điều kiện tìm kiếm và nhấn "Tra Cứu"
+            </p>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
+    <!-- No Results State (After Search) -->
+    <VRow v-if="billsData && billsData.length === 0 && !loading">
+      <VCol cols="12">
+        <VCard>
+          <VCardText class="text-center py-16">
+            <VIcon
+              icon="tabler-folder-open"
+              size="64"
+              color="grey-lighten-1"
+              class="mb-4"
+            />
+            <p class="text-h6 text-medium-emphasis mb-2">
+              Không tìm thấy kết quả
+            </p>
+            <p class="text-body-2 text-medium-emphasis">
+              Vui lòng thử lại với điều kiện tìm kiếm khác
             </p>
           </VCardText>
         </VCard>
