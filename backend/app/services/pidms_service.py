@@ -78,6 +78,20 @@ async def check_and_upsert_keys(
                 errors += 1
                 continue
 
+            # Check if prd (product) is present - required field
+            if not key_data.get("prd"):
+                logger.warning(f"Skipping key {keyname} with missing prd field: {key_data}")
+                errors += 1
+                results.append({
+                    "keyname": keyname,
+                    "keyname_with_dash": key_data.get("keyname_with_dash"),
+                    "status": "error",
+                    "error": "Missing required field: prd",
+                    "prd": None,
+                    "remaining": 0,
+                })
+                continue
+
             # Filter out invalid fields
             filtered_data = {k: v for k, v in key_data.items() if k in valid_fields}
 
