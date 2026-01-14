@@ -172,7 +172,7 @@ const handlePageChange = (page) => {
               color="primary"
               size="64"
             />
-            <p class="text-h6 mt-4">
+            <p class="text-body-1 mt-4">
               Đang tìm kiếm...
             </p>
           </VCardText>
@@ -308,7 +308,7 @@ const handlePageChange = (page) => {
             <VIcon
               icon="tabler-file-search"
               size="64"
-              color="grey"
+              color="grey-lighten-1"
             />
             <p class="text-h6 mt-4">
               Không tìm thấy hóa đơn
@@ -332,7 +332,7 @@ const handlePageChange = (page) => {
             <VIcon
               icon="tabler-home-dollar"
               size="64"
-              color="grey"
+              color="grey-lighten-1"
             />
             <p class="text-h6 mt-4">
               Tra cứu hóa đơn KTX
