@@ -29,6 +29,9 @@ const productKeysDialog = ref(false)
 const selectedProduct = ref(null)
 const productKeys = ref([])
 const productKeysLoading = ref(false)
+const productKeysPage = ref(1)
+const productKeysPageSize = ref(50)
+const productKeysTotalResults = ref(0)
 
 // Search filters
 const searchProduct = ref('')
@@ -262,7 +265,7 @@ const getInventoryStatus = (product) => {
 }
 
 // View product keys
-const viewProductKeys = async (product) => {
+const viewProductKeys = async (product, page = 1) => {
   selectedProduct.value = product
   productKeysDialog.value = true
   productKeysLoading.value = true
@@ -271,27 +274,44 @@ const viewProductKeys = async (product) => {
   try {
     const params = new URLSearchParams()
     params.append('product', product.prd)
-    params.append('page', 1)
-    params.append('page_size', 100) // Load more keys for product view
+    params.append('page', page)
+    params.append('page_size', productKeysPageSize.value)
 
     const response = await $api(`/pidms/search?${params.toString()}`)
     productKeys.value = response.results || []
+    productKeysTotalResults.value = response.total || 0
+    productKeysPage.value = page
   }
   catch (error) {
     console.error('Failed to load product keys:', error)
     showToast('Không thể tải danh sách keys!', 'error')
     productKeys.value = []
+    productKeysTotalResults.value = 0
   }
   finally {
     productKeysLoading.value = false
   }
 }
 
+// Handle product keys page change
+const handleProductKeysPageChange = (page) => {
+  if (selectedProduct.value) {
+    viewProductKeys(selectedProduct.value, page)
+  }
+}
+
+// Total pages for product keys
+const productKeysTotalPages = computed(() =>
+  Math.ceil(productKeysTotalResults.value / productKeysPageSize.value)
+)
+
 // Close product keys dialog
 const closeProductKeysDialog = () => {
   productKeysDialog.value = false
   selectedProduct.value = null
   productKeys.value = []
+  productKeysPage.value = 1
+  productKeysTotalResults.value = 0
 }
 </script>
 
@@ -1116,7 +1136,7 @@ const closeProductKeysDialog = () => {
                 v-for="(key, index) in productKeys"
                 :key="key.id"
               >
-                <td>{{ index + 1 }}</td>
+                <td>{{ (productKeysPage - 1) * productKeysPageSize + index + 1 }}</td>
                 <td>
                   <code class="text-body-2">{{ key.keyname_with_dash }}</code>
                 </td>
@@ -1151,6 +1171,18 @@ const closeProductKeysDialog = () => {
             </tbody>
           </VTable>
 
+          <!-- Pagination -->
+          <div
+            v-if="productKeys.length > 0 && productKeysTotalPages > 1"
+            class="d-flex justify-center mt-4"
+          >
+            <VPagination
+              v-model="productKeysPage"
+              :length="productKeysTotalPages"
+              @update:model-value="handleProductKeysPageChange"
+            />
+          </div>
+
           <!-- Empty State -->
           <div
             v-else
@@ -1173,7 +1205,14 @@ const closeProductKeysDialog = () => {
             color="primary"
             variant="tonal"
           >
-            {{ productKeys.length }} keys
+            {{ productKeysTotalResults }} keys total
+          </VChip>
+          <VChip
+            v-if="!productKeysLoading && productKeysTotalPages > 1"
+            color="info"
+            variant="tonal"
+          >
+            Page {{ productKeysPage }} / {{ productKeysTotalPages }}
           </VChip>
           <VSpacer />
           <VBtn
