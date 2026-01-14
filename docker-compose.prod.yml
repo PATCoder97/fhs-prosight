@@ -13,11 +13,36 @@ services:
         limits:
           memory: 1024M
     environment:
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - ALGORITHM=HS256
+      # Database Configuration
+      - POSTGRES_HOST=tp75-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=tp75user
+      - POSTGRES_PASSWORD=tp75pass
+      - POSTGRES_DATABASE=tp75db
       - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass@tp75-db:5432/tp75db
+
+      # OAuth - IMPORTANT: Replace with your own credentials
+      - GOOGLE_CLIENT_ID=your_google_client_id_here
+      - GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+      - GITHUB_CLIENT_ID=your_github_client_id_here
+      - GITHUB_CLIENT_SECRET=your_github_client_secret_here
+
+      # JWT
+      - SECRET_KEY=supersecrettuan123456_change_in_production
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - PRE_AUTH_TOKEN_EXPIRE_MINUTES=5
+      - ALGORITHM=HS256
+
+      # PIDKey.com API - IMPORTANT: Replace with your own API key
+      - PIDKEY_API_KEY=your_pidkey_api_key_here
+      - PIDKEY_BASE_URL=https://pidkey.com/ajax/pidms_api
+
+      # FHS HRS Integration
       - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
-      - SECRET_KEY=your_jwt_secret_key_here_change_in_production
+
+      # Frontend & Cookie Settings
+      - FRONTEND_URL=http://localhost:5173
+      - COOKIE_SECURE=false
     hostname: tp75-api
     image: patcoder97/prosight-backend:dev
     labels:
@@ -47,6 +72,9 @@ services:
       resources:
         limits:
           memory: 512M
+    environment:
+      # API Base URL for backend endpoints
+      - VITE_API_BASE_URL=http://localhost:8001/api
     hostname: tp75-web
     image: patcoder97/prosight-frontend:dev
     labels:
