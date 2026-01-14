@@ -15,6 +15,12 @@ const searchLoading = ref(false)
 const importLoading = ref(false)
 const syncLoading = ref(false)
 
+// Products table state
+const productsSearch = ref('')
+const productsPage = ref(1)
+const productsPageSize = ref(10)
+const productsSortBy = ref([{ key: 'total_remaining', order: 'desc' }])
+
 // Dialogs
 const importDialog = ref(false)
 const syncDialog = ref(false)
@@ -225,6 +231,32 @@ const handlePageChange = (page) => {
   searchKeys(false)
 }
 
+// Filtered products for table
+const filteredProducts = computed(() => {
+  if (!productsSearch.value) return products.value
+
+  const search = productsSearch.value.toLowerCase()
+  return products.value.filter(p =>
+    p.prd.toLowerCase().includes(search)
+  )
+})
+
+// Products table headers
+const productsHeaders = [
+  { title: 'Product', key: 'prd', align: 'start', sortable: true },
+  { title: 'Keys', key: 'key_count', align: 'center', sortable: true },
+  { title: 'Total Remaining', key: 'total_remaining', align: 'center', sortable: true },
+  { title: 'Avg Remaining', key: 'avg_remaining', align: 'center', sortable: true },
+  { title: 'Status', key: 'low_inventory', align: 'center', sortable: true },
+]
+
+// Get inventory status
+const getInventoryStatus = (product) => {
+  if (product.total_remaining === 0) return { text: 'Out of Stock', color: 'error' }
+  if (product.low_inventory) return { text: 'Low Stock', color: 'warning' }
+  return { text: 'In Stock', color: 'success' }
+}
+
 // Reset search
 const resetSearch = () => {
   searchProduct.value = ''
@@ -307,100 +339,232 @@ const resetSearch = () => {
     </VCard>
 
     <!-- Products Statistics -->
-    <VRow class="mb-6">
-      <VCol cols="12">
-        <VCard>
-          <VCardTitle>
-            <VIcon
-              icon="tabler-chart-bar"
-              class="me-2"
-            />
-            Thống Kê Sản Phẩm
-          </VCardTitle>
-          <VDivider />
-          <VCardText>
-            <!-- Loading State -->
-            <div
-              v-if="loading"
-              class="text-center py-8"
+    <VCard class="mb-6">
+      <VCardTitle class="d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-chart-bar"
+            size="24"
+          />
+          <span>Thống Kê Sản Phẩm</span>
+        </div>
+        <VChip
+          v-if="products.length > 0"
+          color="primary"
+          variant="tonal"
+        >
+          {{ products.length }} products
+        </VChip>
+      </VCardTitle>
+      <VDivider />
+      <VCardText>
+        <!-- Loading State -->
+        <div
+          v-if="loading"
+          class="text-center py-8"
+        >
+          <VProgressCircular
+            indeterminate
+            color="primary"
+            size="64"
+          />
+          <p class="mt-4">
+            Đang tải thống kê...
+          </p>
+        </div>
+
+        <!-- Products Table -->
+        <div v-else-if="products.length > 0">
+          <!-- Summary Cards -->
+          <VRow class="mb-4">
+            <VCol
+              cols="12"
+              sm="6"
+              md="3"
             >
-              <VProgressCircular
-                indeterminate
+              <VCard
                 color="primary"
-                size="64"
-              />
-              <p class="mt-4">
-                Đang tải thống kê...
-              </p>
-            </div>
-
-            <!-- Products Grid -->
-            <VRow v-else-if="products.length > 0">
-              <VCol
-                v-for="product in products"
-                :key="product.prd"
-                cols="12"
-                md="6"
-                lg="4"
+                variant="tonal"
               >
-                <VCard
-                  variant="outlined"
-                  :color="product.low_inventory ? 'warning' : 'default'"
-                >
-                  <VCardText>
-                    <div class="d-flex align-center justify-space-between mb-3">
-                      <VIcon
-                        :icon="product.low_inventory ? 'tabler-alert-triangle' : 'tabler-key'"
-                        :color="product.low_inventory ? 'warning' : 'success'"
-                        size="32"
-                      />
-                      <VChip
-                        v-if="product.low_inventory"
-                        color="warning"
-                        size="small"
-                      >
-                        Low Inventory
-                      </VChip>
+                <VCardText>
+                  <div class="d-flex align-center gap-3">
+                    <VIcon
+                      icon="tabler-key"
+                      size="32"
+                    />
+                    <div>
+                      <div class="text-caption text-medium-emphasis">
+                        Total Products
+                      </div>
+                      <div class="text-h5 font-weight-bold">
+                        {{ products.length }}
+                      </div>
                     </div>
-                    <h6 class="text-h6 mb-2">
-                      {{ product.prd }}
-                    </h6>
-                    <VDivider class="my-3" />
-                    <div class="d-flex justify-space-between mb-2">
-                      <span class="text-body-2">Keys:</span>
-                      <strong>{{ product.key_count }}</strong>
-                    </div>
-                    <div class="d-flex justify-space-between mb-2">
-                      <span class="text-body-2">Total Remaining:</span>
-                      <strong class="text-success">{{ product.total_remaining.toLocaleString() }}</strong>
-                    </div>
-                    <div class="d-flex justify-space-between">
-                      <span class="text-body-2">Avg Remaining:</span>
-                      <strong>{{ product.avg_remaining.toFixed(1) }}</strong>
-                    </div>
-                  </VCardText>
-                </VCard>
-              </VCol>
-            </VRow>
-
-            <!-- Empty State -->
-            <div
-              v-else
-              class="text-center py-8"
+                  </div>
+                </VCardText>
+              </VCard>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="6"
+              md="3"
             >
-              <VIcon
-                icon="tabler-database-off"
-                size="64"
-                color="disabled"
-              />
-              <p class="mt-4 text-disabled">
-                Chưa có product keys nào
-              </p>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
+              <VCard
+                color="success"
+                variant="tonal"
+              >
+                <VCardText>
+                  <div class="d-flex align-center gap-3">
+                    <VIcon
+                      icon="tabler-checks"
+                      size="32"
+                    />
+                    <div>
+                      <div class="text-caption text-medium-emphasis">
+                        Total Keys
+                      </div>
+                      <div class="text-h5 font-weight-bold">
+                        {{ products.reduce((sum, p) => sum + p.key_count, 0) }}
+                      </div>
+                    </div>
+                  </div>
+                </VCardText>
+              </VCard>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <VCard
+                color="info"
+                variant="tonal"
+              >
+                <VCardText>
+                  <div class="d-flex align-center gap-3">
+                    <VIcon
+                      icon="tabler-stack"
+                      size="32"
+                    />
+                    <div>
+                      <div class="text-caption text-medium-emphasis">
+                        Total Remaining
+                      </div>
+                      <div class="text-h5 font-weight-bold">
+                        {{ products.reduce((sum, p) => sum + p.total_remaining, 0).toLocaleString() }}
+                      </div>
+                    </div>
+                  </div>
+                </VCardText>
+              </VCard>
+            </VCol>
+            <VCol
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <VCard
+                color="warning"
+                variant="tonal"
+              >
+                <VCardText>
+                  <div class="d-flex align-center gap-3">
+                    <VIcon
+                      icon="tabler-alert-triangle"
+                      size="32"
+                    />
+                    <div>
+                      <div class="text-caption text-medium-emphasis">
+                        Low Stock
+                      </div>
+                      <div class="text-h5 font-weight-bold">
+                        {{ products.filter(p => p.low_inventory).length }}
+                      </div>
+                    </div>
+                  </div>
+                </VCardText>
+              </VCard>
+            </VCol>
+          </VRow>
+
+          <!-- Search -->
+          <VTextField
+            v-model="productsSearch"
+            placeholder="Tìm kiếm product..."
+            prepend-inner-icon="tabler-search"
+            variant="outlined"
+            clearable
+            hide-details
+            class="mb-4"
+          />
+
+          <!-- Data Table -->
+          <VDataTable
+            :headers="productsHeaders"
+            :items="filteredProducts"
+            :sort-by="productsSortBy"
+            :items-per-page="productsPageSize"
+            :page="productsPage"
+            @update:page="productsPage = $event"
+            @update:sort-by="productsSortBy = $event"
+          >
+            <template #item.prd="{ item }">
+              <div class="text-body-2 font-weight-medium">
+                {{ item.prd }}
+              </div>
+            </template>
+
+            <template #item.key_count="{ item }">
+              <VChip
+                size="small"
+                variant="tonal"
+                color="primary"
+              >
+                {{ item.key_count }}
+              </VChip>
+            </template>
+
+            <template #item.total_remaining="{ item }">
+              <VChip
+                size="small"
+                variant="tonal"
+                :color="item.total_remaining === 0 ? 'error' : item.total_remaining < 100 ? 'warning' : 'success'"
+              >
+                {{ item.total_remaining.toLocaleString() }}
+              </VChip>
+            </template>
+
+            <template #item.avg_remaining="{ item }">
+              <span class="text-body-2">{{ item.avg_remaining.toFixed(1) }}</span>
+            </template>
+
+            <template #item.low_inventory="{ item }">
+              <VChip
+                size="small"
+                :color="getInventoryStatus(item).color"
+              >
+                {{ getInventoryStatus(item).text }}
+              </VChip>
+            </template>
+          </VDataTable>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          v-else
+          class="text-center py-8"
+        >
+          <VIcon
+            icon="tabler-database-off"
+            size="64"
+            color="disabled"
+          />
+          <p class="mt-4 text-disabled">
+            Chưa có product keys nào
+          </p>
+        </div>
+      </VCardText>
+    </VCard>
 
     <!-- Search Section -->
     <VCard>
