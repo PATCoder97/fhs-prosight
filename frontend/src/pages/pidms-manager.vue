@@ -591,6 +591,7 @@ const resetSearch = () => {
               prepend-inner-icon="tabler-package"
               clearable
               hide-details
+              @keyup.enter="searchKeys(true)"
             />
           </VCol>
           <VCol
@@ -605,6 +606,7 @@ const resetSearch = () => {
               type="number"
               clearable
               hide-details
+              @keyup.enter="searchKeys(true)"
             />
           </VCol>
           <VCol
@@ -619,6 +621,7 @@ const resetSearch = () => {
               type="number"
               clearable
               hide-details
+              @keyup.enter="searchKeys(true)"
             />
           </VCol>
           <VCol
@@ -636,11 +639,12 @@ const resetSearch = () => {
           <VCol
             cols="12"
             md="3"
-            class="d-flex align-end gap-2"
+            class="d-flex align-end justify-end"
           >
             <VBtn
               color="primary"
               :block="$vuetify.display.smAndDown"
+              :width="$vuetify.display.mdAndUp ? 140 : undefined"
               :loading="searchLoading"
               @click="searchKeys(true)"
             >
@@ -649,18 +653,6 @@ const resetSearch = () => {
                 icon="tabler-search"
               />
               Tìm Kiếm
-            </VBtn>
-            <VBtn
-              color="secondary"
-              variant="outlined"
-              :block="$vuetify.display.smAndDown"
-              @click="resetSearch"
-            >
-              <VIcon
-                start
-                icon="tabler-x"
-              />
-              Reset
             </VBtn>
           </VCol>
         </VRow>
