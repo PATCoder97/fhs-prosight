@@ -109,7 +109,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
             <VRow>
               <VCol
                 cols="12"
-                md="4"
+                md="3"
               >
                 <VTextField
                   v-model="employeeId"
@@ -146,12 +146,13 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
                   variant="outlined"
                   prepend-inner-icon="tabler-key"
                   type="password"
+                  clearable
                   @keyup.enter="syncEmployee"
                 />
               </VCol>
               <VCol
                 cols="12"
-                md="2"
+                md="3"
                 class="d-flex align-end justify-end"
               >
                 <VBtn
