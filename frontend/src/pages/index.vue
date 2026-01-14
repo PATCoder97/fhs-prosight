@@ -138,7 +138,7 @@ const loadDashboardData = async () => {
 
     // Load dormitory bills for current employee (latest term)
     const dormitoryBillsPromise = $api(
-      `/dormitory-bills/search?employee_id=${currentUser.value.localId}&page=1&page_size=3`
+      `/dormitory-bills/search?employee_id=${currentUser.value.localId}&page=1&page_size=10`
     ).catch(() => null)
 
     // Wait for all requests
@@ -850,81 +850,123 @@ onMounted(() => {
                 />
                 <span>Hóa Đơn KTX</span>
               </div>
+              <VBtn
+                size="small"
+                variant="tonal"
+                color="primary"
+                @click="navigateTo('dormitory-bills')"
+              >
+                Xem Tất Cả
+                <VIcon
+                  end
+                  icon="tabler-arrow-right"
+                />
+              </VBtn>
             </VCardTitle>
             <VDivider />
             <VCardText>
               <div v-if="dashboardData.dormitoryBills?.results?.length">
-                <div
-                  v-for="bill in dashboardData.dormitoryBills.results"
-                  :key="bill.bill_id"
-                  class="mb-4 pb-3 border-b"
-                >
-                  <div class="d-flex align-center justify-space-between mb-2">
-                    <VChip
-                      color="info"
-                      variant="tonal"
-                      size="small"
+                <VTable>
+                  <thead>
+                    <tr>
+                      <th>Kỳ</th>
+                      <th>Phòng</th>
+                      <th class="text-end">
+                        Điện
+                      </th>
+                      <th class="text-end">
+                        Nước
+                      </th>
+                      <th class="text-end">
+                        Tổng
+                      </th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="bill in dashboardData.dormitoryBills.results"
+                      :key="bill.bill_id"
                     >
-                      {{ bill.term_code }}
-                    </VChip>
-                    <span class="text-caption text-medium-emphasis">{{ bill.dorm_code }}</span>
-                  </div>
-                  <div class="d-flex align-center justify-space-between text-caption mb-1">
-                    <span class="text-medium-emphasis">Điện:</span>
-                    <span>{{ formatCurrency(bill.elec_amount) }}</span>
-                  </div>
-                  <div class="d-flex align-center justify-space-between text-caption mb-1">
-                    <span class="text-medium-emphasis">Nước:</span>
-                    <span>{{ formatCurrency(bill.water_amount) }}</span>
-                  </div>
-                  <div class="d-flex align-center justify-space-between text-caption mb-2">
-                    <span class="text-medium-emphasis">Phí khác:</span>
-                    <span>{{ formatCurrency(bill.shared_fee + bill.management_fee) }}</span>
-                  </div>
-                  <VDivider class="my-2" />
-                  <div class="d-flex align-center justify-space-between">
-                    <span class="text-body-2 font-weight-bold">Tổng:</span>
-                    <VChip
-                      color="success"
-                      variant="tonal"
-                      size="small"
-                    >
-                      {{ formatCurrency(bill.total_amount) }}
-                    </VChip>
-                  </div>
-                </div>
+                      <td>
+                        <VChip
+                          color="info"
+                          variant="tonal"
+                          size="small"
+                        >
+                          {{ bill.term_code }}
+                        </VChip>
+                      </td>
+                      <td>
+                        <div class="text-body-2">
+                          {{ bill.dorm_code }}
+                        </div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ bill.factory_location }}
+                        </div>
+                      </td>
+                      <td class="text-end">
+                        <div class="text-body-2">
+                          {{ formatCurrency(bill.elec_amount) }}
+                        </div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ bill.elec_usage?.toFixed(1) }} kWh
+                        </div>
+                      </td>
+                      <td class="text-end">
+                        <div class="text-body-2">
+                          {{ formatCurrency(bill.water_amount) }}
+                        </div>
+                        <div class="text-caption text-medium-emphasis">
+                          {{ bill.water_usage?.toFixed(1) }} m³
+                        </div>
+                      </td>
+                      <td class="text-end">
+                        <VChip
+                          color="success"
+                          variant="tonal"
+                          size="small"
+                        >
+                          {{ formatCurrency(bill.total_amount) }}
+                        </VChip>
+                      </td>
+                      <td class="text-center">
+                        <VBtn
+                          icon
+                          variant="text"
+                          size="small"
+                          @click="navigateTo('dormitory-bills')"
+                        >
+                          <VIcon icon="tabler-eye" />
+                        </VBtn>
+                      </td>
+                    </tr>
+                  </tbody>
+                </VTable>
+              </div>
+              <div
+                v-else
+                class="text-center py-12"
+              >
+                <VIcon
+                  icon="tabler-home-off"
+                  size="64"
+                  color="grey-lighten-1"
+                  class="mb-3"
+                />
+                <p class="text-body-1 text-medium-emphasis">
+                  Chưa có dữ liệu hóa đơn KTX
+                </p>
                 <VBtn
-                  block
                   variant="tonal"
                   color="primary"
                   class="mt-2"
                   @click="navigateTo('dormitory-bills')"
                 >
-                  Xem Tất Cả
                   <VIcon
-                    end
-                    icon="tabler-arrow-right"
+                    start
+                    icon="tabler-search"
                   />
-                </VBtn>
-              </div>
-              <div
-                v-else
-                class="text-center py-8"
-              >
-                <VIcon
-                  icon="tabler-home-off"
-                  size="48"
-                  color="grey-lighten-1"
-                  class="mb-2"
-                />
-                <p class="text-body-2 text-medium-emphasis mb-3">
-                  Không có hóa đơn KTX
-                </p>
-                <VBtn
-                  variant="tonal"
-                  size="small"
-                  @click="navigateTo('dormitory-bills')"
-                >
                   Tra Cứu Hóa Đơn
                 </VBtn>
               </div>
