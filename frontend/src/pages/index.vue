@@ -189,6 +189,12 @@ const latestEvaluation = computed(() => {
   return dashboardData.value.evaluations.results[0]
 })
 
+// Get latest dormitory bill
+const latestDormitoryBill = computed(() => {
+  if (!dashboardData.value.dormitoryBills?.results?.length) return null
+  return dashboardData.value.dormitoryBills.results[0]
+})
+
 // Load data on mount
 onMounted(() => {
   loadDashboardData()
@@ -283,7 +289,9 @@ onMounted(() => {
         <!-- Current Salary Card -->
         <VCol
           cols="12"
-          md="3"
+          sm="6"
+          md="4"
+          lg="2-4"
         >
           <VCard
             class="stat-card"
@@ -333,7 +341,9 @@ onMounted(() => {
         <!-- Latest Achievement Card -->
         <VCol
           cols="12"
-          md="3"
+          sm="6"
+          md="4"
+          lg="2-4"
         >
           <VCard
             class="stat-card"
@@ -389,7 +399,9 @@ onMounted(() => {
         <!-- Year Bonus Card -->
         <VCol
           cols="12"
-          md="3"
+          sm="6"
+          md="4"
+          lg="2-4"
         >
           <VCard
             class="stat-card"
@@ -439,7 +451,9 @@ onMounted(() => {
         <!-- Latest Evaluation Card -->
         <VCol
           cols="12"
-          md="3"
+          sm="6"
+          md="4"
+          lg="2-4"
         >
           <VCard
             class="stat-card"
@@ -481,6 +495,65 @@ onMounted(() => {
                   {{ latestEvaluation.mgr_evaluation?.final?.score || 'N/A' }}
                 </VChip>
                 <span class="text-caption">Kỳ {{ latestEvaluation.term_code }}</span>
+              </div>
+              <p
+                v-else
+                class="text-body-2 mb-0"
+              >
+                Chưa có dữ liệu
+              </p>
+            </VCardText>
+          </VCard>
+        </VCol>
+
+        <!-- Latest Dormitory Bill Card -->
+        <VCol
+          cols="12"
+          sm="6"
+          md="4"
+          lg="2-4"
+        >
+          <VCard
+            class="stat-card"
+            color="secondary"
+            variant="tonal"
+          >
+            <VCardText>
+              <div class="d-flex align-center justify-space-between mb-3">
+                <VAvatar
+                  color="secondary"
+                  size="48"
+                  variant="tonal"
+                >
+                  <VIcon
+                    icon="tabler-home-dollar"
+                    size="24"
+                  />
+                </VAvatar>
+                <VBtn
+                  icon
+                  variant="text"
+                  size="small"
+                  @click="navigateTo('dormitory-bills')"
+                >
+                  <VIcon icon="tabler-arrow-right" />
+                </VBtn>
+              </div>
+              <p class="text-caption mb-1">
+                Hóa Đơn KTX Gần Nhất
+              </p>
+              <div
+                v-if="latestDormitoryBill"
+                class="d-flex align-center gap-2"
+              >
+                <VChip
+                  color="success"
+                  size="small"
+                  variant="tonal"
+                >
+                  {{ formatCurrency(latestDormitoryBill.total_amount) }}
+                </VChip>
+                <span class="text-caption">{{ latestDormitoryBill.term_code }}</span>
               </div>
               <p
                 v-else
@@ -881,5 +954,13 @@ onMounted(() => {
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Custom 5-column layout for large screens */
+@media (min-width: 1280px) {
+  .v-col-lg-2-4 {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
 }
 </style>
