@@ -43,6 +43,7 @@ services:
       # Frontend & Cookie Settings
       - FRONTEND_URL=http://localhost:5173
       - COOKIE_SECURE=false
+      - COOKIE_DOMAIN=  # Set to ".yourdomain.com" for subdomain sharing (e.g., ".tphomelab.io.vn")
     hostname: tp75-api
     image: patcoder97/prosight-backend:dev
     labels:

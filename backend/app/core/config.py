@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     # Frontend & Cookie Settings
     FRONTEND_URL: str = "/"
     COOKIE_SECURE: bool = True
+    COOKIE_DOMAIN: str = ""  # e.g., ".tphomelab.io.vn" for subdomain sharing
 
     # Logging
     LOG_LEVEL: str = "INFO"

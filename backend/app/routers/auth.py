@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from typing import Optional
 from app.services.auth_service import get_google_auth_url, handle_google_callback, handle_github_callback, get_github_auth_url, get_current_user
 from app.schemas.auth import SocialLoginUser
+from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,12 +43,18 @@ async def logout(response: Response):
     """Logout user by clearing HttpOnly cookie"""
     response = JSONResponse(content={"message": "Logged out successfully"})
 
-    # Clear the access_token cookie
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        httponly=True,
-        samesite="lax"
-    )
+    # Clear the access_token cookie with same settings used when setting it
+    delete_config = {
+        "key": "access_token",
+        "path": "/",
+        "httponly": True,
+        "samesite": "lax"
+    }
+
+    # Add domain if configured (must match the domain used when setting cookie)
+    if settings.COOKIE_DOMAIN:
+        delete_config["domain"] = settings.COOKIE_DOMAIN
+
+    response.delete_cookie(**delete_config)
 
     return response

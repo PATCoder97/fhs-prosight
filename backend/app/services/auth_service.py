@@ -131,14 +131,23 @@ async def handle_google_callback(request) -> RedirectResponse:
     # Redirect to auth-callback page instead of home
     response = RedirectResponse(url=f"{settings.FRONTEND_URL}/auth-callback")
 
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=settings.COOKIE_SECURE,
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
-    )
+    # Set cookie configuration
+    cookie_config = {
+        "key": "access_token",
+        "value": access_token,
+        "httponly": True,
+        "secure": settings.COOKIE_SECURE,
+        "samesite": "lax",
+        "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+    }
+
+    # Add domain if configured (for subdomain sharing)
+    # e.g., domain=".tphomelab.io.vn" allows cookies to work on both
+    # api.tphomelab.io.vn and tphomelab.io.vn
+    if settings.COOKIE_DOMAIN:
+        cookie_config["domain"] = settings.COOKIE_DOMAIN
+
+    response.set_cookie(**cookie_config)
 
     return response
 
@@ -174,14 +183,23 @@ async def handle_github_callback(request) -> RedirectResponse:
     # Redirect to auth-callback page instead of home
     response = RedirectResponse(url=f"{settings.FRONTEND_URL}/auth-callback")
 
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=settings.COOKIE_SECURE,
-        samesite="lax",
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
-    )
+    # Set cookie configuration
+    cookie_config = {
+        "key": "access_token",
+        "value": access_token,
+        "httponly": True,
+        "secure": settings.COOKIE_SECURE,
+        "samesite": "lax",
+        "max_age": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+    }
+
+    # Add domain if configured (for subdomain sharing)
+    # e.g., domain=".tphomelab.io.vn" allows cookies to work on both
+    # api.tphomelab.io.vn and tphomelab.io.vn
+    if settings.COOKIE_DOMAIN:
+        cookie_config["domain"] = settings.COOKIE_DOMAIN
+
+    response.set_cookie(**cookie_config)
 
     return response
 
