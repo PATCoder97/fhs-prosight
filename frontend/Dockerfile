@@ -11,11 +11,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Cài đặt dependencies
-RUN npm install --legacy-peer-deps
+# Cài đặt dependencies (ignore postinstall script vì source code chưa có)
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 # Copy source code
 COPY . .
+
+# Chạy postinstall scripts sau khi đã có source code
+RUN npm run build:icons && npm run msw:init
 
 # Build production
 RUN npm run build

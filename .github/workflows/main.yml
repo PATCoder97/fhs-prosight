@@ -48,7 +48,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: patcoder97/fhs-backend
+          images: patcoder97/prosight-backend
           tags: |
             # 1. Nếu là Tag (v1.0) -> Lấy đúng tên v1.0
             type=ref,event=tag
@@ -80,8 +80,8 @@ jobs:
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
-          cache-from: type=registry,ref=patcoder97/fhs-backend:buildcache
-          cache-to: type=registry,ref=patcoder97/fhs-backend:buildcache,mode=max
+          cache-from: type=registry,ref=patcoder97/prosight-backend:buildcache
+          cache-to: type=registry,ref=patcoder97/prosight-backend:buildcache,mode=max
 
   build-frontend:
     name: Build Frontend Image
@@ -109,7 +109,7 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: patcoder97/fhs-frontend
+          images: patcoder97/prosight-frontend
           tags: |
             # 1. Nếu là Tag (v1.0) -> Lấy đúng tên v1.0
             type=ref,event=tag
@@ -141,5 +141,5 @@ jobs:
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
-          cache-from: type=registry,ref=patcoder97/fhs-frontend:buildcache
-          cache-to: type=registry,ref=patcoder97/fhs-frontend:buildcache,mode=max
+          cache-from: type=registry,ref=patcoder97/prosight-frontend:buildcache
+          cache-to: type=registry,ref=patcoder97/prosight-frontend:buildcache,mode=max

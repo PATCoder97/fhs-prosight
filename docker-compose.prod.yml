@@ -1,107 +1,92 @@
-version: '3.8'
-
-# ============================================================================
-# Production Docker Compose - Using Pre-built Images from Docker Hub
-# ============================================================================
-# Images:
-#   - Backend: patcoder97/fhs-backend:latest
-#   - Frontend: patcoder97/fhs-frontend:latest
-#
-# Usage:
-#   docker-compose -f docker-compose.prod.yml pull
-#   docker-compose -f docker-compose.prod.yml up -d
-# ============================================================================
-
+name: tp75-fhs
 services:
-  # Backend Service
-  backend:
-    image: patcoder97/fhs-backend:latest
-    container_name: fhs-backend-prod
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      # Database
-      - DATABASE_URL=${DATABASE_URL}
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-
-      # Firebase
-      - FIREBASE_SERVICE_ACCOUNT_PATH=${FIREBASE_SERVICE_ACCOUNT_PATH}
-      - FIREBASE_API_KEY=${FIREBASE_API_KEY}
-
-      # API Keys
-      - PIDKEY_API_KEY=${PIDKEY_API_KEY}
-
-      # App Settings
-      - SECRET_KEY=${SECRET_KEY}
-      - ENVIRONMENT=${ENVIRONMENT:-production}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:80}
-    volumes:
-      - ./logs:/app/logs
-      - ./firebase_credentials.json:/app/firebase_credentials.json:ro
-    networks:
-      - fhs-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Frontend Service
-  frontend:
-    image: patcoder97/fhs-frontend:latest
-    container_name: fhs-frontend-prod
-    restart: unless-stopped
-    ports:
-      - "80:80"
+  tp75-api:
+    cpu_shares: 90
+    command: []
+    container_name: tp75-api
     depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - fhs-network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
+      tp75-db:
+        condition: service_started
+        required: true
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
+          memory: 1024M
+    environment:
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - ALGORITHM=HS256
+      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass@tp75-db:5432/tp75db
+      - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
+      - SECRET_KEY=your_jwt_secret_key_here
+    hostname: tp75-api
+    image: patcoder97/prosight-backend:dev
+    labels:
+      icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8097"
+        protocol: tcp
+    restart: unless-stopped
+    volumes: []
+    devices: []
+    cap_add: []
+    networks:
+      - tp75_fhs_network
+    privileged: false
+  tp75-db:
+    cpu_shares: 90
+    command: []
+    container_name: tp75-db
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    environment:
+      - POSTGRES_DB=tp75db
+      - POSTGRES_PASSWORD=tp75pass
+      - POSTGRES_USER=tp75user
+    hostname: tp75-db
+    image: postgres:16-alpine
+    labels:
+      icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /DATA/AppData/tp75-fhs/pgdata
+        target: /var/lib/postgresql/data
+        bind:
+          create_host_path: true
+    ports: []
+    devices: []
+    cap_add: []
+    networks:
+      - tp75_fhs_network
+    privileged: false
 networks:
-  fhs-network:
+  tp75_fhs_network:
+    name: tp75-fhs_network
     driver: bridge
-
-# Optional: Add volume for logs persistence
-volumes:
-  logs:
-    driver: local
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  author: PATCoder97
+  category: CasaOS-App
+  description:
+    en_us: TP75 FHS API + Postgres database.
+  developer: ""
+  hostname: ""
+  icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
+  index: /
+  is_uncontrolled: false
+  main: tp75-api
+  port_map: "8097"
+  scheme: http
+  store_app_id: tp75-fhs
+  tagline:
+    en_us: TP75 FHS Service
+  thumbnail: ""
+  title:
+    custom: tp75 fhs
+    en_us: TP75 FHS
