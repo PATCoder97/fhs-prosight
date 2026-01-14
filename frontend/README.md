@@ -33,3 +33,9 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Lint with ESLint
+
+```sh
+npm run lint
+```
