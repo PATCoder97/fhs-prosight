@@ -144,7 +144,8 @@ async def handle_google_callback(request) -> RedirectResponse:
     # Add domain if configured (for subdomain sharing)
     # e.g., domain=".tphomelab.io.vn" allows cookies to work on both
     # api.tphomelab.io.vn and tphomelab.io.vn
-    if settings.COOKIE_DOMAIN:
+    # Only add domain parameter if it's not empty
+    if settings.COOKIE_DOMAIN and settings.COOKIE_DOMAIN.strip():
         cookie_config["domain"] = settings.COOKIE_DOMAIN
 
     response.set_cookie(**cookie_config)
@@ -196,7 +197,8 @@ async def handle_github_callback(request) -> RedirectResponse:
     # Add domain if configured (for subdomain sharing)
     # e.g., domain=".tphomelab.io.vn" allows cookies to work on both
     # api.tphomelab.io.vn and tphomelab.io.vn
-    if settings.COOKIE_DOMAIN:
+    # Only add domain parameter if it's not empty
+    if settings.COOKIE_DOMAIN and settings.COOKIE_DOMAIN.strip():
         cookie_config["domain"] = settings.COOKIE_DOMAIN
 
     response.set_cookie(**cookie_config)

@@ -52,7 +52,8 @@ async def logout(response: Response):
     }
 
     # Add domain if configured (must match the domain used when setting cookie)
-    if settings.COOKIE_DOMAIN:
+    # Only add domain parameter if it's not empty
+    if settings.COOKIE_DOMAIN and settings.COOKIE_DOMAIN.strip():
         delete_config["domain"] = settings.COOKIE_DOMAIN
 
     response.delete_cookie(**delete_config)
