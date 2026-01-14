@@ -18,8 +18,24 @@ class GitHubAuthClient:
     def __init__(self):
         self.client = oauth.github
 
+    def _get_redirect_uri(self, request):
+        """
+        Generate correct redirect URI with proper scheme (http/https).
+        Handles reverse proxy scenarios (Cloudflare, nginx, etc.)
+        """
+        # Get base redirect URI from FastAPI
+        redirect_uri = str(request.url_for("github_callback"))
+
+        # Check if behind reverse proxy with HTTPS
+        # Cloudflare and most reverse proxies set X-Forwarded-Proto header
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        if forwarded_proto == "https":
+            redirect_uri = redirect_uri.replace("http://", "https://")
+
+        return redirect_uri
+
     async def get_authorization_url(self, request):
-        redirect_uri = request.url_for("github_callback")
+        redirect_uri = self._get_redirect_uri(request)
         return await self.client.authorize_redirect(request, redirect_uri)
 
     async def get_user_info(self, request):
