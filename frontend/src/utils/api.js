@@ -7,4 +7,13 @@ export const $api = ofetch.create({
     // HttpOnly cookies are automatically sent with credentials: 'include'
     // No need to manually add Authorization header
   },
+  async onResponseError({ response }) {
+    // Extract detail message from error response
+    const errorMessage = response._data?.detail || response.statusText || 'An error occurred'
+
+    // Throw a clean error with just the message
+    const error = new Error(errorMessage)
+    error.statusCode = response.status
+    throw error
+  },
 })
