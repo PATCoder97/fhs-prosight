@@ -3,7 +3,7 @@
     <span class="d-flex align-center text-medium-emphasis">
       &copy;
       {{ new Date().getFullYear() }}
-      Made With By TP75
+      Made By TP75
     </span>
   </div>
 </template>
