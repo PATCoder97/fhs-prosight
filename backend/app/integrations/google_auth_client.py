@@ -1,5 +1,8 @@
 from authlib.integrations.starlette_client import OAuth
 from app.core.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 oauth = OAuth()
 
@@ -24,11 +27,20 @@ class GoogleAuthClient:
         # Get base redirect URI from FastAPI
         redirect_uri = str(request.url_for("google_callback"))
 
+        # Debug logging
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        logger.info(f"OAuth redirect_uri generation:")
+        logger.info(f"  Base URI: {redirect_uri}")
+        logger.info(f"  X-Forwarded-Proto: {forwarded_proto}")
+        logger.info(f"  All headers: {dict(request.headers)}")
+
         # Check if behind reverse proxy with HTTPS
         # Cloudflare and most reverse proxies set X-Forwarded-Proto header
-        forwarded_proto = request.headers.get("x-forwarded-proto")
         if forwarded_proto == "https":
             redirect_uri = redirect_uri.replace("http://", "https://")
+            logger.info(f"  ✓ Converted to HTTPS: {redirect_uri}")
+        else:
+            logger.warning(f"  ⚠ X-Forwarded-Proto not 'https', keeping original scheme")
 
         return redirect_uri
 
