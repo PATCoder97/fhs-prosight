@@ -221,6 +221,18 @@ const closeKeyDetails = () => {
   selectedKey.value = null
 }
 
+// Copy key to clipboard
+const copyKeyToClipboard = async (key) => {
+  try {
+    await navigator.clipboard.writeText(key.keyname_with_dash)
+    showToast('Đã copy key vào clipboard!', 'success')
+  }
+  catch (error) {
+    console.error('Failed to copy key:', error)
+    showToast('Không thể copy key!', 'error')
+  }
+}
+
 // Get status color
 const getStatusColor = (remaining) => {
   if (remaining === 0) return 'error'
@@ -861,9 +873,24 @@ const closeProductKeysDialog = () => {
                     icon
                     variant="text"
                     size="small"
+                    color="success"
+                    @click="copyKeyToClipboard(key)"
+                  >
+                    <VIcon icon="tabler-copy" />
+                    <VTooltip activator="parent">
+                      Copy key
+                    </VTooltip>
+                  </VBtn>
+                  <VBtn
+                    icon
+                    variant="text"
+                    size="small"
                     @click="showKeyDetails(key)"
                   >
                     <VIcon icon="tabler-eye" />
+                    <VTooltip activator="parent">
+                      Xem chi tiết
+                    </VTooltip>
                   </VBtn>
                 </td>
               </tr>
@@ -1252,9 +1279,24 @@ const closeProductKeysDialog = () => {
                     icon
                     variant="text"
                     size="small"
+                    color="success"
+                    @click="copyKeyToClipboard(key)"
+                  >
+                    <VIcon icon="tabler-copy" />
+                    <VTooltip activator="parent">
+                      Copy key
+                    </VTooltip>
+                  </VBtn>
+                  <VBtn
+                    icon
+                    variant="text"
+                    size="small"
                     @click="showKeyDetails(key)"
                   >
                     <VIcon icon="tabler-eye" />
+                    <VTooltip activator="parent">
+                      Xem chi tiết
+                    </VTooltip>
                   </VBtn>
                 </td>
               </tr>
