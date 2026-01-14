@@ -4,8 +4,16 @@ import { isEmpty, isEmptyArray, isNullOrUndefined } from './helpers'
 export const requiredValidator = value => {
   if (isNullOrUndefined(value) || isEmptyArray(value) || value === false)
     return 'This field is required'
-  
+
   return !!String(value).trim().length || 'This field is required'
+}
+
+// 👉 Silent Required Validator (only shows red border, no error message)
+export const silentRequiredValidator = value => {
+  if (isNullOrUndefined(value) || isEmptyArray(value) || value === false)
+    return false
+
+  return !!String(value).trim().length || false
 }
 
 // 👉 Email Validator

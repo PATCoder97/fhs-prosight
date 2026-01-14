@@ -8,6 +8,9 @@ const employees = ref([])
 const error = ref(null)
 const total = ref(0)
 
+// Form ref
+const formRef = ref()
+
 // Search filters
 const searchName = ref('')
 const searchDepartmentCode = ref('')
@@ -135,20 +138,25 @@ const totalPages = computed(() => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchName"
-                  label="Tên nhân viên"
-                  placeholder="Tìm theo tên (Trung/Anh)"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-user"
-                  clearable
-                  @keyup.enter="searchEmployees(true)"
-                />
+            <VForm
+              ref="formRef"
+              @submit.prevent="searchEmployees(true)"
+            >
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VTextField
+                    v-model="searchName"
+                    label="Tên nhân viên"
+                    placeholder="Tìm theo tên (Trung/Anh)"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-user"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchEmployees(true)"
+                  />
               </VCol>
               <VCol
                 cols="12"
@@ -161,6 +169,7 @@ const totalPages = computed(() => {
                   variant="outlined"
                   prepend-inner-icon="tabler-building"
                   clearable
+                  hide-details
                   @keyup.enter="searchEmployees(true)"
                 />
               </VCol>
@@ -175,6 +184,7 @@ const totalPages = computed(() => {
                   variant="outlined"
                   prepend-inner-icon="tabler-home"
                   clearable
+                  hide-details
                   @keyup.enter="searchEmployees(true)"
                 />
               </VCol>
@@ -198,6 +208,7 @@ const totalPages = computed(() => {
                 </VBtn>
               </VCol>
             </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

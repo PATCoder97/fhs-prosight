@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
+import { silentRequiredValidator } from '@/@core/utils/validators'
 
 // Protect from guest users
 useGuestProtection()
@@ -11,6 +12,9 @@ useGuestProtection()
 const loading = ref(false)
 const billsData = ref(null)
 const error = ref(null)
+
+// Form ref
+const formRef = ref()
 
 // Pagination
 const currentPage = ref(1)
@@ -90,69 +94,74 @@ const handlePageChange = (page) => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchEmployeeId"
-                  label="Mã nhân viên"
-                  placeholder="VD: 14732 hoặc VNW0014732"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-id"
-                  clearable
-                  @keyup.enter="searchBills(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchTermCode"
-                  label="Kỳ hóa đơn"
-                  placeholder="VD: 25A, 251"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-calendar"
-                  clearable
-                  @keyup.enter="searchBills(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchDormCode"
-                  label="Mã phòng KTX"
-                  placeholder="VD: P157, A01"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-home"
-                  clearable
-                  @keyup.enter="searchBills(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-                class="d-flex align-end justify-end"
-              >
-                <VBtn
-                  color="primary"
-                  :block="$vuetify.display.smAndDown"
-                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
-                  :loading="loading"
-                  @click="searchBills(true)"
+            <VForm ref="formRef">
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
                 >
-                  <VIcon
-                    start
-                    icon="tabler-search"
+                  <VTextField
+                    v-model="searchEmployeeId"
+                    label="Mã nhân viên"
+                    placeholder="VD: 14732 hoặc VNW0014732"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-id"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchBills(true)"
                   />
-                  Tra Cứu
-                </VBtn>
-              </VCol>
-            </VRow>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VTextField
+                    v-model="searchTermCode"
+                    label="Kỳ hóa đơn"
+                    placeholder="VD: 25A, 251"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-calendar"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchBills(true)"
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VTextField
+                    v-model="searchDormCode"
+                    label="Mã phòng KTX"
+                    placeholder="VD: P157, A01"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-home"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchBills(true)"
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-end justify-end"
+                >
+                  <VBtn
+                    color="primary"
+                    :block="$vuetify.display.smAndDown"
+                    :width="$vuetify.display.mdAndUp ? 140 : undefined"
+                    :loading="loading"
+                    @click="searchBills(true)"
+                  >
+                    <VIcon
+                      start
+                      icon="tabler-search"
+                    />
+                    Tra Cứu
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

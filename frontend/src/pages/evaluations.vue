@@ -184,69 +184,74 @@ const closeDetail = () => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchEmployeeId"
-                  label="Mã nhân viên"
-                  placeholder="VD: 14732 hoặc VNW0014732"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-id"
-                  clearable
-                  @keyup.enter="searchEvaluations(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchTermCode"
-                  label="Kỳ đánh giá"
-                  placeholder="VD: 25B"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-calendar"
-                  clearable
-                  @keyup.enter="searchEvaluations(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="searchDeptCode"
-                  label="Mã phòng ban"
-                  placeholder="VD: 78"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-building"
-                  clearable
-                  @keyup.enter="searchEvaluations(true)"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-                class="d-flex align-end justify-end"
-              >
-                <VBtn
-                  color="primary"
-                  :block="$vuetify.display.smAndDown"
-                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
-                  :loading="loading"
-                  @click="searchEvaluations(true)"
+            <VForm @submit.prevent="searchEvaluations(true)">
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
                 >
-                  <VIcon
-                    start
-                    icon="tabler-search"
+                  <VTextField
+                    v-model="searchEmployeeId"
+                    label="Mã nhân viên"
+                    placeholder="VD: 14732 hoặc VNW0014732"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-id"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchEvaluations(true)"
                   />
-                  Tra Cứu
-                </VBtn>
-              </VCol>
-            </VRow>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VTextField
+                    v-model="searchTermCode"
+                    label="Kỳ đánh giá"
+                    placeholder="VD: 25B"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-calendar"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchEvaluations(true)"
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VTextField
+                    v-model="searchDeptCode"
+                    label="Mã phòng ban"
+                    placeholder="VD: 78"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-building"
+                    clearable
+                    hide-details
+                    @keyup.enter="searchEvaluations(true)"
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-end justify-end"
+                >
+                  <VBtn
+                    color="primary"
+                    :block="$vuetify.display.smAndDown"
+                    :width="$vuetify.display.mdAndUp ? 140 : undefined"
+                    :loading="loading"
+                    @click="searchEvaluations(true)"
+                  >
+                    <VIcon
+                      start
+                      icon="tabler-search"
+                    />
+                    Tra Cứu
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
+import { silentRequiredValidator } from '@/@core/utils/validators'
 
 // Protect from guest users
 useGuestProtection()
@@ -12,6 +13,9 @@ const loading = ref(false)
 const historyData = ref(null)
 const error = ref(null)
 
+// Form ref
+const formRef = ref()
+
 // Form inputs
 const employeeId = ref('')
 const selectedYear = ref(new Date().getFullYear())
@@ -20,14 +24,9 @@ const toMonth = ref(12)
 
 // Load salary history data
 const loadSalaryHistory = async () => {
-  // Auto-format employee ID before validation
-  const formattedId = formatEmployeeId(employeeId.value)
-
-  // Validate employee ID
-  if (!formattedId || !formattedId.trim()) {
-    error.value = 'Vui lòng nhập Employee ID'
-    return
-  }
+  // Validate form
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
 
   // Validate month range
   if (fromMonth.value > toMonth.value) {
@@ -35,7 +34,8 @@ const loadSalaryHistory = async () => {
     return
   }
 
-  // Update employeeId with formatted value
+  // Auto-format employee ID
+  const formattedId = formatEmployeeId(employeeId.value)
   employeeId.value = formattedId
 
   loading.value = true
@@ -117,79 +117,86 @@ const getTrendIcon = (percentage) => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="employeeId"
-                  label="Employee ID"
-                  placeholder="VD: 14732 hoặc VNW0014732"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-id"
-                  clearable
-                  @keyup.enter="loadSalaryHistory"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VSelect
-                  v-model="selectedYear"
-                  :items="yearOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Năm"
-                  variant="outlined"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="2"
-              >
-                <VSelect
-                  v-model="fromMonth"
-                  :items="monthOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Từ tháng"
-                  variant="outlined"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="2"
-              >
-                <VSelect
-                  v-model="toMonth"
-                  :items="monthOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Đến tháng"
-                  variant="outlined"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="2"
-                class="d-flex align-end justify-end"
-              >
-                <VBtn
-                  color="primary"
-                  :block="$vuetify.display.smAndDown"
-                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
-                  @click="loadSalaryHistory"
+            <VForm ref="formRef">
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
                 >
-                  <VIcon
-                    start
-                    icon="tabler-search"
+                  <VTextField
+                    v-model="employeeId"
+                    label="Employee ID"
+                    placeholder="VD: 14732 hoặc VNW0014732"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-id"
+                    clearable
+                    :rules="[silentRequiredValidator]"
+                    hide-details
+                    @keyup.enter="loadSalaryHistory"
                   />
-                  Tra Cứu
-                </VBtn>
-              </VCol>
-            </VRow>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VSelect
+                    v-model="selectedYear"
+                    :items="yearOptions"
+                    item-title="label"
+                    item-value="value"
+                    label="Năm"
+                    variant="outlined"
+                    hide-details
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="2"
+                >
+                  <VSelect
+                    v-model="fromMonth"
+                    :items="monthOptions"
+                    item-title="label"
+                    item-value="value"
+                    label="Từ tháng"
+                    variant="outlined"
+                    hide-details
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="2"
+                >
+                  <VSelect
+                    v-model="toMonth"
+                    :items="monthOptions"
+                    item-title="label"
+                    item-value="value"
+                    label="Đến tháng"
+                    variant="outlined"
+                    hide-details
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="2"
+                  class="d-flex align-end justify-end"
+                >
+                  <VBtn
+                    color="primary"
+                    :block="$vuetify.display.smAndDown"
+                    :width="$vuetify.display.mdAndUp ? 140 : undefined"
+                    @click="loadSalaryHistory"
+                  >
+                    <VIcon
+                      start
+                      icon="tabler-search"
+                    />
+                    Tra Cứu
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

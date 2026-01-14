@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatEmployeeId, getScoreColor, getScoreLabel, getScoreIcon } from '@/utils/formatters'
+import { silentRequiredValidator } from '@/@core/utils/validators'
 
 // Protect from guest users
 useGuestProtection()
@@ -12,21 +13,20 @@ const loading = ref(false)
 const achievementData = ref(null)
 const error = ref(null)
 
+// Form ref
+const formRef = ref()
+
 // Form input
 const employeeId = ref('')
 
 // Load achievement data
 const loadAchievements = async () => {
-  // Auto-format employee ID before validation
+  // Validate form
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
+
+  // Auto-format employee ID
   const formattedId = formatEmployeeId(employeeId.value)
-
-  // Validate employee ID
-  if (!formattedId || !formattedId.trim()) {
-    error.value = 'Vui lòng nhập Employee ID'
-    return
-  }
-
-  // Update employeeId with formatted value
   employeeId.value = formattedId
 
   loading.value = true
@@ -63,40 +63,44 @@ const loadAchievements = async () => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="employeeId"
-                  label="Employee ID"
-                  placeholder="VD: 14732 hoặc VNW0014732"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-id"
-                  clearable
-                  @keyup.enter="loadAchievements"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="9"
-                class="d-flex align-end justify-end"
-              >
-                <VBtn
-                  color="primary"
-                  :block="$vuetify.display.smAndDown"
-                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
-                  @click="loadAchievements"
+            <VForm ref="formRef">
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
                 >
-                  <VIcon
-                    start
-                    icon="tabler-search"
+                  <VTextField
+                    v-model="employeeId"
+                    label="Employee ID"
+                    placeholder="VD: 14732 hoặc VNW0014732"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-id"
+                    clearable
+                    :rules="[silentRequiredValidator]"
+                    hide-details
+                    @keyup.enter="loadAchievements"
                   />
-                  Tra Cứu
-                </VBtn>
-              </VCol>
-            </VRow>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="9"
+                  class="d-flex align-end justify-end"
+                >
+                  <VBtn
+                    color="primary"
+                    :block="$vuetify.display.smAndDown"
+                    :width="$vuetify.display.mdAndUp ? 140 : undefined"
+                    @click="loadAchievements"
+                  >
+                    <VIcon
+                      start
+                      icon="tabler-search"
+                    />
+                    Tra Cứu
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

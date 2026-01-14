@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
+import { silentRequiredValidator } from '@/@core/utils/validators'
 
 // Protect from guest users
 useGuestProtection()
@@ -11,6 +12,9 @@ useGuestProtection()
 const loading = ref(false)
 const bonusData = ref(null)
 const error = ref(null)
+
+// Form ref
+const formRef = ref()
 
 // Form inputs
 const employeeId = ref('')
@@ -34,16 +38,12 @@ const formatCurrencyLocal = (amount) => {
 
 // Load year bonus data
 const loadYearBonus = async () => {
-  // Auto-format employee ID before validation
+  // Validate form
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
+
+  // Auto-format employee ID
   const formattedId = formatEmployeeId(employeeId.value)
-
-  // Validate employee ID
-  if (!formattedId || !formattedId.trim()) {
-    error.value = 'Vui lòng nhập Employee ID'
-    return
-  }
-
-  // Update employeeId with formatted value
   employeeId.value = formattedId
 
   loading.value = true
@@ -101,53 +101,58 @@ const yearOptions = computed(() => {
           </VCardTitle>
           <VDivider />
           <VCardText>
-            <VRow>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VTextField
-                  v-model="employeeId"
-                  label="Employee ID"
-                  placeholder="VD: 14732 hoặc VNW0014732"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-id"
-                  clearable
-                  @keyup.enter="loadYearBonus"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <VSelect
-                  v-model="selectedYear"
-                  :items="yearOptions"
-                  item-title="label"
-                  item-value="value"
-                  label="Năm"
-                  variant="outlined"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="6"
-                class="d-flex align-end justify-end"
-              >
-                <VBtn
-                  color="primary"
-                  :block="$vuetify.display.smAndDown"
-                  :width="$vuetify.display.mdAndUp ? 140 : undefined"
-                  @click="loadYearBonus"
+            <VForm ref="formRef">
+              <VRow>
+                <VCol
+                  cols="12"
+                  md="3"
                 >
-                  <VIcon
-                    start
-                    icon="tabler-search"
+                  <VTextField
+                    v-model="employeeId"
+                    label="Employee ID"
+                    placeholder="VD: 14732 hoặc VNW0014732"
+                    variant="outlined"
+                    prepend-inner-icon="tabler-id"
+                    clearable
+                    :rules="[silentRequiredValidator]"
+                    hide-details
+                    @keyup.enter="loadYearBonus"
                   />
-                  Tra Cứu
-                </VBtn>
-              </VCol>
-            </VRow>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="3"
+                >
+                  <VSelect
+                    v-model="selectedYear"
+                    :items="yearOptions"
+                    item-title="label"
+                    item-value="value"
+                    label="Năm"
+                    variant="outlined"
+                    hide-details
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="6"
+                  class="d-flex align-end justify-end"
+                >
+                  <VBtn
+                    color="primary"
+                    :block="$vuetify.display.smAndDown"
+                    :width="$vuetify.display.mdAndUp ? 140 : undefined"
+                    @click="loadYearBonus"
+                  >
+                    <VIcon
+                      start
+                      icon="tabler-search"
+                    />
+                    Tra Cứu
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VForm>
           </VCardText>
         </VCard>
       </VCol>

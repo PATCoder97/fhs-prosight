@@ -367,6 +367,7 @@
     "formatEmployeeId": true,
     "getScoreColor": true,
     "getScoreIcon": true,
-    "getScoreLabel": true
+    "getScoreLabel": true,
+    "silentRequiredValidator": true
   }
 }
