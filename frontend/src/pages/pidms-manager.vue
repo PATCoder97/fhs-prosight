@@ -267,6 +267,28 @@ const filteredProducts = computed(() => {
   )
 })
 
+// Paginated products
+const paginatedProducts = computed(() => {
+  const start = (productsPage.value - 1) * productsPageSize.value
+  const end = start + productsPageSize.value
+  return filteredProducts.value.slice(start, end)
+})
+
+// Total pages for products
+const productsTotalPages = computed(() =>
+  Math.ceil(filteredProducts.value.length / productsPageSize.value)
+)
+
+// Handle products page change
+const handleProductsPageChange = (page) => {
+  productsPage.value = page
+}
+
+// Handle products page size change
+const handleProductsPageSizeChange = () => {
+  productsPage.value = 1
+}
+
 // Products table headers
 const productsHeaders = [
   { title: 'Product', key: 'prd', align: 'start', sortable: true },
@@ -575,11 +597,10 @@ const closeProductKeysDialog = () => {
           <!-- Data Table -->
           <VDataTable
             :headers="productsHeaders"
-            :items="filteredProducts"
+            :items="paginatedProducts"
             :sort-by="productsSortBy"
-            :items-per-page="productsPageSize"
-            :page="productsPage"
-            @update:page="productsPage = $event"
+            :items-per-page="-1"
+            hide-default-footer
             @update:sort-by="productsSortBy = $event"
           >
             <template #item.prd="{ item }">
@@ -636,6 +657,31 @@ const closeProductKeysDialog = () => {
               </VBtn>
             </template>
           </VDataTable>
+
+          <!-- Pagination -->
+          <VDivider class="mt-4" />
+          <div class="d-flex align-center justify-space-between flex-wrap gap-4 pa-4">
+            <div class="d-flex align-center gap-3">
+              <div class="text-body-2 text-medium-emphasis">
+                Hiển thị {{ filteredProducts.length === 0 ? 0 : ((productsPage - 1) * productsPageSize) + 1 }} - {{ Math.min(((productsPage - 1) * productsPageSize) + paginatedProducts.length, filteredProducts.length) }} trong tổng số {{ filteredProducts.length }} kết quả
+              </div>
+              <VSelect
+                v-model="productsPageSize"
+                :items="pageSizeOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                style="max-width: 100px;"
+                @update:model-value="handleProductsPageSizeChange"
+              />
+            </div>
+            <VPagination
+              v-model="productsPage"
+              :length="productsTotalPages"
+              :total-visible="7"
+              @update:model-value="handleProductsPageChange"
+            />
+          </div>
         </div>
 
         <!-- Empty State -->
