@@ -17,15 +17,15 @@ services:
       - ALGORITHM=HS256
       - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass@tp75-db:5432/tp75db
       - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
-      - SECRET_KEY=your_jwt_secret_key_here
+      - SECRET_KEY=your_jwt_secret_key_here_change_in_production
     hostname: tp75-api
     image: patcoder97/prosight-backend:dev
     labels:
       icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
     ports:
       - mode: ingress
-        target: 8000
-        published: "8097"
+        target: 8001
+        published: "8001"
         protocol: tcp
     restart: unless-stopped
     volumes: []
@@ -34,6 +34,36 @@ services:
     networks:
       - tp75_fhs_network
     privileged: false
+
+  tp75-web:
+    cpu_shares: 90
+    command: []
+    container_name: tp75-web
+    depends_on:
+      tp75-api:
+        condition: service_started
+        required: true
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    hostname: tp75-web
+    image: patcoder97/prosight-frontend:dev
+    labels:
+      icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
+    ports:
+      - mode: ingress
+        target: 5173
+        published: "5173"
+        protocol: tcp
+    restart: unless-stopped
+    volumes: []
+    devices: []
+    cap_add: []
+    networks:
+      - tp75_fhs_network
+    privileged: false
+
   tp75-db:
     cpu_shares: 90
     command: []
@@ -63,10 +93,12 @@ services:
     networks:
       - tp75_fhs_network
     privileged: false
+
 networks:
   tp75_fhs_network:
     name: tp75-fhs_network
     driver: bridge
+
 x-casaos:
   architectures:
     - amd64
@@ -74,19 +106,20 @@ x-casaos:
   author: PATCoder97
   category: CasaOS-App
   description:
-    en_us: TP75 FHS API + Postgres database.
+    en_us: TP75 FHS Full Stack - Backend API (Port 8001) + Frontend Web UI (Port 5173) + PostgreSQL Database
   developer: ""
   hostname: ""
   icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
   index: /
   is_uncontrolled: false
-  main: tp75-api
-  port_map: "8097"
+  main: tp75-web
+  port_map: "5173"
   scheme: http
   store_app_id: tp75-fhs
   tagline:
-    en_us: TP75 FHS Service
+    en_us: TP75 FHS Full Stack Service
   thumbnail: ""
   title:
     custom: tp75 fhs
     en_us: TP75 FHS
+

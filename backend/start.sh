@@ -114,8 +114,8 @@ fi
 # ============================================================================
 echo ""
 echo "✓ All checks passed!"
-echo "🌐 Starting Uvicorn server on 0.0.0.0:8000..."
+echo "🌐 Starting Uvicorn server on 0.0.0.0:8001..."
 echo ""
 
 cd /app
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info
+exec uvicorn app.main:app --host 0.0.0.0 --port 8001 --log-level info
