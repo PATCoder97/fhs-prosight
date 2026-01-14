@@ -2,7 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAdminProtection } from '@/composables/useAdminProtection'
 import { $api } from '@/utils/api'
-import { formatCurrency } from '@/utils/formatters'
 
 // Protect this page - only admin can access
 useAdminProtection()
@@ -255,17 +254,6 @@ const getInventoryStatus = (product) => {
   if (product.total_remaining === 0) return { text: 'Out of Stock', color: 'error' }
   if (product.low_inventory) return { text: 'Low Stock', color: 'warning' }
   return { text: 'In Stock', color: 'success' }
-}
-
-// Reset search
-const resetSearch = () => {
-  searchProduct.value = ''
-  searchMinRemaining.value = null
-  searchMaxRemaining.value = null
-  searchBlocked.value = null
-  currentPage.value = 1
-  searchResults.value = []
-  totalResults.value = 0
 }
 </script>
 
@@ -596,6 +584,18 @@ const resetSearch = () => {
           </VCol>
           <VCol
             cols="12"
+            md="3"
+          >
+            <VSelect
+              v-model="searchBlocked"
+              :items="blockedOptions"
+              label="Trạng thái"
+              variant="outlined"
+              hide-details
+            />
+          </VCol>
+          <VCol
+            cols="12"
             md="2"
           >
             <VTextField
@@ -627,18 +627,6 @@ const resetSearch = () => {
           <VCol
             cols="12"
             md="2"
-          >
-            <VSelect
-              v-model="searchBlocked"
-              :items="blockedOptions"
-              label="Trạng thái"
-              variant="outlined"
-              hide-details
-            />
-          </VCol>
-          <VCol
-            cols="12"
-            md="3"
             class="d-flex align-end justify-end"
           >
             <VBtn
