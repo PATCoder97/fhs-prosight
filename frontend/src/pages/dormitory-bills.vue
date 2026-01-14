@@ -164,17 +164,14 @@ const handlePageChange = (page) => {
       type="error"
       variant="tonal"
       closable
-      class="mt-4"
+      class="mb-6"
       @click:close="error = null"
     >
       {{ error }}
     </VAlert>
 
     <!-- Loading State -->
-    <VRow
-      v-if="loading"
-      class="mt-4"
-    >
+    <VRow v-if="loading">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -192,10 +189,7 @@ const handlePageChange = (page) => {
     </VRow>
 
     <!-- Results -->
-    <VRow
-      v-if="billsData && billsData.length > 0 && !loading"
-      class="mt-4"
-    >
+    <VRow v-if="billsData && billsData.length > 0 && !loading">
       <VCol cols="12">
         <VCard>
           <VCardTitle class="d-flex justify-space-between align-center">
@@ -297,10 +291,7 @@ const handlePageChange = (page) => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow
-      v-if="!billsData && !loading && !error"
-      class="mt-4"
-    >
+    <VRow v-if="!billsData && !loading && !error">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">

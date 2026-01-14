@@ -209,17 +209,14 @@ const totalPages = computed(() => {
       type="error"
       variant="tonal"
       closable
-      class="mt-4"
+      class="mb-6"
       @click:close="error = null"
     >
       {{ error }}
     </VAlert>
 
     <!-- Loading State -->
-    <VRow
-      v-if="loading"
-      class="mt-4"
-    >
+    <VRow v-if="loading">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -237,10 +234,7 @@ const totalPages = computed(() => {
     </VRow>
 
     <!-- Results Table -->
-    <VRow
-      v-if="!loading && employees.length > 0"
-      class="mt-4"
-    >
+    <VRow v-if="!loading && employees.length > 0">
       <VCol cols="12">
         <VCard>
           <VCardTitle class="d-flex align-center justify-space-between">
@@ -375,10 +369,7 @@ const totalPages = computed(() => {
     </VRow>
 
     <!-- No Data State -->
-    <VRow
-      v-if="!loading && employees.length === 0 && !error"
-      class="mt-4"
-    >
+    <VRow v-if="!loading && employees.length === 0 && !error">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">

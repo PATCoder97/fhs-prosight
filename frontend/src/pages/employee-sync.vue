@@ -180,17 +180,14 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
       type="error"
       variant="tonal"
       closable
-      class="mt-4"
+      class="mb-6"
       @click:close="error = null"
     >
       {{ error }}
     </VAlert>
 
     <!-- Loading State -->
-    <VRow
-      v-if="loading"
-      class="mt-4"
-    >
+    <VRow v-if="loading">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
@@ -208,10 +205,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
     </VRow>
 
     <!-- Synced Employee Data -->
-    <VRow
-      v-if="!loading && syncedEmployee"
-      class="mt-4"
-    >
+    <VRow v-if="!loading && syncedEmployee">
       <VCol cols="12">
         <!-- Success Alert -->
         <VAlert
@@ -497,10 +491,7 @@ const isCovidSource = computed(() => selectedSource.value === 'covid')
     </VRow>
 
     <!-- No Data State -->
-    <VRow
-      v-if="!loading && !syncedEmployee && !error"
-      class="mt-4"
-    >
+    <VRow v-if="!loading && !syncedEmployee && !error">
       <VCol cols="12">
         <VCard>
           <VCardText class="text-center py-16">
