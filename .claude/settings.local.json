@@ -74,7 +74,11 @@
       "Bash(timeout 5 tail:*)",
       "Bash(exit 0)",
       "Bash(taskkill:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(chmod:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)"
     ]
   }
 }

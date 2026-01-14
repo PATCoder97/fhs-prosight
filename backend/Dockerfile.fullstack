@@ -1,0 +1,81 @@
+# ============================================================================
+# Dockerfile cho FHS HR Integration - Full Stack (Backend + Frontend)
+# Multi-stage build: Frontend Builder + Backend with Static Files
+# ============================================================================
+
+# Stage 1: Frontend Builder - Build Vue.js app
+FROM node:18.20.8-alpine AS frontend-builder
+
+WORKDIR /frontend
+
+# Copy frontend package files
+COPY ../frontend/package*.json ./
+
+# Install frontend dependencies
+RUN npm install --legacy-peer-deps --ignore-scripts
+
+# Copy frontend source code
+COPY ../frontend .
+
+# Run postinstall scripts
+RUN npm run build:icons && npm run msw:init
+
+# Build production frontend
+RUN npm run build
+
+
+# Stage 2: Python Builder - Install Python dependencies
+FROM python:3.11-slim AS python-builder
+
+WORKDIR /tmp
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install pip and dependencies
+RUN pip install --upgrade pip setuptools wheel
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+
+# Stage 3: Production Runtime - FastAPI serves both API and Frontend
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app:$PATH"
+
+# Install curl for health check
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# Copy Python dependencies from python-builder
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
+
+# Copy backend application code
+COPY . .
+
+# Copy frontend build artifacts to backend static folder
+COPY --from=frontend-builder /frontend/dist /app/static
+
+# Copy start script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Expose port
+EXPOSE 8001
+
+# Run start script
+ENTRYPOINT ["/app/start.sh"]
