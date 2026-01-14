@@ -15,7 +15,16 @@ fhs-prosight/
 │   ├── Dockerfile          # Frontend image (Vue.js + Nginx)
 │   ├── nginx.conf          # Nginx configuration
 │   └── .dockerignore
+├── scripts/                # Utility scripts
+│   ├── check-docker-env.sh # Environment checker
+│   ├── deploy.sh           # Quick deployment
+│   ├── backup-db.sh        # Database backup
+│   ├── restore-db.sh       # Database restore
+│   ├── health-monitor.sh   # Service monitoring
+│   └── README.md           # Scripts documentation
 ├── docker-compose.yml      # Orchestration file
+├── Makefile               # Docker commands shortcuts
+├── .env.example           # Environment template
 └── DOCKER_SETUP.md        # File này
 ```
 
@@ -52,6 +61,35 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:80
 ```
 
 ## Cách sử dụng
+
+### Quick Start với Scripts (Khuyến nghị)
+
+```bash
+# 1. Kiểm tra môi trường trước khi build
+./scripts/check-docker-env.sh
+
+# 2. Deploy nhanh (build + start services)
+./scripts/deploy.sh
+
+# 3. Monitor services (optional)
+./scripts/health-monitor.sh
+```
+
+### Quick Start với Makefile
+
+```bash
+# Xem tất cả commands
+make help
+
+# Build và start services
+make up-build
+
+# Xem logs
+make logs
+
+# Stop services
+make down
+```
 
 ### 1. Build và chạy tất cả services
 
@@ -257,6 +295,142 @@ docker rmi fhs-backend:latest fhs-frontend:latest
 
 # Xóa tất cả unused resources
 docker system prune -a
+```
+
+## Utility Scripts
+
+Dự án cung cấp các scripts tiện ích trong thư mục `scripts/`:
+
+### 1. check-docker-env.sh - Kiểm tra môi trường
+
+```bash
+./scripts/check-docker-env.sh
+```
+
+Kiểm tra:
+- Docker và Docker Compose installation
+- Docker daemon status
+- File .env và các biến môi trường bắt buộc
+- firebase_credentials.json
+- Dockerfiles và docker-compose.yml
+- Disk space
+
+### 2. deploy.sh - Deploy nhanh
+
+```bash
+./scripts/deploy.sh
+```
+
+Tự động:
+- Pull code mới nhất
+- Stop containers hiện tại
+- Build images (no cache)
+- Start services
+- Health check
+- Hiển thị status
+
+### 3. backup-db.sh - Backup database
+
+```bash
+./scripts/backup-db.sh
+```
+
+Tính năng:
+- Tạo backup với timestamp
+- Nén file (gzip)
+- Tự động cleanup (giữ 7 backups gần nhất)
+- Output: `backups/fhs_prosight_backup_YYYYMMDD_HHMMSS.sql.gz`
+
+### 4. restore-db.sh - Restore database
+
+```bash
+./scripts/restore-db.sh backups/fhs_prosight_backup_20260114_120000.sql.gz
+```
+
+**CẢNH BÁO**: Sẽ overwrite database hiện tại!
+
+### 5. health-monitor.sh - Monitor services
+
+```bash
+# Check mỗi 30 giây (default)
+./scripts/health-monitor.sh
+
+# Custom interval (60 giây)
+./scripts/health-monitor.sh 60
+```
+
+Giám sát:
+- Container status
+- HTTP health endpoints
+- Resource usage (CPU, Memory, Network)
+- Alert khi có failures
+
+Chi tiết xem [scripts/README.md](scripts/README.md)
+
+## Makefile Commands
+
+Sử dụng Makefile để đơn giản hóa Docker operations:
+
+```bash
+# Xem tất cả commands
+make help
+
+# Build và deployment
+make build              # Build all images
+make build-backend      # Build backend only
+make build-frontend     # Build frontend only
+make up                 # Start services
+make up-build           # Build and start
+make down               # Stop services
+
+# Logs và monitoring
+make logs               # View all logs
+make logs-backend       # View backend logs
+make logs-frontend      # View frontend logs
+make ps                 # Show containers
+make stats              # Resource usage
+
+# Shell access
+make shell-backend      # Enter backend container
+make shell-frontend     # Enter frontend container
+
+# Maintenance
+make restart            # Restart all services
+make restart-backend    # Restart backend only
+make restart-frontend   # Restart frontend only
+make clean              # Stop and remove containers
+make prune              # Clean Docker system
+make test               # Run backend tests
+make health             # Check service health
+```
+
+## Database Management
+
+### Backup Strategy
+
+```bash
+# Manual backup trước khi deploy
+./scripts/backup-db.sh
+
+# Scheduled backup (crontab example)
+# Daily backup lúc 2 AM
+0 2 * * * cd /path/to/fhs-prosight && ./scripts/backup-db.sh
+```
+
+### Restore Workflow
+
+```bash
+# 1. List available backups
+ls -lh backups/
+
+# 2. Stop services
+docker-compose down
+
+# 3. Restore database
+./scripts/restore-db.sh backups/fhs_prosight_backup_20260114_120000.sql.gz
+
+# 4. Start services
+docker-compose up -d
 ```
 
 ## Notes
