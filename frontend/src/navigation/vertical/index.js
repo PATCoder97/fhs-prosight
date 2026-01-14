@@ -36,6 +36,12 @@ export default [
     requireRole: ['user', 'admin'], // User and Admin can view
   },
   {
+    title: 'Dormitory Bills',
+    to: { name: 'dormitory-bills' },
+    icon: { icon: 'tabler-home-dollar' },
+    requireRole: ['user', 'admin'], // User and Admin can view
+  },
+  {
     title: 'Employee Sync',
     to: { name: 'employee-sync' },
     icon: { icon: 'tabler-refresh' },
@@ -49,17 +55,14 @@ export default [
       {
         title: 'User Manager',
         to: { name: 'user-manager' },
-        icon: { icon: 'tabler-users-group' },
       },
       {
         title: 'Employee Search',
         to: { name: 'employee-search' },
-        icon: { icon: 'tabler-user-search' },
       },
       {
         title: 'Evaluation Upload',
         to: { name: 'evaluation-upload' },
-        icon: { icon: 'tabler-file-upload' },
       },
     ],
   },
