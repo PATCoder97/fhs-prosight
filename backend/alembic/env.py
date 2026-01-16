@@ -23,8 +23,11 @@ config = context.config
 
 # Override sqlalchemy.url with DATABASE_URL from environment variables
 # This ensures alembic uses the same DB connection as the application
+# Note: Alembic needs sync driver (postgresql://), not async (postgresql+asyncpg://)
 if settings.DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+    # Convert async URL to sync URL for alembic
+    sync_database_url = settings.DATABASE_URL.replace('postgresql+asyncpg://', 'postgresql://')
+    config.set_main_option("sqlalchemy.url", sync_database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
