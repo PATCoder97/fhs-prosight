@@ -72,6 +72,15 @@ jobs:
           VERSION_TAG="${{ needs.check-build-trigger.outputs.version_tag }}"
           IS_VERSION="${{ needs.check-build-trigger.outputs.is_version }}"
 
+          echo "Debug - VERSION_TAG: '$VERSION_TAG'"
+          echo "Debug - IS_VERSION: '$IS_VERSION'"
+
+          # Validate VERSION_TAG is not empty
+          if [ -z "$VERSION_TAG" ]; then
+            echo "ERROR: VERSION_TAG is empty!"
+            exit 1
+          fi
+
           # Always include the version tag
           TAGS="patcoder97/prosight-fullstack:$VERSION_TAG"
 
