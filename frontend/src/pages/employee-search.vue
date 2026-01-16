@@ -48,7 +48,6 @@ const searchEmployees = async (resetPage = false) => {
   }
 
   loading.value = true
-  error.value = null
 
   try {
     const params = new URLSearchParams()
@@ -97,7 +96,6 @@ const resetFilters = () => {
   page.value = 1
   employees.value = []
   total.value = 0
-  error.value = null
 }
 
 // When items per page changes, reset to page 1 and search again
