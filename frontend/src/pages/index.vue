@@ -23,7 +23,21 @@ const dashboardData = ref({
   evaluations: null,
   dormitoryBills: null,
 })
-const error = ref(null)
+
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 // Get current user from auth store
 const currentUser = computed(() => authStore.currentUser)
@@ -101,12 +115,11 @@ const sortTermCodes = (a, b) => {
 // Load dashboard data
 const loadDashboardData = async () => {
   if (!currentUser.value || !currentUser.value.localId) {
-    error.value = 'Không tìm thấy Employee ID của bạn'
+    showToast('Không tìm thấy Employee ID của bạn', 'error')
     return
   }
 
   loading.value = true
-  error.value = null
 
   try {
     // Load current month salary
@@ -158,7 +171,7 @@ const loadDashboardData = async () => {
   }
   catch (err) {
     console.error('Failed to load dashboard data:', err)
-    error.value = 'Không thể tải dữ liệu dashboard'
+    showToast('Không thể tải dữ liệu dashboard', 'error')
   }
   finally {
     loading.value = false
@@ -244,18 +257,6 @@ onMounted(() => {
         </VRow>
       </VCardText>
     </VCard>
-
-    <!-- Error Alert -->
-    <VAlert
-      v-if="error"
-      type="error"
-      variant="tonal"
-      closable
-      class="mb-6"
-      @click:close="error = null"
-    >
-      {{ error }}
-    </VAlert>
 
     <!-- Loading State -->
     <VRow v-if="loading">
@@ -976,6 +977,35 @@ onMounted(() => {
         </VCol>
       </VRow>
     </div>
+
+    <!-- Toast Notification -->
+    <VSnackbar
+      v-model="toast.show"
+      :color="toast.color"
+      :timeout="3000"
+      location="top end"
+      transition="slide-x-reverse-transition"
+      rounded="lg"
+      elevation="8"
+      min-width="300"
+      max-width="400"
+    >
+      <div class="d-flex align-center gap-3">
+        <VIcon
+          :icon="toast.color === 'success' ? 'tabler-circle-check' : toast.color === 'warning' ? 'tabler-alert-triangle' : 'tabler-circle-x'"
+          size="24"
+        />
+        <span>{{ toast.message }}</span>
+      </div>
+      <template #actions>
+        <VBtn
+          variant="text"
+          icon="tabler-x"
+          size="small"
+          @click="toast.show = false"
+        />
+      </template>
+    </VSnackbar>
   </div>
 </template>
 

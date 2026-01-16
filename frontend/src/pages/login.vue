@@ -22,7 +22,20 @@ definePage({
 const route = useRoute()
 const router = useRouter()
 
-const errorMessage = ref('')
+// Toast notification
+const toast = ref({
+  show: false,
+  message: '',
+  color: 'error',
+})
+
+const showToast = (message, color = 'error') => {
+  toast.value = {
+    show: true,
+    message,
+    color,
+  }
+}
 
 const errorMessages = {
   access_denied: 'Bạn đã hủy đăng nhập. Vui lòng thử lại.',
@@ -35,21 +48,13 @@ const errorMessages = {
 onMounted(() => {
   const error = route.query.error
   if (error) {
-    errorMessage.value = errorMessages[error] || errorMessages.default
+    const message = errorMessages[error] || errorMessages.default
+    showToast(message, 'error')
 
     // Clear error from URL (clean URL)
     router.replace({ query: {} })
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      errorMessage.value = ''
-    }, 5000)
   }
 })
-
-const dismissError = () => {
-  errorMessage.value = ''
-}
 
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
@@ -105,17 +110,6 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
         :max-width="500"
         class="mt-12 mt-sm-0 pa-6"
       >
-        <!-- Error Alert -->
-        <VAlert
-          v-if="errorMessage"
-          type="error"
-          closable
-          class="mb-4"
-          @click:close="dismissError"
-        >
-          {{ errorMessage }}
-        </VAlert>
-
         <VCardText>
           <h4 class="text-h4 mb-1">
             Welcome to <span class="text-capitalize">{{ themeConfig.app.title }}</span>! 👋🏻
@@ -130,6 +124,35 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
       </VCard>
     </VCol>
   </VRow>
+
+  <!-- Toast Notification -->
+  <VSnackbar
+    v-model="toast.show"
+    :color="toast.color"
+    :timeout="5000"
+    location="top end"
+    transition="slide-x-reverse-transition"
+    rounded="lg"
+    elevation="8"
+    min-width="300"
+    max-width="400"
+  >
+    <div class="d-flex align-center gap-3">
+      <VIcon
+        :icon="toast.color === 'success' ? 'tabler-circle-check' : toast.color === 'warning' ? 'tabler-alert-triangle' : 'tabler-circle-x'"
+        size="24"
+      />
+      <span>{{ toast.message }}</span>
+    </div>
+    <template #actions>
+      <VBtn
+        variant="text"
+        icon="tabler-x"
+        size="small"
+        @click="toast.show = false"
+      />
+    </template>
+  </VSnackbar>
 </template>
 
 <style lang="scss">
