@@ -75,14 +75,11 @@ const uploadFile = async () => {
     const formData = new FormData()
     formData.append('file', fileData.value)
 
-    // Use fetch directly for file upload instead of $api
-    const response = await fetch('http://localhost:8001/api/evaluations/upload', {
+    // Use $api for file upload
+    const data = await $api('/evaluations/upload', {
       method: 'POST',
-      credentials: 'include',
       body: formData,
     })
-
-    const data = await response.json()
 
     if (data.success) {
       uploadResult.value = data
@@ -95,7 +92,7 @@ const uploadFile = async () => {
   }
   catch (error) {
     console.error('Failed to upload file:', error)
-    showToast('Upload file thất bại!', 'error')
+    showToast(error.message || 'Upload file thất bại!', 'error')
     uploadResult.value = null
   }
   finally {
