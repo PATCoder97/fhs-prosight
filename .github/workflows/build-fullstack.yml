@@ -4,19 +4,54 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'backend/**'
-      - 'frontend/**'
-      - 'Dockerfile.fullstack'
-      - '.github/workflows/build-fullstack.yml'
-
   # Manual trigger
   workflow_dispatch:
 
 jobs:
+  check-build-trigger:
+    name: Check if build should trigger
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      version_tag: ${{ steps.check.outputs.version_tag }}
+      is_version: ${{ steps.check.outputs.is_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check commit message for build tag
+        id: check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit message: $COMMIT_MSG"
+
+          # Check if commit message contains [tag] pattern
+          if echo "$COMMIT_MSG" | grep -qE '\[.+\]'; then
+            # Extract tag from commit message (e.g., [dev], [v1.0], [staging])
+            TAG=$(echo "$COMMIT_MSG" | grep -oE '\[[^\]]+\]' | head -1 | tr -d '[]')
+            echo "Build tag found: $TAG"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "version_tag=$TAG" >> $GITHUB_OUTPUT
+
+            # Check if tag starts with 'v' (version tag like v1.0, v2.0)
+            if echo "$TAG" | grep -qE '^v'; then
+              echo "is_version=true" >> $GITHUB_OUTPUT
+              echo "This is a version tag - will also tag as 'latest'"
+            else
+              echo "is_version=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No build tag found in commit message - skipping build"
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "version_tag=" >> $GITHUB_OUTPUT
+            echo "is_version=false" >> $GITHUB_OUTPUT
+          fi
+
   build-fullstack:
     name: Build Fullstack Image (Backend + Frontend)
     runs-on: ubuntu-latest
+    needs: check-build-trigger
+    if: needs.check-build-trigger.outputs.should_build == 'true'
 
     steps:
       - name: Checkout code
@@ -31,14 +66,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: patcoder97/prosight-fullstack
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix={{branch}}-
+      - name: Prepare Docker tags
+        id: prepare_tags
+        run: |
+          VERSION_TAG="${{ needs.check-build-trigger.outputs.version_tag }}"
+          IS_VERSION="${{ needs.check-build-trigger.outputs.is_version }}"
+
+          # Always include the version tag
+          TAGS="patcoder97/prosight-fullstack:$VERSION_TAG"
+
+          # If this is a version tag (starts with 'v'), also tag as 'latest'
+          if [ "$IS_VERSION" = "true" ]; then
+            TAGS="$TAGS,patcoder97/prosight-fullstack:latest"
+            echo "Tagging as: $VERSION_TAG and latest"
+          else
+            echo "Tagging as: $VERSION_TAG only"
+          fi
+
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
       - name: Build and push fullstack image
         uses: docker/build-push-action@v5
@@ -47,11 +92,12 @@ jobs:
           file: ./Dockerfile.fullstack
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            patcoder97/prosight-fullstack:latest
-            patcoder97/prosight-fullstack:${{ github.sha }}
+          tags: ${{ steps.prepare_tags.outputs.tags }}
           cache-from: type=registry,ref=patcoder97/prosight-fullstack:buildcache
           cache-to: type=registry,ref=patcoder97/prosight-fullstack:buildcache,mode=max
 
       - name: Image digest
-        run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+        run: |
+          echo "Image pushed with tags: ${{ steps.prepare_tags.outputs.tags }}"
+          echo "Version tag: ${{ needs.check-build-trigger.outputs.version_tag }}"
+          echo "Is version release: ${{ needs.check-build-trigger.outputs.is_version }}"
