@@ -76,8 +76,6 @@ const handleLogout = async () => {
   >
     <VAvatar
       class="cursor-pointer"
-      color="primary"
-      variant="tonal"
     >
       <VImg
         v-if="user?.avatar"
@@ -108,10 +106,7 @@ const handleLogout = async () => {
                   offset-y="3"
                   color="success"
                 >
-                  <VAvatar
-                    color="primary"
-                    variant="tonal"
-                  >
+                  <VAvatar>
                     <VImg
                       v-if="user?.avatar"
                       :src="userAvatar"
