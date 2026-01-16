@@ -1,9 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatCurrency, getScoreColor, getScoreLabel } from '@/utils/formatters'
+
+// Check authentication first
+const { isAuthenticated, isLoading: authLoading } = useAuth()
 
 // Protect from guest users
 useGuestProtection()

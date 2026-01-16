@@ -80,7 +80,8 @@
       "Bash(gh run view:*)",
       "Bash(gh run watch:*)",
       "Bash(alembic stamp:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(docker logs:*)"
     ]
   }
 }
