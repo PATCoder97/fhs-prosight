@@ -29,6 +29,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // Public routes that don't require authentication
   const publicRoutes = [
+    '/',  // Allow home page (OAuth callback redirects here)
     '/login',
     '/register',
     '/forgot-password',
@@ -46,13 +47,13 @@ router.beforeEach((to, from, next) => {
   // If route requires auth and user is not authenticated, redirect to login
   if (!publicRoutes.includes(to.path) && !isAuthenticated) {
     // Save the intended destination to redirect after login
-    const returnUrl = to.fullPath !== '/' ? to.fullPath : null
+    const returnUrl = to.fullPath
 
     next({
       path: '/login',
-      query: returnUrl ? { returnUrl } : {}
+      query: { returnUrl }
     })
-  } else if (publicRoutes.includes(to.path) && isAuthenticated) {
+  } else if (to.path === '/login' && isAuthenticated) {
     // If user is already authenticated and tries to access login page, redirect to home
     next('/')
   } else {
