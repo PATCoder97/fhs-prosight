@@ -49,12 +49,30 @@ if static_dir.exists():
         """
         Serve frontend SPA for all routes except /api, /docs, /redoc
         This allows Vue Router to handle client-side routing
+        Also serves static files like favicon.ico, vite.svg, etc.
         """
-        # Don't intercept API routes, docs, or static assets
+        # Don't intercept API routes, docs, or static assets already mounted
         if full_path.startswith(("api/", "docs", "redoc", "openapi.json", "assets/")):
             return {"error": "Not found"}
 
-        # Serve index.html for all other routes
+        # Check if this is a static file request (by extension)
+        static_extensions = {
+            '.ico', '.css', '.js', '.json', '.xml', '.txt',
+            '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
+            '.woff', '.woff2', '.ttf', '.eot', '.otf',
+            '.mp3', '.mp4', '.webm', '.wav'
+        }
+
+        file_ext = Path(full_path).suffix.lower()
+        if file_ext in static_extensions:
+            # Try to serve the static file
+            file_path = static_dir / full_path
+            if file_path.exists() and file_path.is_file():
+                return FileResponse(str(file_path))
+            # File not found - return 404
+            return {"error": f"File {full_path} not found"}
+
+        # Serve index.html for all other routes (Vue Router will handle)
         index_file = static_dir / "index.html"
         if index_file.exists():
             return FileResponse(str(index_file))
