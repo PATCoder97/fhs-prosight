@@ -22,19 +22,20 @@ jobs:
       - name: Check commit message for build tag
         id: check
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          # Get first line of commit message only
+          COMMIT_MSG=$(git log -1 --pretty=%s)
           echo "Commit message: $COMMIT_MSG"
 
           # Check if commit message contains [tag] pattern
-          if echo "$COMMIT_MSG" | grep -qE '\[.+\]'; then
-            # Extract tag from commit message (e.g., [dev], [v1.0], [staging])
-            TAG=$(echo "$COMMIT_MSG" | grep -oE '\[[^\]]+\]' | head -1 | tr -d '[]')
+          if [[ "$COMMIT_MSG" =~ \[([^]]+)\] ]]; then
+            # Extract tag using bash regex (e.g., [dev], [v1.0], [staging])
+            TAG="${BASH_REMATCH[1]}"
             echo "Build tag found: $TAG"
             echo "should_build=true" >> $GITHUB_OUTPUT
             echo "version_tag=$TAG" >> $GITHUB_OUTPUT
 
             # Check if tag starts with 'v' (version tag like v1.0, v2.0)
-            if echo "$TAG" | grep -qE '^v'; then
+            if [[ "$TAG" =~ ^v ]]; then
               echo "is_version=true" >> $GITHUB_OUTPUT
               echo "This is a version tag - will also tag as 'latest'"
             else
