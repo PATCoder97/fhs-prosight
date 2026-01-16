@@ -13,9 +13,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # Import the Base and models
 from app.models.user import Base
 
+# Import settings to get DATABASE_URL from environment
+from app.core.config import settings
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override sqlalchemy.url with DATABASE_URL from environment variables
+# This ensures alembic uses the same DB connection as the application
+if settings.DATABASE_URL:
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
