@@ -61,18 +61,10 @@ const handleLogout = async () => {
 
 <template>
   <div class="auth-wrapper d-flex align-center justify-center pa-4">
-    <VCard
-      class="auth-card pa-4 pt-7"
-      max-width="900"
-    >
+    <VCard class="auth-card pa-4 pt-7" max-width="900">
       <VCardText class="text-center pa-8">
         <!-- Welcome Icon -->
-        <VIcon
-          icon="tabler-confetti"
-          size="80"
-          color="primary"
-          class="mb-4"
-        />
+        <VIcon icon="tabler-confetti" size="80" color="primary" class="mb-4" />
 
         <!-- Welcome Message -->
         <h1 class="text-h4 font-weight-bold mb-2">
@@ -86,11 +78,7 @@ const handleLogout = async () => {
         <VDivider class="my-6" />
 
         <!-- Guest Information -->
-        <VAlert
-          type="info"
-          variant="tonal"
-          class="text-start mb-6"
-        >
+        <VAlert type="info" variant="tonal" class="text-start mb-6">
           <template #prepend>
             <VIcon icon="tabler-info-circle" />
           </template>
@@ -104,117 +92,29 @@ const handleLogout = async () => {
           </div>
         </VAlert>
 
-        <!-- Contribution Information -->
-        <VCard
-          variant="outlined"
-          color="warning"
-          class="mb-6"
-        >
+        <!-- Contribution QR -->
+        <VCard variant="outlined" color="warning" class="mb-6 text-center">
           <VCardText class="pa-6">
-            <div class="d-flex align-center mb-4">
-              <VIcon
-                icon="tabler-heart-handshake"
-                size="40"
-                color="warning"
-                class="me-3"
-              />
+            <div class="d-flex align-center justify-center mb-4">
+              <VIcon icon="tabler-qrcode" size="40" color="warning" class="me-3" />
               <h3 class="text-h5">
-                Góp tiền duy trì hệ thống
+                Quét mã QR để đóng góp
               </h3>
             </div>
 
-            <p class="text-body-1 mb-4">
-              FHS Pro Sight là một hệ thống quản lý nhân sự phi lợi nhuận, được duy trì bởi sự đóng góp của cộng đồng.
-              Chúng tôi cần sự hỗ trợ của bạn để tiếp tục phát triển và cải thiện hệ thống.
+            <!-- QR Image -->
+            <VImg src="/images/qr.png" max-width="260" aspect-ratio="1" class="mx-auto rounded-lg elevation-2"
+              alt="QR đóng góp FHS Pro Sight" cover />
+
+            <p class="text-body-2 text-medium-emphasis mt-4">
+              Nội dung chuyển khoản là gmail đăng nhập của bạn để quản trị viên dễ dàng xác nhận.
             </p>
-
-            <VDivider class="my-4" />
-
-            <div class="text-start">
-              <h4 class="text-h6 mb-3">
-                💰 Thông tin đóng góp:
-              </h4>
-
-              <VList class="bg-transparent">
-                <VListItem>
-                  <template #prepend>
-                    <VIcon
-                      icon="tabler-building-bank"
-                      color="primary"
-                    />
-                  </template>
-                  <VListItemTitle class="font-weight-semibold">
-                    Ngân hàng: Vietcombank
-                  </VListItemTitle>
-                  <VListItemSubtitle>
-                    Chi nhánh: TP. Hồ Chí Minh
-                  </VListItemSubtitle>
-                </VListItem>
-
-                <VListItem>
-                  <template #prepend>
-                    <VIcon
-                      icon="tabler-credit-card"
-                      color="success"
-                    />
-                  </template>
-                  <VListItemTitle class="font-weight-semibold">
-                    Số tài khoản: 1234567890
-                  </VListItemTitle>
-                  <VListItemSubtitle>
-                    Chủ tài khoản: FHS Pro Sight
-                  </VListItemSubtitle>
-                </VListItem>
-
-                <VListItem>
-                  <template #prepend>
-                    <VIcon
-                      icon="tabler-message-circle"
-                      color="info"
-                    />
-                  </template>
-                  <VListItemTitle class="font-weight-semibold">
-                    Nội dung chuyển khoản:
-                  </VListItemTitle>
-                  <VListItemSubtitle>
-                    FHS PROSIGHT - {{ user?.email || 'Guest' }}
-                  </VListItemSubtitle>
-                </VListItem>
-              </VList>
-            </div>
           </VCardText>
         </VCard>
 
-        <!-- Contact Admin -->
-        <VAlert
-          type="warning"
-          variant="tonal"
-          class="text-start mb-6"
-        >
-          <template #prepend>
-            <VIcon icon="tabler-mail" />
-          </template>
-
-          <div class="text-body-1">
-            <strong>Liên hệ quản trị viên</strong>
-            <p class="mt-2">
-              Sau khi đóng góp, vui lòng liên hệ quản trị viên để được nâng cấp tài khoản và truy cập đầy đủ các tính năng.
-            </p>
-            <p class="mt-2">
-              📧 Email: admin@fhs-prosight.com<br>
-              📱 Hotline: 0123-456-789
-            </p>
-          </div>
-        </VAlert>
 
         <!-- Logout Button -->
-        <VBtn
-          color="error"
-          variant="outlined"
-          size="large"
-          prepend-icon="tabler-logout"
-          @click="handleLogout"
-        >
+        <VBtn color="error" variant="outlined" size="large" prepend-icon="tabler-logout" @click="handleLogout">
           Đăng xuất
         </VBtn>
       </VCardText>

@@ -368,6 +368,7 @@
     "getScoreColor": true,
     "getScoreIcon": true,
     "getScoreLabel": true,
-    "silentRequiredValidator": true
+    "silentRequiredValidator": true,
+    "useAuth": true
   }
 }
