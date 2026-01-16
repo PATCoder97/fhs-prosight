@@ -7,7 +7,8 @@ import { $api } from '@/utils/api'
 import { formatCurrency, getScoreColor, getScoreLabel } from '@/utils/formatters'
 
 // Check authentication first
-const { isAuthenticated, isLoading: authLoading } = useAuth()
+// TODO: Temporarily disabled for debugging
+// const { isAuthenticated, isLoading: authLoading } = useAuth()
 
 // Protect from guest users
 useGuestProtection()
