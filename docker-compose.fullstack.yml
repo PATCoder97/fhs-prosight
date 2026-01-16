@@ -42,26 +42,35 @@ services:
         limits:
           memory: 1536M
     environment:
-      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - ALGORITHM=HS256
-      - COOKIE_DOMAIN=.tphomelab.io.vn
-      - COOKIE_SECURE=true
-      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass_change_in_production@tp75-db:5432/tp75db
-      - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
-      - FRONTEND_URL=https://api.tphomelab.io.vn
-      - GITHUB_CLIENT_ID=your_github_client_id_here
-      - GITHUB_CLIENT_SECRET=your_github_client_secret_here
-      - GOOGLE_CLIENT_ID=your_google_client_id_here
-      - GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-      - PIDKEY_API_KEY=your_pidkey_api_key_here
-      - PIDKEY_BASE_URL=https://pidkey.com/ajax/pidms_api
-      - POSTGRES_DATABASE=tp75db
+      # Database Configuration
       - POSTGRES_HOST=tp75-db
-      - POSTGRES_PASSWORD=tp75pass_change_in_production
       - POSTGRES_PORT=5432
       - POSTGRES_USER=tp75user
-      - PRE_AUTH_TOKEN_EXPIRE_MINUTES=5
+      - POSTGRES_PASSWORD=tp75pass_change_in_production
+      - POSTGRES_DATABASE=tp75db
+
+      # JWT
       - SECRET_KEY=supersecrettuan123456_change_in_production
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - PRE_AUTH_TOKEN_EXPIRE_MINUTES=5
+      - ALGORITHM=HS256
+
+      # OAuth - IMPORTANT: Replace with your own credentials
+      - GOOGLE_CLIENT_ID=your_google_client_id_here
+      - GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+      - GITHUB_CLIENT_ID=your_github_client_id_here
+      - GITHUB_CLIENT_SECRET=your_github_client_secret_here
+
+      # PIDKey.com API - IMPORTANT: Replace with your own API key
+      - PIDKEY_API_KEY=your_pidkey_api_key_here
+      - PIDKEY_BASE_URL=https://pidkey.com/ajax/pidms_api
+
+      # FHS HRS Integration
+      - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
+
+      # Frontend & Cookie Settings
+      - COOKIE_SECURE=true  # Set to true for HTTPS production
+      - COOKIE_DOMAIN=  # Leave empty for same-origin cookies
     hostname: tp75-fullstack
     image: patcoder97/prosight-fullstack:latest
     labels:

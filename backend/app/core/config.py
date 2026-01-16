@@ -2,8 +2,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # Database
-    DATABASE_URL: str
+    # Database - Individual components
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DATABASE: str
+
+    # Computed DATABASE_URL property (for backward compatibility)
+    @property
+    def DATABASE_URL(self) -> str:
+        """Construct DATABASE_URL from POSTGRES_* environment variables"""
+        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DATABASE}"
 
     # JWT Settings (dùng cho cả access token và OTP verification)
     SECRET_KEY: str
