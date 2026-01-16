@@ -1,67 +1,5 @@
 name: tp75-fhs-fullstack
 services:
-  tp75-fullstack:
-    cpu_shares: 90
-    command: []
-    container_name: tp75-fullstack
-    depends_on:
-      tp75-db:
-        condition: service_started
-        required: true
-    deploy:
-      resources:
-        limits:
-          memory: 1536M
-    environment:
-      # Database Configuration
-      - POSTGRES_HOST=tp75-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=tp75user
-      - POSTGRES_PASSWORD=tp75pass_change_in_production
-      - POSTGRES_DATABASE=tp75db
-      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass_change_in_production@tp75-db:5432/tp75db
-
-      # OAuth - IMPORTANT: Replace with your own credentials
-      - GOOGLE_CLIENT_ID=your_google_client_id_here
-      - GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-      - GITHUB_CLIENT_ID=your_github_client_id_here
-      - GITHUB_CLIENT_SECRET=your_github_client_secret_here
-
-      # JWT
-      - SECRET_KEY=supersecrettuan123456_change_in_production
-      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-      - PRE_AUTH_TOKEN_EXPIRE_MINUTES=5
-      - ALGORITHM=HS256
-
-      # PIDKey.com API - IMPORTANT: Replace with your own API key
-      - PIDKEY_API_KEY=your_pidkey_api_key_here
-      - PIDKEY_BASE_URL=https://pidkey.com/ajax/pidms_api
-
-      # FHS HRS Integration
-      - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
-
-      # Frontend & Cookie Settings
-      # No need for FRONTEND_URL since frontend is served by same backend
-      - COOKIE_SECURE=true  # Set to true for HTTPS production
-      - COOKIE_DOMAIN=  # Leave empty for same-origin cookies
-
-    hostname: tp75-fullstack
-    image: patcoder97/prosight-fullstack:latest
-    labels:
-      icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
-    ports:
-      - mode: ingress
-        target: 8001
-        published: "8001"
-        protocol: tcp
-    restart: unless-stopped
-    volumes: []
-    devices: []
-    cap_add: []
-    networks:
-      - tp75-fhs_network
-    privileged: false
-
   tp75-db:
     cpu_shares: 90
     command: []
@@ -91,12 +29,59 @@ services:
     networks:
       - tp75-fhs_network
     privileged: false
-
+  tp75-fullstack:
+    cpu_shares: 90
+    command: []
+    container_name: tp75-fullstack
+    depends_on:
+      tp75-db:
+        condition: service_started
+        required: true
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    environment:
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+      - ALGORITHM=HS256
+      - COOKIE_DOMAIN=.tphomelab.io.vn
+      - COOKIE_SECURE=true
+      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass_change_in_production@tp75-db:5432/tp75db
+      - FHS_HRS_BASE_URL=https://www.fhs.com.tw/ads/api/Furnace/rest/json/hr
+      - FRONTEND_URL=https://api.tphomelab.io.vn
+      - GITHUB_CLIENT_ID=your_github_client_id_here
+      - GITHUB_CLIENT_SECRET=your_github_client_secret_here
+      - GOOGLE_CLIENT_ID=your_google_client_id_here
+      - GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+      - PIDKEY_API_KEY=your_pidkey_api_key_here
+      - PIDKEY_BASE_URL=https://pidkey.com/ajax/pidms_api
+      - POSTGRES_DATABASE=tp75db
+      - POSTGRES_HOST=tp75-db
+      - POSTGRES_PASSWORD=tp75pass_change_in_production
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=tp75user
+      - PRE_AUTH_TOKEN_EXPIRE_MINUTES=5
+      - SECRET_KEY=supersecrettuan123456_change_in_production
+    hostname: tp75-fullstack
+    image: patcoder97/prosight-fullstack:latest
+    labels:
+      icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
+    ports:
+      - mode: ingress
+        target: 8001
+        published: "8001"
+        protocol: tcp
+    restart: unless-stopped
+    volumes: []
+    devices: []
+    cap_add: []
+    networks:
+      - tp75-fhs_network
+    privileged: false
 networks:
   tp75-fhs_network:
     name: tp75-fhs_network
     driver: bridge
-
 x-casaos:
   architectures:
     - amd64
@@ -104,7 +89,8 @@ x-casaos:
   author: PATCoder97
   category: CasaOS-App
   description:
-    en_us: TP75 FHS Full Stack - Single container serving both Backend API and Frontend Web UI (Port 8001) + PostgreSQL Database
+    en_us: TP75 FHS Full Stack - Single container serving both Backend API and
+      Frontend Web UI (Port 8001) + PostgreSQL Database
   developer: ""
   hostname: ""
   icon: https://cdn.jsdelivr.net/gh/havy75/icon-casaos@40dabe2a97f65073e6719806c1668fded667c408/hrs-fhs-03.png
