@@ -2,10 +2,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
-# Get DATABASE_URL using the helper method
-# This supports both direct DATABASE_URL or auto-constructed from POSTGRES_* vars
+# Create async engine using DATABASE_URL from settings
 engine = create_async_engine(
-    settings.get_database_url(),
+    settings.DATABASE_URL,
     echo=False,
     future=True,
 )

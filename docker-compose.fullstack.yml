@@ -43,11 +43,7 @@ services:
           memory: 1536M
     environment:
       # Database Configuration
-      - POSTGRES_HOST=tp75-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=tp75user
-      - POSTGRES_PASSWORD=tp75pass_change_in_production
-      - POSTGRES_DATABASE=tp75db
+      - DATABASE_URL=postgresql+asyncpg://tp75user:tp75pass_change_in_production@tp75-db:5432/tp75db
 
       # JWT
       - SECRET_KEY=supersecrettuan123456_change_in_production
