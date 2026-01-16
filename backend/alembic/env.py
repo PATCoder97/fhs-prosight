@@ -10,8 +10,9 @@ from alembic import context
 # Add parent directory to path to import app modules
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Import the Base and models
+# Import the Base and ALL models (important for autogenerate)
 from app.models.user import Base
+from app.models import user, employee, evaluation, dormitory_bill, pidms_key
 
 # Import settings to get DATABASE_URL from environment
 from app.core.config import settings
