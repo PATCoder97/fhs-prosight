@@ -1,14 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatCurrency, getScoreColor, getScoreLabel } from '@/utils/formatters'
 
-// Check authentication first
-// Route guard now handles authentication at router level
-// const { isAuthenticated, isLoading: authLoading } = useAuth()
+// Get auth store - route guard already checked authentication
+const authStore = useAuthStore()
 
 // Protect from guest users
 useGuestProtection()
@@ -26,19 +25,8 @@ const dashboardData = ref({
 })
 const error = ref(null)
 
-// Get current user
-const currentUser = computed(() => {
-  try {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      return JSON.parse(storedUser)
-    }
-  }
-  catch (error) {
-    console.error('Failed to parse user data:', error)
-  }
-  return null
-})
+// Get current user from auth store
+const currentUser = computed(() => authStore.currentUser)
 
 // Get current date and calculate previous month for salary
 const now = new Date()
