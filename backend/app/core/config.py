@@ -1,18 +1,33 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Optional
 
 
 class Settings(BaseSettings):
-    # Database - Individual components
+    # Database - Individual components (optional if DATABASE_URL is provided)
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DATABASE: str
+    POSTGRES_USER: Optional[str] = None
+    POSTGRES_PASSWORD: Optional[str] = None
+    POSTGRES_DATABASE: Optional[str] = None
 
-    # Computed DATABASE_URL property (for backward compatibility)
-    @property
-    def DATABASE_URL(self) -> str:
-        """Construct DATABASE_URL from POSTGRES_* environment variables"""
+    # Database URL - can be provided directly or will be auto-constructed
+    DATABASE_URL: Optional[str] = None
+
+    def get_database_url(self) -> str:
+        """Get DATABASE_URL - either from env or construct from POSTGRES_* variables"""
+        # If DATABASE_URL is provided, use it
+        if self.DATABASE_URL:
+            # Ensure it uses async driver
+            if self.DATABASE_URL.startswith('postgresql://'):
+                return self.DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://')
+            return self.DATABASE_URL
+
+        # Otherwise, construct from POSTGRES_* variables
+        if not all([self.POSTGRES_USER, self.POSTGRES_PASSWORD, self.POSTGRES_DATABASE]):
+            raise ValueError(
+                "Either DATABASE_URL or all of (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DATABASE) must be provided"
+            )
+
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DATABASE}"
 
     # JWT Settings (dùng cho cả access token và OTP verification)
