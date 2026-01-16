@@ -29,9 +29,11 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   // Public routes that don't require authentication
   const publicRoutes = [
+    '/',  // Allow home page (OAuth callback redirects here)
     '/login',
     '/register',
     '/forgot-password',
+    '/auth-callback',  // OAuth callback handler
     '/pages/authentication/login-v1',
     '/pages/authentication/login-v2',
     '/pages/authentication/register-v1',
@@ -40,14 +42,33 @@ router.beforeEach((to, from, next) => {
     '/pages/authentication/forgot-password-v2',
   ]
 
+  // Helper to get cookie value
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop().split(';').shift()
+    return null
+  }
+
   // Always allow public routes
   if (publicRoutes.includes(to.path)) {
     next()
     return
   }
 
-  // For all other routes, allow navigation and let the page check authentication
-  // This way OAuth callback can complete and set cookies first
+  // For all other routes, check authentication
+  const accessToken = getCookie('access_token')
+
+  if (!accessToken) {
+    // No auth token - redirect to login with returnUrl
+    next({
+      path: '/login',
+      query: { returnUrl: to.fullPath }
+    })
+    return
+  }
+
+  // Has token - allow access
   next()
 })
 

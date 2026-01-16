@@ -7,7 +7,7 @@ import { $api } from '@/utils/api'
 import { formatCurrency, getScoreColor, getScoreLabel } from '@/utils/formatters'
 
 // Check authentication first
-// TODO: Temporarily disabled for debugging
+// Route guard now handles authentication at router level
 // const { isAuthenticated, isLoading: authLoading } = useAuth()
 
 // Protect from guest users
