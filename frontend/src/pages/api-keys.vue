@@ -483,9 +483,28 @@ const headers = [
       v-model="toast.show"
       :color="toast.color"
       :timeout="3000"
-      location="top right"
+      location="top end"
+      transition="slide-x-reverse-transition"
+      rounded="lg"
+      elevation="8"
+      min-width="300"
+      max-width="400"
     >
-      {{ toast.message }}
+      <div class="d-flex align-center gap-3">
+        <VIcon
+          :icon="toast.color === 'success' ? 'tabler-circle-check' : toast.color === 'warning' ? 'tabler-alert-triangle' : 'tabler-circle-x'"
+          size="24"
+        />
+        <span>{{ toast.message }}</span>
+      </div>
+      <template #actions>
+        <VBtn
+          variant="text"
+          icon="tabler-x"
+          size="small"
+          @click="toast.show = false"
+        />
+      </template>
     </VSnackbar>
   </div>
 </template>
