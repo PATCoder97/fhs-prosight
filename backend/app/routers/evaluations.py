@@ -34,7 +34,6 @@ router = APIRouter(
 )
 async def upload_evaluations(
     file: UploadFile = File(..., description="Excel file (.xlsx or .xls)"),
-    current_user: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db)
 ):
     """

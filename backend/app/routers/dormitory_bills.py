@@ -34,7 +34,6 @@ router = APIRouter(
 )
 async def import_dormitory_bills(
     request: DormitoryBillImport,
-    current_user: dict = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db)
 ):
     """
