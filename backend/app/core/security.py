@@ -204,8 +204,7 @@ def require_api_key(required_scope: str):
             ...
     """
     async def api_key_checker(
-        api_key: Optional[str] = Depends(api_key_header),
-        db: AsyncSession = None
+        api_key: Optional[str] = Depends(api_key_header)
     ) -> dict:
         # Import here to avoid circular dependency
         from app.database.session import get_db
@@ -217,13 +216,10 @@ def require_api_key(required_scope: str):
                 headers={"WWW-Authenticate": "ApiKey"}
             )
 
-        # Get database session if not provided
-        if db is None:
-            async for session in get_db():
-                db = session
-                break
-
-        return await verify_api_key(api_key, db, required_scope)
+        # Get database session
+        async for db in get_db():
+            result = await verify_api_key(api_key, db, required_scope)
+            return result
 
     return api_key_checker
 
