@@ -53,8 +53,11 @@ if static_dir.exists():
         Also serves static files like favicon.ico, vite.svg, etc.
         """
         # Don't intercept API routes, docs, or static assets already mounted
+        # Let FastAPI's routers handle these by not catching them here
         if full_path.startswith(("api/", "docs", "redoc", "openapi.json", "assets/")):
-            return {"error": "Not found"}
+            # Don't return anything - this will fall through to FastAPI's 404
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not found")
 
         # Check if this is a static file request (by extension)
         static_extensions = {
