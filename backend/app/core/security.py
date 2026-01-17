@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from typing import Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -165,7 +165,7 @@ async def verify_api_key(
         )
 
     # Check if key is expired
-    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.utcnow():
+    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API key has expired"
@@ -181,7 +181,7 @@ async def verify_api_key(
             )
 
     # Update last_used_at
-    api_key_obj.last_used_at = datetime.utcnow()
+    api_key_obj.last_used_at = datetime.now(timezone.utc)
     await db.commit()
 
     return {
