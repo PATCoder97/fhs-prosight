@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAdminProtection } from '@/composables/useAdminProtection'
 import { $api } from '@/utils/api'
 
