@@ -16,7 +16,7 @@ from typing import Optional
 from app.schemas.evaluation import UploadSummary, SearchResponse
 from app.services import evaluation_service
 from app.database.session import get_db
-from app.core.security import require_role, require_authenticated_user, require_api_key
+from app.core.security import require_role, require_authenticated_user, require_api_key_or_admin
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +30,26 @@ router = APIRouter(
     "/upload",
     response_model=UploadSummary,
     summary="Upload evaluation Excel file",
-    description="Upload Excel file to import/update employee evaluations (requires API key with 'evaluations:import' scope)"
+    description="Upload Excel file to import/update employee evaluations (requires API key with 'evaluations:import' scope OR admin token)"
 )
 async def upload_evaluations(
     file: UploadFile = File(..., description="Excel file (.xlsx or .xls)"),
-    api_key_info: dict = Depends(require_api_key("evaluations:import")),
+    auth_info: dict = Depends(require_api_key_or_admin("evaluations:import")),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Upload evaluation data from Excel file.
 
-    **Access:** Requires API key with 'evaluations:import' scope
+    **Access:** Requires EITHER:
+    - API key with 'evaluations:import' scope (for external integrations)
+    - Admin user with JWT token (for web UI)
 
-    **Authentication:**
-    - Provide API key via X-API-Key header
-    - Example: X-API-Key: fhs_1234567890abcdef...
+    **Authentication Methods:**
+    1. API Key: Provide via X-API-Key header
+       - Example: X-API-Key: fhs_1234567890abcdef...
+    2. JWT Token: Provide via Authorization header or HttpOnly cookie
+       - Example: Authorization: Bearer eyJhbGc...
+       - Must have admin role
 
     **File Requirements:**
     - Format: .xlsx or .xls
@@ -72,7 +77,7 @@ async def upload_evaluations(
     }
     ```
     """
-    logger.info(f"Uploading evaluation file: {file.filename}")
+    logger.info(f"Uploading evaluation file: {file.filename} (auth: {auth_info.get('auth_type')})")
 
     # Validate file extension
     if not file.filename:

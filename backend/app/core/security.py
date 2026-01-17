@@ -260,3 +260,68 @@ async def get_current_user_or_api_key(
             detail="Authentication required. Provide either JWT token or API key.",
             headers={"WWW-Authenticate": "Bearer, ApiKey"}
         )
+
+
+def require_api_key_or_admin(required_scope: Optional[str] = None):
+    """
+    Dependency factory that accepts EITHER:
+    - API key with required scope
+    - Admin user with JWT token
+
+    This is useful for import endpoints that should be accessible via:
+    1. External API calls using API keys
+    2. Admin users via web UI using JWT tokens
+
+    Usage:
+        @router.post("/import")
+        async def import_data(
+            auth_info: dict = Depends(require_api_key_or_admin("evaluations:import")),
+            db: AsyncSession = Depends(get_db)
+        ):
+            ...
+    """
+    async def auth_checker(
+        request: Request,
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+        api_key: Optional[str] = Depends(api_key_header)
+    ) -> dict:
+        from app.database.session import get_db
+
+        # Try API key first
+        if api_key:
+            async for db in get_db():
+                try:
+                    api_key_info = await verify_api_key(api_key, db, required_scope)
+                    return {
+                        "auth_type": "api_key",
+                        "key_id": api_key_info["key_id"],
+                        "key_name": api_key_info["key_name"],
+                        "scopes": api_key_info["scopes"]
+                    }
+                except HTTPException:
+                    pass  # Fall through to JWT
+                break
+
+        # Try JWT token - must be admin
+        try:
+            user = await get_current_user(request, credentials)
+            if user.get("role") != "admin":
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Admin role required for this operation"
+                )
+            return {
+                "auth_type": "jwt",
+                "user_id": user.get("localId"),
+                "email": user.get("email"),
+                "role": user.get("role")
+            }
+        except HTTPException:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required. Provide either API key or admin JWT token.",
+                headers={"WWW-Authenticate": "Bearer, ApiKey"}
+            )
+
+    return auth_checker
+

@@ -16,7 +16,7 @@ from app.schemas.dormitory_bill import (
 )
 from app.services import dormitory_bill_service
 from app.database.session import get_db
-from app.core.security import require_role, require_authenticated_user, require_api_key
+from app.core.security import require_role, require_authenticated_user, require_api_key_or_admin
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +30,26 @@ router = APIRouter(
     "/import",
     response_model=ImportSummary,
     summary="Import dormitory bills from JSON",
-    description="Bulk import dormitory billing data from JSON (requires API key with 'dormitory-bills:import' scope)"
+    description="Bulk import dormitory billing data from JSON (requires API key with 'dormitory-bills:import' scope OR admin token)"
 )
 async def import_dormitory_bills(
     request: DormitoryBillImport,
-    api_key_info: dict = Depends(require_api_key("dormitory-bills:import")),
+    auth_info: dict = Depends(require_api_key_or_admin("dormitory-bills:import")),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Import dormitory bills with bulk upsert logic.
 
-    **Access:** Requires API key with 'dormitory-bills:import' scope
+    **Access:** Requires EITHER:
+    - API key with 'dormitory-bills:import' scope (for external integrations)
+    - Admin user with JWT token (for web UI)
 
-    **Authentication:**
-    - Provide API key via X-API-Key header
-    - Example: X-API-Key: fhs_1234567890abcdef...
+    **Authentication Methods:**
+    1. API Key: Provide via X-API-Key header
+       - Example: X-API-Key: fhs_1234567890abcdef...
+    2. JWT Token: Provide via Authorization header or HttpOnly cookie
+       - Example: Authorization: Bearer eyJhbGc...
+       - Must have admin role
 
     **Request Body:**
     JSON array of bills with required fields:
@@ -105,7 +110,7 @@ async def import_dormitory_bills(
     }
     ```
     """
-    logger.info(f"Importing {len(request.bills)} bills")
+    logger.info(f"Importing {len(request.bills)} bills (auth: {auth_info.get('auth_type')})")
 
     try:
         # Convert Pydantic models to dicts for service layer
