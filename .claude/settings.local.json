@@ -81,7 +81,8 @@
       "Bash(gh run watch:*)",
       "Bash(alembic stamp:*)",
       "Bash(psql:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(git tag:*)"
     ]
   }
 }
