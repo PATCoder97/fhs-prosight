@@ -3,17 +3,14 @@ import { ofetch } from 'ofetch'
 // Runtime API base URL detection
 // Priority: 1) Window config, 2) Environment variable, 3) Relative path (production), 4) Localhost (dev)
 function getApiBaseUrl() {
-  // Check if running in browser
-  if (typeof window !== 'undefined') {
-    // Production: Use relative path /api which nginx will proxy to backend
-    // This allows the app to work on any domain without hardcoding
-    if (import.meta.env.PROD) {
-      return '/api'
-    }
+  // Development mode: Use environment variable or localhost
+  if (import.meta.env.DEV) {
+    return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api'
   }
 
-  // Development: Use VITE_API_BASE_URL or localhost
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api'
+  // Production mode: Always use /api which nginx will proxy to backend
+  // This works on any domain without hardcoding
+  return '/api'
 }
 
 export const $api = ofetch.create({
