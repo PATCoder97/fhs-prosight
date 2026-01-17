@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useGuestProtection } from '@/composables/useGuestProtection'
 import { $api } from '@/utils/api'
 import { formatEmployeeId, formatCurrency } from '@/utils/formatters'
@@ -31,19 +31,30 @@ const showToast = (message, color = 'error') => {
 const formRef = ref()
 
 // Pagination
-const currentPage = ref(1)
-const pageSize = ref(50)
-const totalRecords = ref(0)
+const page = ref(1)
+const pageSize = ref(10)
+const pageSizeOptions = [
+  { value: 10, title: '10' },
+  { value: 25, title: '25' },
+  { value: 50, title: '50' },
+]
+const total = ref(0)
 
 // Form inputs
 const searchEmployeeId = ref('')
 const searchTermCode = ref('')
 const searchDormCode = ref('')
 
+// Computed total pages
+const totalPages = computed(() => {
+  if (total.value === 0) return 1
+  return Math.ceil(total.value / pageSize.value)
+})
+
 // Search dormitory bills
 const searchBills = async (resetPage = false) => {
   if (resetPage) {
-    currentPage.value = 1
+    page.value = 1
   }
 
   loading.value = true
@@ -68,28 +79,37 @@ const searchBills = async (resetPage = false) => {
       params.append('dorm_code', searchDormCode.value.trim())
     }
 
-    params.append('page', currentPage.value)
+    params.append('page', page.value)
     params.append('page_size', pageSize.value)
 
     const response = await $api(`/dormitory-bills/search?${params.toString()}`)
 
     billsData.value = response.results || []
-    totalRecords.value = response.total || 0
+    total.value = response.total || 0
   }
   catch (err) {
     console.error('Failed to search dormitory bills:', err)
     showToast(err.message || 'Không thể tìm kiếm hóa đơn KTX')
     billsData.value = null
+    total.value = 0
   }
   finally {
     loading.value = false
   }
 }
 
-// Pagination handlers
-const handlePageChange = (page) => {
-  currentPage.value = page
-  searchBills(false)
+// Handle page change
+const onPageChange = (newPage) => {
+  page.value = newPage
+  searchBills()
+}
+
+// Handle page size change
+const onPageSizeChange = () => {
+  page.value = 1
+  if (billsData.value && billsData.value.length > 0) {
+    searchBills()
+  }
 }
 </script>
 
@@ -205,40 +225,64 @@ const handlePageChange = (page) => {
     <VRow v-if="billsData && billsData.length > 0 && !loading">
       <VCol cols="12">
         <VCard>
-          <VCardTitle class="d-flex justify-space-between align-center">
-            <span>Kết Quả Tìm Kiếm</span>
+          <VCardTitle class="d-flex align-center justify-space-between">
+            <div>
+              <VIcon
+                icon="tabler-list"
+                class="me-2"
+              />
+              Kết Quả
+            </div>
             <VChip
               color="primary"
               variant="tonal"
             >
-              {{ totalRecords }} kết quả
+              {{ total }} kết quả
             </VChip>
           </VCardTitle>
           <VDivider />
 
-          <VCardText>
-            <VDataTable
-              :items="billsData"
-              :items-per-page="pageSize"
-              hide-default-footer
-            >
-              <template #headers>
+          <VCardText class="pa-0">
+            <VTable>
+              <thead>
                 <tr>
-                  <th>Mã NV</th>
-                  <th>Kỳ</th>
-                  <th>Phòng</th>
-                  <th>Khu vực</th>
-                  <th class="text-end">Điện (kWh)</th>
-                  <th class="text-end">Tiền điện</th>
-                  <th class="text-end">Nước (m³)</th>
-                  <th class="text-end">Tiền nước</th>
-                  <th class="text-end">Phí khác</th>
-                  <th class="text-end">Tổng cộng</th>
+                  <th class="text-left">
+                    Mã NV
+                  </th>
+                  <th class="text-left">
+                    Kỳ
+                  </th>
+                  <th class="text-left">
+                    Phòng
+                  </th>
+                  <th class="text-left">
+                    Khu vực
+                  </th>
+                  <th class="text-end">
+                    Điện (kWh)
+                  </th>
+                  <th class="text-end">
+                    Tiền điện
+                  </th>
+                  <th class="text-end">
+                    Nước (m³)
+                  </th>
+                  <th class="text-end">
+                    Tiền nước
+                  </th>
+                  <th class="text-end">
+                    Phí khác
+                  </th>
+                  <th class="text-end">
+                    Tổng cộng
+                  </th>
                 </tr>
-              </template>
-
-              <template #item="{ item }">
-                <tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in billsData"
+                  :key="item.bill_id"
+                >
                   <td>{{ item.employee_id }}</td>
                   <td>
                     <VChip
@@ -286,17 +330,32 @@ const handlePageChange = (page) => {
                     </VChip>
                   </td>
                 </tr>
-              </template>
-            </VDataTable>
+              </tbody>
+            </VTable>
           </VCardText>
 
           <!-- Pagination -->
           <VDivider />
-          <VCardText class="d-flex justify-center">
+          <VCardText class="d-flex align-center justify-space-between flex-wrap gap-4">
+            <div class="d-flex align-center gap-3">
+              <div class="text-body-2 text-medium-emphasis">
+                Hiển thị {{ total === 0 ? 0 : ((page - 1) * pageSize) + 1 }} - {{ Math.min(((page - 1) * pageSize) + billsData.length, total) }} trong tổng số {{ total }} kết quả
+              </div>
+              <VSelect
+                v-model="pageSize"
+                :items="pageSizeOptions"
+                variant="outlined"
+                density="compact"
+                hide-details
+                style="max-width: 100px;"
+                @update:model-value="onPageSizeChange"
+              />
+            </div>
             <VPagination
-              v-model="currentPage"
-              :length="Math.ceil(totalRecords / pageSize)"
-              @update:model-value="handlePageChange"
+              v-model="page"
+              :length="totalPages"
+              :total-visible="7"
+              @update:model-value="onPageChange"
             />
           </VCardText>
         </VCard>

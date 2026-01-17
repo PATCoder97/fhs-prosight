@@ -24,9 +24,16 @@ def _map_hrs_to_model(hrs_data: Dict) -> Dict:
 
     Returns:
         Dict with Employee model fields
+
+    Raises:
+        ValueError: If employee_id is missing
     """
+    employee_id = hrs_data.get("employee_id")
+    if not employee_id:
+        raise ValueError("employee_id is required but missing from HRS data")
+
     return {
-        "id": hrs_data.get("employee_id"),
+        "id": employee_id,
         "name_tw": hrs_data.get("name_tw"),
         "name_en": chuan_hoa_ten(hrs_data.get("name_en", "")),
         "dob": parse_date(hrs_data.get("dob")),
@@ -55,9 +62,16 @@ def _map_covid_to_model(covid_data: Dict) -> Dict:
 
     Returns:
         Dict with Employee model fields (partial)
+
+    Raises:
+        ValueError: If employee_id is missing
     """
+    employee_id = covid_data.get("employee_id")
+    if not employee_id:
+        raise ValueError("employee_id is required but missing from COVID data")
+
     return {
-        "id": covid_data.get("employee_id"),
+        "id": employee_id,
         "name_tw": covid_data.get("name_tw"),
         "department_code": covid_data.get("department_code"),
         "phone1": covid_data.get("phone1"),
@@ -215,8 +229,14 @@ async def bulk_sync_employees(
             logger.debug(f"Skipped employee {current_emp_id}: No data from API")
             continue
 
+        # Check if emp_data is empty dict
+        if not emp_data or not isinstance(emp_data, dict):
+            skipped += 1
+            logger.debug(f"Skipped employee {current_emp_id}: Invalid data format")
+            continue
+
         try:
-            # Map to model
+            # Map to model (this will raise ValueError if employee_id is missing)
             if source == "hrs":
                 mapped_data = _map_hrs_to_model(emp_data)
             else:  # covid
@@ -243,6 +263,12 @@ async def bulk_sync_employees(
             await db.commit()
             success += 1
             logger.debug(f"Successfully synced employee {emp_id_str}")
+
+        except ValueError as e:
+            # Missing employee_id or invalid data - skip
+            skipped += 1
+            logger.warning(f"Skipped employee {current_emp_id}: {str(e)}")
+            await db.rollback()
 
         except Exception as e:
             # Log error but continue with other employees
