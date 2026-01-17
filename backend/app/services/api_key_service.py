@@ -32,7 +32,7 @@ def generate_api_key() -> tuple[str, str, str]:
     random_part = secrets.token_hex(32)
 
     # Create API key with prefix
-    full_key = f"fhs_{random_part}"
+    full_key = f"tp75_{random_part}"
 
     # Hash the key for database storage
     key_hash = hashlib.sha256(full_key.encode()).hexdigest()
