@@ -101,24 +101,24 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
             }
 
         # Step 3: Fetch all existing bills in ONE query
-        composite_keys = [(bill_data["employee_id"], bill_data["term_code"], bill_data["dorm_code"])
+        # Now using (employee_id, term_code) as composite key
+        composite_keys = [(bill_data["employee_id"], bill_data["term_code"])
                           for _, bill_data in validated_bills]
 
         conditions = []
-        for emp_id, term, dorm in composite_keys:
+        for emp_id, term in composite_keys:
             conditions.append(
                 (DormitoryBill.employee_id == emp_id) &
-                (DormitoryBill.term_code == term) &
-                (DormitoryBill.dorm_code == dorm)
+                (DormitoryBill.term_code == term)
             )
 
         stmt = select(DormitoryBill).where(or_(*conditions))
         result = await db.execute(stmt)
         existing_bills = result.scalars().all()
 
-        # Create hashmap of existing bills
+        # Create hashmap of existing bills using (employee_id, term_code) as key
         existing_map = {
-            (bill.employee_id, bill.term_code, bill.dorm_code): bill
+            (bill.employee_id, bill.term_code): bill
             for bill in existing_bills
         }
 
@@ -128,7 +128,8 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
         bills_to_insert = []
 
         for idx, bill_data in validated_bills:
-            key = (bill_data["employee_id"], bill_data["term_code"], bill_data["dorm_code"])
+            # Use (employee_id, term_code) as composite key
+            key = (bill_data["employee_id"], bill_data["term_code"])
 
             if key in existing_map:
                 # UPDATE existing bill

@@ -2,7 +2,7 @@
 Dormitory Bill Model
 
 Stores employee dormitory billing information including electricity, water,
-and management fees with composite unique key on (employee_id, term_code, dorm_code).
+and management fees with composite unique key on (employee_id, term_code).
 """
 
 from sqlalchemy import Column, BigInteger, String, Numeric, DateTime, ForeignKey, UniqueConstraint, CheckConstraint, Index
@@ -49,7 +49,7 @@ class DormitoryBill(Base):
 
     # Constraints
     __table_args__ = (
-        UniqueConstraint('employee_id', 'term_code', 'dorm_code', name='uq_bill_entry'),
+        UniqueConstraint('employee_id', 'term_code', name='uq_bill_entry'),
         CheckConstraint('elec_curr_index >= elec_last_index', name='chk_elec_index'),
         CheckConstraint('water_curr_index >= water_last_index', name='chk_water_index'),
         CheckConstraint('total_amount >= 0 AND elec_amount >= 0 AND water_amount >= 0 AND shared_fee >= 0 AND management_fee >= 0', name='chk_amounts'),
