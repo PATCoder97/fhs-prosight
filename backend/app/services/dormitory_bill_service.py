@@ -215,59 +215,86 @@ async def search_bills(
         dorm_code: Exact match filter (e.g., 'A01')
         min_amount: Minimum total_amount filter
         max_amount: Maximum total_amount filter
-        page: Page number (1-indexed)
-        page_size: Items per page (1-100)
+        page: Page number (1-indexed, default: 1)
+        page_size: Items per page (default: 50, max: 100)
 
     Returns:
+        dict matching SearchResponse schema:
         {
-            "total": int,
-            "page": int,
-            "page_size": int,
-            "results": List[DormitoryBillResponse]
+            "total": 250,
+            "page": 1,
+            "page_size": 50,
+            "results": [...]
         }
-    """
-    # Validate pagination
-    if page < 1:
-        raise HTTPException(status_code=422, detail="Page number must be >= 1")
-    if page_size < 1 or page_size > 100:
-        raise HTTPException(status_code=422, detail="Page size must be between 1 and 100")
 
+    Raises:
+        HTTPException(422): Invalid query parameters
+    """
     logger.info(f"Searching bills: employee_id={employee_id}, term_code={term_code}, dorm_code={dorm_code}, min_amount={min_amount}, max_amount={max_amount}, page={page}, page_size={page_size}")
 
-    # Build query with filters
-    query = select(DormitoryBill)
+    # Validate pagination parameters
+    if page < 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Page number must be >= 1"
+        )
 
-    if employee_id:
-        query = query.where(DormitoryBill.employee_id == employee_id)
-    if term_code:
-        query = query.where(DormitoryBill.term_code == term_code)
-    if dorm_code:
-        query = query.where(DormitoryBill.dorm_code == dorm_code)
-    if min_amount is not None:
-        query = query.where(DormitoryBill.total_amount >= min_amount)
-    if max_amount is not None:
-        query = query.where(DormitoryBill.total_amount <= max_amount)
+    if page_size < 1 or page_size > 100:
+        raise HTTPException(
+            status_code=422,
+            detail="Page size must be between 1 and 100"
+        )
 
-    # Count total (before pagination)
-    count_query = select(func.count()).select_from(query.subquery())
-    total = (await db.execute(count_query)).scalar()
+    try:
+        # Build base query
+        query = select(DormitoryBill)
 
-    # Apply sort (term_code DESC, created_at DESC)
-    query = query.order_by(DormitoryBill.term_code.desc(), DormitoryBill.created_at.desc())
+        # Apply filters
+        if employee_id:
+            query = query.where(DormitoryBill.employee_id == employee_id)
 
-    # Apply pagination
-    offset = (page - 1) * page_size
-    query = query.offset(offset).limit(page_size)
+        if term_code:
+            query = query.where(DormitoryBill.term_code == term_code)
 
-    # Execute query
-    result = await db.execute(query)
-    bills = result.scalars().all()
+        if dorm_code:
+            query = query.where(DormitoryBill.dorm_code == dorm_code)
 
-    logger.info(f"Search complete: found {total} total, returning {len(bills)} results")
+        if min_amount is not None:
+            query = query.where(DormitoryBill.total_amount >= min_amount)
 
-    return {
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "results": bills
-    }
+        if max_amount is not None:
+            query = query.where(DormitoryBill.total_amount <= max_amount)
+
+        # Count total records (before pagination)
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await db.execute(count_query)
+        total = count_result.scalar()
+
+        # Apply sort (term_code DESC, created_at DESC)
+        query = query.order_by(DormitoryBill.term_code.desc(), DormitoryBill.created_at.desc())
+
+        # Apply pagination
+        offset = (page - 1) * page_size
+        query = query.offset(offset).limit(page_size)
+
+        # Execute query
+        result = await db.execute(query)
+        bills = result.scalars().all()
+
+        logger.info(f"Found {total} total records, returning page {page} with {len(bills)} results")
+
+        return {
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "results": bills
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Search failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search dormitory bills: {str(e)}"
+        )
