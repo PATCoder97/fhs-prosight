@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 from pathlib import Path
 from app.core.config import settings
-from app.routers import auth, users, employees, hrs_data, evaluations, dormitory_bills, pidms
+from app.routers import auth, users, employees, hrs_data, evaluations, dormitory_bills, pidms, api_keys
 
 app = FastAPI(
     title="FHS Pro Sight Backend",
@@ -36,6 +36,7 @@ app.include_router(hrs_data.router, prefix="/api")
 app.include_router(evaluations.router, prefix="/api")
 app.include_router(dormitory_bills.router, prefix="/api")
 app.include_router(pidms.router, prefix="/api")
+app.include_router(api_keys.router, prefix="/api")
 
 # Serve frontend static files
 static_dir = Path("/app/static")

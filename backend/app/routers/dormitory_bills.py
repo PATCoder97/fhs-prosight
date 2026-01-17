@@ -16,7 +16,7 @@ from app.schemas.dormitory_bill import (
 )
 from app.services import dormitory_bill_service
 from app.database.session import get_db
-from app.core.security import require_role, require_authenticated_user
+from app.core.security import require_role, require_authenticated_user, require_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +30,21 @@ router = APIRouter(
     "/import",
     response_model=ImportSummary,
     summary="Import dormitory bills from JSON",
-    description="Bulk import dormitory billing data from JSON (admin only)"
+    description="Bulk import dormitory billing data from JSON (requires API key with 'dormitory-bills:import' scope)"
 )
 async def import_dormitory_bills(
     request: DormitoryBillImport,
+    api_key_info: dict = Depends(require_api_key("dormitory-bills:import")),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Import dormitory bills with bulk upsert logic.
 
-    **Access:** Admin only
+    **Access:** Requires API key with 'dormitory-bills:import' scope
+
+    **Authentication:**
+    - Provide API key via X-API-Key header
+    - Example: X-API-Key: fhs_1234567890abcdef...
 
     **Request Body:**
     JSON array of bills with required fields:

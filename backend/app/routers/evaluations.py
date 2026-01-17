@@ -16,7 +16,7 @@ from typing import Optional
 from app.schemas.evaluation import UploadSummary, SearchResponse
 from app.services import evaluation_service
 from app.database.session import get_db
-from app.core.security import require_role, require_authenticated_user
+from app.core.security import require_role, require_authenticated_user, require_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +30,21 @@ router = APIRouter(
     "/upload",
     response_model=UploadSummary,
     summary="Upload evaluation Excel file",
-    description="Upload Excel file to import/update employee evaluations (admin only)"
+    description="Upload Excel file to import/update employee evaluations (requires API key with 'evaluations:import' scope)"
 )
 async def upload_evaluations(
     file: UploadFile = File(..., description="Excel file (.xlsx or .xls)"),
+    api_key_info: dict = Depends(require_api_key("evaluations:import")),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Upload evaluation data from Excel file.
 
-    **Access:** Admin only
+    **Access:** Requires API key with 'evaluations:import' scope
+
+    **Authentication:**
+    - Provide API key via X-API-Key header
+    - Example: X-API-Key: fhs_1234567890abcdef...
 
     **File Requirements:**
     - Format: .xlsx or .xls
