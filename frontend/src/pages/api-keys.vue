@@ -51,7 +51,7 @@ onMounted(async () => {
 const loadApiKeys = async () => {
   loading.value = true
   try {
-    const response = await $api('/api/api-keys')
+    const response = await $api('/api-keys')
     apiKeys.value = response.keys || []
   }
   catch (error) {
@@ -77,7 +77,7 @@ const createApiKey = async () => {
 
   loading.value = true
   try {
-    const response = await $api('/api/api-keys', {
+    const response = await $api('/api-keys', {
       method: 'POST',
       body: JSON.stringify(newKeyForm.value),
     })
@@ -115,7 +115,7 @@ const revokeApiKey = async () => {
 
   loading.value = true
   try {
-    await $api(`/api/api-keys/${selectedKey.value.id}`, {
+    await $api(`/api-keys/${selectedKey.value.id}`, {
       method: 'DELETE',
     })
 
