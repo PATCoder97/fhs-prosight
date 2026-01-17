@@ -106,7 +106,7 @@ class SearchResponse(BaseModel):
 class ImportSummary(BaseModel):
     """Schema for import operation summary."""
     success: bool = Field(..., description="Whether import succeeded")
-    summary: dict = Field(..., description="Summary statistics (total_records, created, updated, errors, employees_updated)")
+    summary: dict = Field(..., description="Summary statistics (total_records, created, updated, skipped, errors, employees_updated)")
     error_details: List[dict] = Field(default_factory=list, description="List of errors with row numbers")
 
     class Config:
@@ -116,7 +116,8 @@ class ImportSummary(BaseModel):
                 "summary": {
                     "total_records": 150,
                     "created": 120,
-                    "updated": 30,
+                    "updated": 25,
+                    "skipped": 5,
                     "errors": 0,
                     "employees_updated": 145
                 },

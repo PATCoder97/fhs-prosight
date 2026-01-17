@@ -42,14 +42,21 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
     try:
         # Step 1: Parse and validate all bills
         valid_bills = []
+        skipped_count = 0
         for idx, bill_data in enumerate(bills, start=1):
             try:
-                # Validate required fields
-                if not bill_data.get("employee_id") or not bill_data.get("term_code") or not bill_data.get("dorm_code"):
+                # Skip bills without employee_id (silently ignore)
+                if not bill_data.get("employee_id"):
+                    skipped_count += 1
+                    logger.debug(f"Row {idx}: Skipping bill without employee_id")
+                    continue
+
+                # Validate other required fields
+                if not bill_data.get("term_code") or not bill_data.get("dorm_code"):
                     error_count += 1
                     error_details.append({
                         "row": idx,
-                        "error": "Missing required fields: employee_id, term_code, or dorm_code"
+                        "error": "Missing required fields: term_code or dorm_code"
                     })
                     continue
 
@@ -60,7 +67,7 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
                 error_details.append({"row": idx, "error": str(e)})
                 logger.warning(f"Row {idx} validation error: {e}")
 
-        logger.info(f"Validated {len(valid_bills)} bills, {error_count} errors")
+        logger.info(f"Validated {len(valid_bills)} bills, {skipped_count} skipped (no employee_id), {error_count} errors")
 
         if not valid_bills:
             return {
@@ -75,19 +82,16 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
         result = await db.execute(stmt)
         existing_employee_ids = set(row[0] for row in result.fetchall())
 
-        # Filter out bills with invalid employee_id
+        # Filter out bills with invalid employee_id (silently skip)
         validated_bills = []
         for idx, bill_data in valid_bills:
             if bill_data["employee_id"] not in existing_employee_ids:
-                error_count += 1
-                error_details.append({
-                    "row": idx,
-                    "error": f"Employee ID '{bill_data['employee_id']}' does not exist"
-                })
+                skipped_count += 1
+                logger.debug(f"Row {idx}: Skipping bill - employee '{bill_data['employee_id']}' does not exist")
             else:
                 validated_bills.append((idx, bill_data))
 
-        logger.info(f"Employee validation: {len(validated_bills)} valid, {error_count} total errors")
+        logger.info(f"Employee validation: {len(validated_bills)} valid, {skipped_count} total skipped")
 
         if not validated_bills:
             return {
@@ -177,6 +181,7 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
                 "total_records": total_records,
                 "created": created_count,
                 "updated": updated_count,
+                "skipped": skipped_count,
                 "errors": error_count,
                 "employees_updated": updated_employees
             },
