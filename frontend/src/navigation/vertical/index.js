@@ -68,6 +68,10 @@ export default [
         title: 'Quản Lý PIDMS',
         to: { name: 'pidms-manager' },
       },
+      {
+        title: 'Quản Lý API Keys',
+        to: { name: 'api-keys' },
+      },
     ],
   },
 ]
