@@ -48,6 +48,11 @@ async def import_dormitory_bills(
     - dorm_code (required): Room code
     - All other billing fields (electricity, water, fees)
 
+    **Automatic Updates:**
+    - When bills are imported, the system automatically updates the `dorm_id` field
+      in the employees table with the corresponding `dorm_code` from the bill.
+    - This ensures employee dormitory information is always synchronized with billing data.
+
     **Response:**
     - 200: Import summary with created/updated counts
     - 400: Invalid JSON format
@@ -88,13 +93,14 @@ async def import_dormitory_bills(
         "total_records": 150,
         "created": 120,
         "updated": 30,
-        "errors": 0
+        "errors": 0,
+        "employees_updated": 145
       },
       "error_details": []
     }
     ```
     """
-    logger.info(f"Admin {current_user.get('localId')} importing {len(request.bills)} bills")
+    logger.info(f"Importing {len(request.bills)} bills")
 
     try:
         # Convert Pydantic models to dicts for service layer

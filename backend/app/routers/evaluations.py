@@ -67,7 +67,7 @@ async def upload_evaluations(
     }
     ```
     """
-    logger.info(f"Admin {current_user.get('localId')} uploading evaluation file: {file.filename}")
+    logger.info(f"Uploading evaluation file: {file.filename}")
 
     # Validate file extension
     if not file.filename:

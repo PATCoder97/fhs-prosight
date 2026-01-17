@@ -143,9 +143,33 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
             db.add_all(bills_to_insert)
             logger.info(f"Bulk inserting {len(bills_to_insert)} new bills")
 
-        # Step 6: Commit all changes
+        # Step 6: Update employee dorm_id for all bills (both new and updated)
+        # Create a mapping of employee_id -> latest dorm_code from the import
+        employee_dorm_updates = {}
+        for idx, bill_data in validated_bills:
+            emp_id = bill_data["employee_id"]
+            dorm_code = bill_data["dorm_code"]
+            # Keep the latest dorm_code for each employee
+            employee_dorm_updates[emp_id] = dorm_code
+
+        # Fetch all employees that need dorm_id updates
+        stmt = select(Employee).where(Employee.id.in_(list(employee_dorm_updates.keys())))
+        result = await db.execute(stmt)
+        employees_to_update = result.scalars().all()
+
+        # Update dorm_id for each employee
+        updated_employees = 0
+        for employee in employees_to_update:
+            new_dorm_code = employee_dorm_updates[employee.id]
+            if employee.dorm_id != new_dorm_code:
+                employee.dorm_id = new_dorm_code
+                updated_employees += 1
+
+        logger.info(f"Updated dorm_id for {updated_employees} employees")
+
+        # Step 7: Commit all changes
         await db.commit()
-        logger.info(f"Import complete: {created_count} created, {updated_count} updated, {error_count} errors")
+        logger.info(f"Import complete: {created_count} created, {updated_count} updated, {error_count} errors, {updated_employees} employees updated")
 
         return {
             "success": True,
@@ -153,7 +177,8 @@ async def import_bills(db: AsyncSession, bills: List[Dict]) -> dict:
                 "total_records": total_records,
                 "created": created_count,
                 "updated": updated_count,
-                "errors": error_count
+                "errors": error_count,
+                "employees_updated": updated_employees
             },
             "error_details": error_details
         }
