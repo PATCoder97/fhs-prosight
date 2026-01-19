@@ -49,24 +49,41 @@ class FHSCovidClient:
     def _parse_user_data(self, data: Dict) -> Optional[Dict]:
         """Parse user data from COVID API JSON response
 
-        Expected fields: userName, fullName, departmentCode, companyCode, phone, sex,
-                        identityNumber, birthday, nationality
+        COVID API returns a nested structure with 'user' key containing the employee data.
+        Expected fields in 'user': userName, fullName, departmentCode, companyCode, phone, sex,
+                                   identityNumber, birthday, nationality
         """
         try:
             if not data:
                 return None
 
+            # Log the raw data for debugging
+            logger.info(f"COVID API raw response keys: {list(data.keys())}")
+
+            # Extract user data from nested structure
+            user_data = data.get("user")
+            if not user_data:
+                logger.error(f"COVID API response missing 'user' key. Available keys: {list(data.keys())}")
+                return None
+
+            logger.info(f"COVID API user data: {user_data}")
+
             # Map to standardized format
-            return {
-                "employee_id": data.get("userName"),  # VNW0006204
-                "name_tw": data.get("fullName"),  # Chinese name
-                "department_code": data.get("departmentCode"),
-                "phone1": data.get("phone"),
-                "sex": data.get("sex"),  # 男/女
-                "identity_number": data.get("identityNumber"),  # CMND/CCCD
-                "dob": data.get("birthday"),  # ISO date format
-                "nationality": data.get("nationality"),  # VN
+            parsed_data = {
+                "employee_id": user_data.get("userName"),  # VNW0014732
+                "name_tw": user_data.get("fullName"),  # Chinese name (潘英俊)
+                "department_code": user_data.get("departmentCode"),  # 7820
+                "phone1": user_data.get("phone"),
+                "sex": user_data.get("sex"),  # 男/女
+                "identity_number": user_data.get("identityNumber"),  # CMND/CCCD
+                "dob": user_data.get("birthday"),  # ISO date format
+                "nationality": user_data.get("nationality"),  # VN
             }
+
+            # Log parsed data
+            logger.info(f"COVID API parsed data: {parsed_data}")
+
+            return parsed_data
         except Exception as e:
             logger.error(f"Failed to parse COVID user data: {e}")
             return None

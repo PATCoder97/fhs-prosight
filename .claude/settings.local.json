@@ -82,7 +82,8 @@
       "Bash(alembic stamp:*)",
       "Bash(psql:*)",
       "Bash(docker logs:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(tasklist:*)"
     ]
   }
 }

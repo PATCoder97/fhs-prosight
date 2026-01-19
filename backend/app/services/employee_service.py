@@ -152,7 +152,17 @@ async def sync_employee_from_covid(
             detail=f"Employee {emp_id} not found in COVID API or invalid token"
         )
 
-    emp_id_str = emp_data["employee_id"]
+    # Log the data received for debugging
+    logger.info(f"COVID API returned data for emp_id {emp_id}: {emp_data}")
+
+    # Validate employee_id exists in response
+    emp_id_str = emp_data.get("employee_id")
+    if not emp_id_str:
+        logger.error(f"COVID API returned data without employee_id field. Data: {emp_data}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"COVID API returned invalid data: missing employee_id (userName field)"
+        )
 
     # Check if exists
     existing = await db.get(Employee, emp_id_str)
